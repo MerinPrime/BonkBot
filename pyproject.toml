@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+requires-python = ">= 3.8"
+name = "BonkBot"
+version = "1.0"
+description = "Bonk API Wrapper for creating bots."
+readme = {file = "README.md"}
+license = {file = "LICENSE"}
+authors = [
+    {name = "MerinPrime"}
+]
+
+keywords = ["bonk", "bonk.io", "bots", "api", "bonk-bot", "bonkbot"]
+classifiers = [
+    "Development Status :: 1 - Planning",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13"
+]
+
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/MerinPrime/BonkBot"
+Issues = "https://github.com/MerinPrime/BonkBot/issues"
