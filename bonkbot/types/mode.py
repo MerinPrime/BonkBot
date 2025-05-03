@@ -3,8 +3,8 @@ import enum
 from bonkbot.types.gamo import GaMo
 
 
+# Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/GameSettings.ts
 class Mode(enum.Enum):
-    # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/GameSettings.ts
     CLASSIC = GaMo('b', 'b')
     SIMPLE = GaMo('b', 'bs')
     ARROWS = GaMo('b', 'ar')
