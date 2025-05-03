@@ -17,11 +17,11 @@ select = [
     "SIM",
     "PTH",
     "RUF",
-    "D",
+#    "D",
     "FBT",
 ]
 ignore = [
-    
+    "F401"
 ]
 
 [lint.flake8-quotes]
