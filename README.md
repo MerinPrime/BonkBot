@@ -1,0 +1,1 @@
+In the future i want to write docstrings but idk what i should write in them
