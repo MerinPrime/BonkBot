@@ -1,1 +1,1 @@
-from .types import InputFlag, Inputs
+from .types import InputFlag, Inputs, Mode
