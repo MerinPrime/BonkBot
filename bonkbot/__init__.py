@@ -1,1 +1,1 @@
-from .types import InputFlag, Inputs, Mode, Team, Server
+from .types import InputFlag, Inputs, Mode, Server, Team

@@ -21,7 +21,8 @@ select = [
     "FBT",
 ]
 ignore = [
-    "F401"
+    "F401",
+    "E501",
 ]
 
 [lint.flake8-quotes]

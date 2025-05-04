@@ -16,7 +16,7 @@ class Mode(enum.Enum):
     @property
     def engine(self) -> str:
         return self.value.engine
-    
+
     @property
     def mode(self) -> str:
         return self.value.mode
