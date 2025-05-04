@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 @dataclass
 class BotData:
     name: str = ''
-    token: Union[str, None] = None
+    token: str = ''
     dbid: Union[int, None] = None
     xp: Union[int, None] = None
     avatar: "Avatar" = None

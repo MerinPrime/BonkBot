@@ -99,7 +99,7 @@ class BonkBot(BotEventHandler):
             validate_username(name)
             data = BotData(
                 name=name,
-                token=None,
+                token='',
                 dbid=None,
                 xp=None,
                 avatar=Avatar(),
