@@ -1,6 +1,3 @@
-import math
-
-
 def xp_to_level(xp: int) -> float:
     return xp ** 0.5 / 10 + 1
 

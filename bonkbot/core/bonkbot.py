@@ -168,4 +168,5 @@ class BonkBot(BotEventHandler):
                 raise LoginError(response_data['e'])
             await self.login_by_data(response_data)
         return self.event_loop.run_until_complete(login())
-
+    
+    async def fetch_rooms(self):

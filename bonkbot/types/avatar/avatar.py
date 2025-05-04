@@ -1,9 +1,5 @@
-import base64
 from dataclasses import dataclass, field
 from typing import List
-from urllib.parse import unquote
-
-import lzstring
 
 from bonkbot.pson import ByteBuffer
 from bonkbot.types.avatar.layer import Layer

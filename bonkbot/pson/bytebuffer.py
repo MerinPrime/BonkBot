@@ -1,6 +1,5 @@
 import base64
 import struct
-import urllib
 from typing import Optional
 from urllib.parse import unquote
 
