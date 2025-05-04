@@ -3,13 +3,16 @@ from typing import List, Union
 
 import aiohttp
 
-from bonkbot.core.api import login_legacy_api
+from bonkbot.core import PROTOCOL_VERSION
+from bonkbot.core.api import get_rooms_api, login_legacy_api
 from bonkbot.core.bot_data import BotData
 from bonkbot.core.bot_event_handler import BotEventHandler
 from bonkbot.pson import ByteBuffer
+from bonkbot.types import Mode
 from bonkbot.types.avatar.avatar import Avatar
 from bonkbot.types.errors.login_error import LoginError
 from bonkbot.types.friend import Friend
+from bonkbot.types.room_info import RoomInfo
 from bonkbot.types.settings import Settings
 from bonkbot.utils import validate_username, xp_to_level
 
@@ -79,7 +82,11 @@ class BonkBot(BotEventHandler):
     @property
     def settings(self) -> Settings:
         return self._data.settings
-    
+
+    @property
+    def token(self) -> str:
+        return self._data.token
+
     async def _start(self, data: BotData) -> None:
         self._data = data
         self.is_logged = True
@@ -168,5 +175,29 @@ class BonkBot(BotEventHandler):
                 raise LoginError(response_data['e'])
             await self.login_by_data(response_data)
         return self.event_loop.run_until_complete(login())
-    
-    async def fetch_rooms(self):
+
+    async def fetch_rooms(self) -> List[RoomInfo]:
+        response = await self.aiohttp_session.post(
+            get_rooms_api,
+            data={
+                'version': PROTOCOL_VERSION,
+                'gl': 'n',
+                'token': self._data.token,
+            }
+        )
+        response.raise_for_status()
+        response_data = await response.json()
+
+        return [
+            RoomInfo(
+                bot=self,
+                name=room['roomname'],
+                dbid=room['id'],
+                players=room['players'],
+                max_players=room['maxplayers'],
+                has_password=room['password'] == 1,
+                mode=Mode.from_mode_code(room['mode_mo']),
+                min_level=room['minlevel'],
+                max_level=room['maxlevel'],
+            ) for room in response_data['rooms']
+        ]
