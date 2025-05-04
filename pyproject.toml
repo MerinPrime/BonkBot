@@ -28,7 +28,10 @@ classifiers = [
     "Programming Language :: Python :: 3.13"
 ]
 
-dependencies = []
+dependencies = [
+    "aiohttp>=3.10.11",
+    "pymitter>=1.0.0",
+]
 
 [project.urls]
 Repository = "https://github.com/MerinPrime/BonkBot"
