@@ -10,33 +10,39 @@ class BotEventHandler:
 
     def __init__(self):
         self.event_emitter = EventEmitter()
-
-        @self.event_emitter.on('error')
-        async def on_error(error: Exception):
-            raise error
+        for name, method in inspect.getmembers(self, predicate=inspect.ismethod):
+            if name.startswith("_on_"):
+                self.event(method)
 
     def event(self, function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
         if not asyncio.iscoroutinefunction(function):
-            raise TypeError("Event handler function is not a coroutine ( must be defined with 'async def' )")
+            raise TypeError("Handler '{function.__name__}' must be async (use 'async def')")
 
-        attribute_name = "_" + function.__name__
+        handler_attr = function.__name__
+        is_default = handler_attr.startswith("_")
+        event_name = handler_attr.lstrip("_") if is_default else handler_attr
         try:
-            handler = getattr(self, attribute_name)
+            handler = getattr(self, f'_{event_name}')
         except AttributeError as err:
-            raise AttributeError(f"No event named {function.__name__} found") from err
+            raise AttributeError(f"No event named {handler_attr} found") from err
 
         func_sig = inspect.signature(function)
         handler_sig = inspect.signature(handler)
 
-        handler_params = list(handler_sig.parameters.values())[1:]
-        func_params = list(func_sig.parameters.values())
+        handler_params = len(list(handler_sig.parameters.values()))
+        func_params = len(list(func_sig.parameters.values()))
 
-        if len(func_params) != len(handler_params):
+        if func_params != handler_params:
+            print(function.__name__)
             raise TypeError(
-                f"Handler expected to get {len(handler_params)} arguments, but got {len(func_params)}"
+                f"Handler expected to get {handler_params} arguments, but got {func_params}"
             )
 
-        self.event_emitter.on(function.__name__.replace("on_", ""), function)
+        self.event_emitter.off(event_name, handler)
+        self.event_emitter.on(event_name, function)
 
     async def _on_error(self, error: Exception) -> None:
+        raise error
+
+    async def _on_ready(self) -> None:
         pass
