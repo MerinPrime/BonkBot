@@ -118,33 +118,7 @@ class BonkBot(BotEventHandler):
             )
             await self._start(data)
         self.event_loop.run_until_complete(login())
-
-    async def login_by_data(self, json_data: dict) -> None:
-        if self._is_logged:
-            raise ValueError('BonkBot already logged in')
-        data = BotData()
-        data.name = json_data['username']
-        data.token = json_data['token']
-        data.dbid = json_data['id']
-        data.xp = json_data['xp']
-        data.avatar = Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar'], uri_encoded=True))
-        data.active_avatar = json_data['activeAvatarNumber']
-        data.avatars = [
-            Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar1'], uri_encoded=True)),
-            Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar2'], uri_encoded=True)),
-            Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar3'], uri_encoded=True)),
-            Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar4'], uri_encoded=True)),
-            Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar5'], uri_encoded=True))
-        ]
-        data.friends = [Friend(
-            name=friend['name'],
-            dbid=friend['id'],
-            room_id=friend['roomid']
-        ) for friend in json_data['friends']]
-        data.legacy_friends = [Friend(name=friend, dbid=None, room_id=None) for friend in json_data['legacyFriends'].split('#')]
-        data.settings = Settings.from_buffer(ByteBuffer().from_base64(json_data['controls'], uri_encoded=False))
-        await self._start(data)
-
+    
     def login_with_password(self, name: str, password: str, *, remember: bool = False) -> Union[str, None]:
         if self._is_logged:
             raise ValueError('BonkBot already logged in')
@@ -162,7 +136,7 @@ class BonkBot(BotEventHandler):
             if response_data['r'] == 'fail':
                 await self.event_emitter.emit_async('on_error', LoginError(response_data['e']))
                 return
-            await self.login_by_data(response_data)
+            await self._start(BotData.from_login_response(response_data))
             return response_data['rememberToken']
         return self.event_loop.run_until_complete(login())
 
@@ -179,8 +153,9 @@ class BonkBot(BotEventHandler):
             response.raise_for_status()
             response_data = await response.json()
             if response_data['r'] == 'fail':
-                raise LoginError(response_data['e'])
-            await self.login_by_data(response_data)
+                await self.event_emitter.emit_async('on_error', LoginError(response_data['e']))
+                return
+            await self._start(BotData.from_login_response(response_data))
         return self.event_loop.run_until_complete(login())
 
     async def fetch_rooms(self) -> List[RoomInfo]:
