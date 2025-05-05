@@ -13,16 +13,16 @@ bot = BonkBot()
 @bot.event
 async def on_ready():
     print('Rooms watcher started')
-    
+
     previous_rooms = set()
     while True:
         current_rooms = await bot.fetch_rooms()
-        current_rooms = set(
+        current_rooms = {
             room for room in current_rooms
             if room.mode == Mode.VTOL
                and room.players < room.max_players
                and not room.has_password
-        )
+        }
         new_rooms = current_rooms - previous_rooms
         for room in new_rooms:
             print(f'New VTOL room: {room.name}')

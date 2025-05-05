@@ -3,8 +3,7 @@ from typing import List, Union
 
 import aiohttp
 
-from bonkbot.core import PROTOCOL_VERSION
-from bonkbot.core.api import get_rooms_api, login_legacy_api
+from bonkbot.core import PROTOCOL_VERSION, get_rooms_api, login_legacy_api
 from bonkbot.core.bot_data import BotData
 from bonkbot.core.bot_event_handler import BotEventHandler
 from bonkbot.pson import ByteBuffer
@@ -19,19 +18,27 @@ from bonkbot.utils import validate_username, xp_to_level
 
 class BonkBot(BotEventHandler):
     _data: Union[BotData, None]
-    aiohttp_session: Union[aiohttp.ClientSession, None]
-    is_logged: bool
+    _aiohttp_session: Union[aiohttp.ClientSession, None]
+    _is_logged: bool
+    event_loop: asyncio.AbstractEventLoop
 
     def __init__(self):
         super().__init__()
         self._data = None
-        self.aiohttp_session = None
-        self.is_logged = False
+        self._is_logged = False
         self.event_loop = asyncio.get_event_loop()
-        self.aiohttp_session = aiohttp.ClientSession(loop=self.event_loop)
+        self._aiohttp_session = aiohttp.ClientSession(loop=self.event_loop)
 
     def __del__(self):
-        self.event_loop.run_until_complete(self.aiohttp_session.close())
+        self.event_loop.run_until_complete(self._aiohttp_session.close())
+
+    @property
+    def is_logged(self) -> bool:
+        return self._is_logged
+
+    @property
+    def aiohttp_session(self) -> aiohttp.ClientSession:
+        return self._aiohttp_session
 
     @property
     def name(self) -> str:
@@ -89,11 +96,11 @@ class BonkBot(BotEventHandler):
 
     async def _start(self, data: BotData) -> None:
         self._data = data
-        self.is_logged = True
+        self._is_logged = True
         await self.event_emitter.emit_async('on_ready')
 
     def login_as_guest(self, name: str) -> None:
-        if self.is_logged:
+        if self._is_logged:
             raise ValueError('BonkBot already logged in')
         async def login():
             validate_username(name)
@@ -113,7 +120,7 @@ class BonkBot(BotEventHandler):
         self.event_loop.run_until_complete(login())
 
     async def login_by_data(self, json_data: dict) -> None:
-        if self.is_logged:
+        if self._is_logged:
             raise ValueError('BonkBot already logged in')
         data = BotData()
         data.name = json_data['username']
@@ -134,15 +141,15 @@ class BonkBot(BotEventHandler):
             dbid=friend['id'],
             room_id=friend['roomid']
         ) for friend in json_data['friends']]
-        data.legacy_friends = [Friend(name=friend) for friend in json_data['legacyFriends'].split('#')]
+        data.legacy_friends = [Friend(name=friend, dbid=None, room_id=None) for friend in json_data['legacyFriends'].split('#')]
         data.settings = Settings.from_buffer(ByteBuffer().from_base64(json_data['controls'], uri_encoded=False))
         await self._start(data)
 
     def login_with_password(self, name: str, password: str, *, remember: bool = False) -> Union[str, None]:
-        if self.is_logged:
+        if self._is_logged:
             raise ValueError('BonkBot already logged in')
         async def login():
-            response = await self.aiohttp_session.post(
+            response = await self._aiohttp_session.post(
                 login_legacy_api,
                 data={
                     'username': name,
@@ -160,10 +167,10 @@ class BonkBot(BotEventHandler):
         return self.event_loop.run_until_complete(login())
 
     def login_with_token(self, remember_token: str) -> None:
-        if self.is_logged:
+        if self._is_logged:
             raise ValueError('BonkBot already logged in')
         async def login():
-            response = await self.aiohttp_session.post(
+            response = await self._aiohttp_session.post(
                 login_legacy_api,
                 data={
                     'rememberToken': remember_token,
@@ -177,7 +184,7 @@ class BonkBot(BotEventHandler):
         return self.event_loop.run_until_complete(login())
 
     async def fetch_rooms(self) -> List[RoomInfo]:
-        response = await self.aiohttp_session.post(
+        response = await self._aiohttp_session.post(
             get_rooms_api,
             data={
                 'version': PROTOCOL_VERSION,
@@ -190,7 +197,6 @@ class BonkBot(BotEventHandler):
 
         return [
             RoomInfo(
-                bot=self,
                 name=room['roomname'],
                 dbid=room['id'],
                 players=room['players'],
