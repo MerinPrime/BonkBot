@@ -6,7 +6,6 @@ import aiohttp
 from bonkbot.core import PROTOCOL_VERSION, get_rooms_api, login_legacy_api
 from bonkbot.core.bot_data import BotData
 from bonkbot.core.bot_event_handler import BotEventHandler
-from bonkbot.pson import ByteBuffer
 from bonkbot.types import Mode
 from bonkbot.types.avatar.avatar import Avatar
 from bonkbot.types.errors.api_error import ApiError
@@ -118,7 +117,7 @@ class BonkBot(BotEventHandler):
             )
             await self._start(data)
         self.event_loop.run_until_complete(login())
-    
+
     def login_with_password(self, name: str, password: str, *, remember: bool = False) -> Union[str, None]:
         if self._is_logged:
             raise ValueError('BonkBot already logged in')
