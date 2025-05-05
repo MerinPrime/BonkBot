@@ -9,7 +9,7 @@ from bonkbot.core.bot_event_handler import BotEventHandler
 from bonkbot.pson import ByteBuffer
 from bonkbot.types import Mode
 from bonkbot.types.avatar.avatar import Avatar
-from bonkbot.types.errors.login_error import LoginError
+from bonkbot.types.errors.api_error import ApiError
 from bonkbot.types.friend import Friend
 from bonkbot.types.room_info import RoomInfo
 from bonkbot.types.settings import Settings
@@ -134,7 +134,7 @@ class BonkBot(BotEventHandler):
             response.raise_for_status()
             response_data = await response.json()
             if response_data['r'] == 'fail':
-                await self.event_emitter.emit_async('on_error', LoginError(response_data['e']))
+                await self.event_emitter.emit_async('on_error', ApiError(response_data['e']))
                 return
             await self._start(BotData.from_login_response(response_data))
             return response_data['rememberToken']
@@ -153,7 +153,7 @@ class BonkBot(BotEventHandler):
             response.raise_for_status()
             response_data = await response.json()
             if response_data['r'] == 'fail':
-                await self.event_emitter.emit_async('on_error', LoginError(response_data['e']))
+                await self.event_emitter.emit_async('on_error', ApiError(response_data['e']))
                 return
             await self._start(BotData.from_login_response(response_data))
         return self.event_loop.run_until_complete(login())

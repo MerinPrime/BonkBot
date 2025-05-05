@@ -1,7 +1,7 @@
 from bonkbot.types.errors import ErrorType
 
 
-class LoginError(Exception):
+class ApiError(Exception):
     error_type: ErrorType
 
     def __init__(self, error_code: str):
