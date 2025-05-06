@@ -1,4 +1,4 @@
-from bonkbot.types.errors import ErrorType
+from .error_type import ErrorType
 
 
 class ApiError(Exception):

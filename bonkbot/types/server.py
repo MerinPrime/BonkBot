@@ -1,6 +1,13 @@
 import enum
+from dataclasses import dataclass
 
-from bonkbot.types.server_info import ServerInfo
+
+@dataclass(frozen=True)
+class ServerInfo:
+    name: str
+    latitude: float
+    longitude: float
+    country: str
 
 
 class Server(enum.Enum):
