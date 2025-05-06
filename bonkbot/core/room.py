@@ -1,5 +1,4 @@
 import dataclasses
-import time
 from typing import TYPE_CHECKING, Dict, List, Union
 
 import socketio
@@ -7,13 +6,12 @@ from peerjs.dataconnection import DataConnection
 from peerjs.enums import PeerEventType
 from peerjs.peer import Peer, PeerOptions
 
-from bonkbot.core.api import bonk_peer_api, bonk_socket_api
+from bonkbot.core.api import bonk_socket_api
 from bonkbot.core.timesyncer import TimeSyncer
 from bonkbot.types import Mode, RoomInfo, Server
 
 if TYPE_CHECKING:
     from bonkbot.core import BonkBot
-
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/network/NetworkEngine.ts
 class Room:
