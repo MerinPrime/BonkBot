@@ -83,7 +83,13 @@ class Room:
         print('INIT')
 
     async def _make_timesync(self):
-        self.timesyncer = TimeSyncer(10, 1, 0.25, 5, self._socket)
+        self.timesyncer = TimeSyncer(
+            interval=10,
+            timeout=1,
+            delay=0.25,
+            repeat=5,
+            socket=self._socket
+        )
 
         @self.timesyncer.event_emitter.on('sync')
         async def on_sync(state: str):
