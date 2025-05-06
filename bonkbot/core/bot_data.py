@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, List, Union
+from typing import List, Union
 
-from bonkbot.pson import ByteBuffer
-from bonkbot.types.avatar.avatar import Avatar
-from bonkbot.types.friend import Friend
-from bonkbot.types.settings import Settings
+from ..pson.bytebuffer import ByteBuffer
+from ..types.avatar.avatar import Avatar
+from ..types.friend import Friend
+from ..types.settings import Settings
 
 
 @dataclass

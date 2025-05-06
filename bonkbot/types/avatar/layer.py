@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Union
 
-from bonkbot.pson import ByteBuffer
+from ...pson.bytebuffer import ByteBuffer
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/avatar/Layer.ts

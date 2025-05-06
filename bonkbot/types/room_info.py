@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Union
 
 if TYPE_CHECKING:
-    from bonkbot.types import Mode
+    from .mode import Mode
 
 @dataclass(frozen=True)
 class RoomInfo:

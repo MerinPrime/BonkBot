@@ -21,10 +21,12 @@ select = [
     "FBT",
 ]
 ignore = [
-    "F401",
     "E501",
     "SIM108",
 ]
+
+[lint.per-file-ignores]
+"__init__.py" = ["F401"]
 
 [lint.flake8-quotes]
 docstring-quotes = "single"

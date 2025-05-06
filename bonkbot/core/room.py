@@ -6,12 +6,14 @@ from peerjs.dataconnection import DataConnection
 from peerjs.enums import PeerEventType
 from peerjs.peer import Peer, PeerOptions
 
-from bonkbot.core.api import bonk_socket_api
-from bonkbot.core.timesyncer import TimeSyncer
-from bonkbot.types import Mode, RoomInfo, Server
+from ..types.mode import Mode
+from ..types.room_info import RoomInfo
+from ..types.server import Server
+from .api import bonk_socket_api
+from .timesyncer import TimeSyncer
 
 if TYPE_CHECKING:
-    from bonkbot.core import BonkBot
+    from .bonkbot import BonkBot
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/network/NetworkEngine.ts
 class Room:

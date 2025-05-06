@@ -3,16 +3,17 @@ from typing import List, Union
 
 import aiohttp
 
-from bonkbot.core import PROTOCOL_VERSION, get_rooms_api, login_legacy_api
-from bonkbot.core.bot_data import BotData
-from bonkbot.core.bot_event_handler import BotEventHandler
-from bonkbot.types import Mode
-from bonkbot.types.avatar.avatar import Avatar
-from bonkbot.types.errors.api_error import ApiError
-from bonkbot.types.friend import Friend
-from bonkbot.types.room_info import RoomInfo
-from bonkbot.types.settings import Settings
-from bonkbot.utils import validate_username, xp_to_level
+from ..types.avatar.avatar import Avatar
+from ..types.errors.api_error import ApiError
+from ..types.friend import Friend
+from ..types.mode import Mode
+from ..types.room_info import RoomInfo
+from ..types.settings import Settings
+from ..utils.api import validate_username
+from ..utils.xp import xp_to_level
+from .api import PROTOCOL_VERSION, get_rooms_api, login_legacy_api
+from .bot_data import BotData
+from .bot_event_handler import BotEventHandler
 
 
 class BonkBot(BotEventHandler):

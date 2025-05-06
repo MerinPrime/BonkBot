@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from bonkbot.pson import ByteBuffer
+from ..pson.bytebuffer import ByteBuffer
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/CustomControls.ts

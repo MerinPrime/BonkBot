@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import List
 
-from bonkbot.pson import ByteBuffer
-from bonkbot.types.avatar.layer import Layer
+from ...pson.bytebuffer import ByteBuffer
+from .layer import Layer
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/avatar/Avatar.ts

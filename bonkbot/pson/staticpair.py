@@ -1,12 +1,12 @@
 from typing import List, Optional, Union
 
-from bonkbot.pson.bytebuffer import (
+from .bytebuffer import (
     ByteBuffer,
     zigzag_decode32,
     zigzag_encode32,
     zigzag_encode64,
 )
-from bonkbot.pson.t import PsonValue, T
+from .t import PsonValue, T
 
 
 class StaticPair:
