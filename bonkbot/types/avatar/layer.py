@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Union
+from typing import Union, Dict
 
 from ...pson.bytebuffer import ByteBuffer
 
@@ -13,8 +13,8 @@ class Layer:
     angle: int = 0
     x: int = 0
     y: int = 0
-    flipX: int = 0
-    flipY: int = 0
+    flip_x: int = 0
+    flip_y: int = 0
     color: int = 0
 
     @staticmethod
@@ -32,19 +32,32 @@ class Layer:
         layer.angle = buffer.read_float32()
         layer.x = buffer.read_float32()
         layer.y = buffer.read_float32()
-        layer.flipX = buffer.read_uint8() == 1
-        layer.flipY = buffer.read_uint8() == 1
+        layer.flip_x = buffer.read_uint8() == 1
+        layer.flip_y = buffer.read_uint8() == 1
         layer.color = buffer.read_int32()
         return layer
 
-    def to_json(self):
+    @staticmethod
+    def from_json(data: Dict) -> "Layer":
+        layer = Layer()
+        layer.id = data["id"]
+        layer.scale = data["scale"]
+        layer.angle = data["angle"]
+        layer.x = data["x"]
+        layer.y = data["y"]
+        layer.flip_x = data["flipX"]
+        layer.flip_y = data["flipY"]
+        layer.color = data["color"]
+        return layer
+
+    def to_json(self) -> Dict:
         return {
             "id": self.id,
             "scale": self.scale,
             "angle": self.angle,
             "x": self.x,
             "y": self.y,
-            "flipX": self.flipX,
-            "flipY": self.flipY,
+            "flip_x": self.flip_x,
+            "flip_y": self.flip_y,
             "color": self.color,
         }

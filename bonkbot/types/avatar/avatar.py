@@ -9,7 +9,7 @@ from .layer import Layer
 @dataclass
 class Avatar:
     layers: List[Layer] = field(default_factory=list)
-    baseColor: int = 0x448aff
+    base_color: int = 0x448aff
 
     @staticmethod
     def from_buffer(buffer: ByteBuffer) -> "Avatar":
@@ -31,11 +31,18 @@ class Avatar:
         for i in range(layer_count):
             avatar.layers[i] = Layer.from_buffer(buffer)
         if version >= 2:
-            avatar.baseColor = buffer.read_int32()
+            avatar.base_color = buffer.read_int32()
         return avatar
 
+    @staticmethod
+    def from_json(data: Dict) -> "Avatar":
+        avatar = Avatar()
+        avatar.base_color = data["bc"]
+        avatar.layers = [Layer.from_json(layer) for layer in data["layers"]]
+        return avatar
+    
     def to_json(self) -> Dict:
         return {
-            'bc': self.baseColor,
+            'bc': self.base_color,
             'layers': [layer.to_json() for layer in self.layers],
         }

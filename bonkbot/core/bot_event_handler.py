@@ -6,6 +6,7 @@ from pymitter import EventEmitter
 
 if TYPE_CHECKING:
     from ..core.room import Room
+    from ..core.player import Player
     from ..types.room.room_action import RoomAction
 
 
@@ -55,4 +56,7 @@ class BotEventHandler:
         raise error
 
     async def _on_room_connection(self, room: "Room", action: "RoomAction") -> None:
+        pass
+
+    async def _on_player_join(self, room: "Room", player: "Player") -> None:
         pass

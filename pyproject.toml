@@ -33,9 +33,7 @@ dependencies = [
     "pymitter~=1.0",
     "python-engineio~=3.14",
     "python-socketio~=4.6",
-    "av>=9.0.0",
-    "aiortc~=1.9",
-    "peerjs==1.1.5"
+    "peerjs-py==0.1.1",
 ]
 
 [project.urls]

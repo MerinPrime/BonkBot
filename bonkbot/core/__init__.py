@@ -5,6 +5,7 @@ from .api import (
     get_rooms_api,
     login_auto_api,
     login_legacy_api,
+    room_link_api,
 )
 from .bonkbot import BonkBot
 from .room import Room

@@ -13,7 +13,7 @@ class BotData:
     token: str = ''
     dbid: int = 0
     is_guest: bool = True
-    xp: Union[int, None] = None
+    xp: int = 0
     avatar: Avatar = None
     active_avatar: int = 0
     avatars: List[Avatar] = field(default_factory=list)

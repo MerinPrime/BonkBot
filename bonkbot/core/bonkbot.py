@@ -129,7 +129,7 @@ class BonkBot(BotEventHandler):
                 token='',
                 dbid=0,
                 is_guest=True,
-                xp=None,
+                xp=0,
                 avatar=Avatar(),
                 active_avatar=0,
                 avatars=[Avatar() for _ in range(5)],

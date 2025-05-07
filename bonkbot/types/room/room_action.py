@@ -1,6 +1,6 @@
 import enum
 
 
-class RoomAction(enum.Enum):
+class RoomAction(enum.IntEnum):
     JOIN = 0
     CREATE = 1

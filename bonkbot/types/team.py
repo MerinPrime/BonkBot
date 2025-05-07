@@ -9,3 +9,15 @@ class Team(enum.IntEnum):
     BLUE = 3
     GREEN = 4
     YELLOW = 5
+    
+    @staticmethod
+    def from_number(self, value: int) -> "Team":
+        for team in Team:
+            if value == team.value:
+                return team
+        return Team.SPECTATOR
+
+class TeamState(enum.IntEnum):
+    FFA = 0
+    DUO = 1
+    ALL = 2
