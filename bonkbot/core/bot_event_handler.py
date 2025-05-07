@@ -11,7 +11,7 @@ class BotEventHandler:
     def __init__(self):
         self.event_emitter = EventEmitter()
         for name, method in inspect.getmembers(self, predicate=inspect.ismethod):
-            if name.startswith("_on_"):
+            if name.startswith("_on_") or name.startswith("on_"):
                 self.event(method)
 
     def event(self, function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
