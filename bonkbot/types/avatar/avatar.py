@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import Dict, List
 
 from ...pson.bytebuffer import ByteBuffer
 from .layer import Layer
@@ -33,3 +33,9 @@ class Avatar:
         if version >= 2:
             avatar.baseColor = buffer.read_int32()
         return avatar
+
+    def to_json(self) -> Dict:
+        return {
+            'bc': self.baseColor,
+            'layers': [layer.to_json() for layer in self.layers],
+        }

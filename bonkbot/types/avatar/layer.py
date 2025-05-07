@@ -36,3 +36,15 @@ class Layer:
         layer.flipY = buffer.read_uint8() == 1
         layer.color = buffer.read_int32()
         return layer
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "scale": self.scale,
+            "angle": self.angle,
+            "x": self.x,
+            "y": self.y,
+            "flipX": self.flipX,
+            "flipY": self.flipY,
+            "color": self.color,
+        }

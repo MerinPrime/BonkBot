@@ -11,7 +11,8 @@ from ..types.settings import Settings
 class BotData:
     name: str = ''
     token: str = ''
-    dbid: Union[int, None] = None
+    dbid: int = 0
+    is_guest: bool = True
     xp: Union[int, None] = None
     avatar: Avatar = None
     active_avatar: int = 0
@@ -26,6 +27,7 @@ class BotData:
             name = json_data['username'],
             token = json_data['token'],
             dbid = json_data['id'],
+            is_guest = False,
             xp = json_data['xp'],
             avatar = Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar'], uri_encoded=True)),
             active_avatar = json_data['activeAvatarNumber'],

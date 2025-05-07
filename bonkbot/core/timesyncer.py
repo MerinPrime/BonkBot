@@ -1,5 +1,6 @@
 import asyncio
 import time
+from itertools import repeat
 from typing import Dict
 
 import socketio
@@ -25,7 +26,7 @@ class TimeSyncer:
 
     def __del__(self):
         asyncio.create_task(self.stop())
-    
+
     async def stop(self):
         if self._task:
             self._task.cancel()
@@ -33,12 +34,13 @@ class TimeSyncer:
                 await self._task
             except asyncio.CancelledError:
                 pass
-    
+
     async def _sync_task(self):
         try:
+            await self.sync(repeat=3, delay=0.05)
             while True:
-                await self.sync()
                 await asyncio.sleep(self.interval)
+                await self.sync()
         except asyncio.CancelledError:
             pass
 
@@ -48,14 +50,18 @@ class TimeSyncer:
     def now(self):
         return time.time() * 1000 - self.offset
 
-    async def sync(self):
+    async def sync(self, *, repeat: int = None, delay: float = None):
+        if repeat is None:
+            repeat = self.repeat
+        if delay is None:
+            delay = self.delay
         async with self._lock:
-            self._in_progress += self.repeat
+            self._in_progress += repeat
             await self.event_emitter.emit_async('sync', 'start')
-            for _ in range(self.repeat):
+            for _ in range(repeat):
                 self._ids_time[self.sync_id] = self.now()
                 await self.socket.emit(18, {'jsonrpc': '2.0', 'id': self.sync_id, 'method': 'timesync'})
-                await asyncio.sleep(self.delay)
+                await asyncio.sleep(delay)
                 self.sync_id += 1
 
     async def on_result(self, data: Dict):
@@ -73,6 +79,5 @@ class TimeSyncer:
             mean_offset = int(self._time_sum / self.repeat)
             self.offset += mean_offset
             self._time_sum = 0
-            print(self.offset)
             await self.event_emitter.emit_async('change', mean_offset)
             await self.event_emitter.emit_async('sync', 'end')

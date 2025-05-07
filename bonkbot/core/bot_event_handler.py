@@ -41,8 +41,8 @@ class BotEventHandler:
         self.event_emitter.off(event_name, handler)
         self.event_emitter.on(event_name, function)
 
-    async def _on_error(self, error: Exception) -> None:
-        raise error
-
     async def _on_ready(self) -> None:
         pass
+
+    async def _on_error(self, error: Exception) -> None:
+        raise error

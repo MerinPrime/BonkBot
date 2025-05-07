@@ -21,6 +21,8 @@ select = [
     "FBT",
 ]
 ignore = [
+    "RUF006",
+    "SIM105",
     "E501",
     "SIM108",
 ]

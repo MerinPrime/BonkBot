@@ -4,16 +4,17 @@ from typing import List, Union
 import aiohttp
 
 from ..types.avatar.avatar import Avatar
-from ..types.errors.api_error import ApiError
+from ..types.errors import ApiError, ErrorType
 from ..types.friend import Friend
 from ..types.mode import Mode
-from ..types.room_info import RoomInfo
+from ..types.room.room_info import RoomInfo
 from ..types.settings import Settings
 from ..utils.api import validate_username
 from ..utils.xp import xp_to_level
 from .api import PROTOCOL_VERSION, get_rooms_api, login_legacy_api
 from .bot_data import BotData
 from .bot_event_handler import BotEventHandler
+from .room import Room
 
 
 class BonkBot(BotEventHandler):
@@ -21,6 +22,7 @@ class BonkBot(BotEventHandler):
     _aiohttp_session: Union[aiohttp.ClientSession, None]
     _is_logged: bool
     event_loop: asyncio.AbstractEventLoop
+    _rooms: List[Room]
 
     def __init__(self):
         super().__init__()
@@ -28,9 +30,21 @@ class BonkBot(BotEventHandler):
         self._is_logged = False
         self.event_loop = asyncio.get_event_loop()
         self._aiohttp_session = aiohttp.ClientSession(loop=self.event_loop)
+        self._rooms = []
 
     def __del__(self):
-        self.event_loop.run_until_complete(self._aiohttp_session.close())
+        self.event_loop.run_until_complete(self.stop())
+
+    async def stop(self) -> None:
+        await self._aiohttp_session.close()
+        for room in self._rooms:
+            await room.disconnect()
+
+    def add_room(self, room: "Room") -> None:
+        self._rooms.append(room)
+
+    def remove_room(self, room: "Room") -> None:
+        self._rooms.remove(room)
 
     @property
     def is_logged(self) -> bool:
@@ -55,6 +69,10 @@ class BonkBot(BotEventHandler):
     @property
     def dbid(self) -> int:
         return self._data.dbid
+
+    @property
+    def is_guest(self) -> int:
+        return self._data.is_guest
 
     @property
     def active_avatar_id(self) -> int:
@@ -107,7 +125,8 @@ class BonkBot(BotEventHandler):
             data = BotData(
                 name=name,
                 token='',
-                dbid=None,
+                dbid=0,
+                is_guest=True,
                 xp=None,
                 avatar=Avatar(),
                 active_avatar=0,
@@ -134,7 +153,7 @@ class BonkBot(BotEventHandler):
             response.raise_for_status()
             response_data = await response.json()
             if response_data['r'] == 'fail':
-                await self.event_emitter.emit_async('on_error', ApiError(response_data['e']))
+                await self.event_emitter.emit_async('on_error', ApiError(ErrorType.from_string(response_data['e'])))
                 return
             await self._start(BotData.from_login_response(response_data))
             return response_data['rememberToken']
@@ -153,7 +172,7 @@ class BonkBot(BotEventHandler):
             response.raise_for_status()
             response_data = await response.json()
             if response_data['r'] == 'fail':
-                await self.event_emitter.emit_async('on_error', ApiError(response_data['e']))
+                await self.event_emitter.emit_async('on_error', ApiError(ErrorType.from_string(response_data['e'])))
                 return
             await self._start(BotData.from_login_response(response_data))
         return self.event_loop.run_until_complete(login())
