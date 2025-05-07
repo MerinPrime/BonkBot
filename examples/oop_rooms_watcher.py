@@ -28,9 +28,6 @@ class RoomsWatcherBot(BonkBot):
             previous_rooms = current_rooms
             await asyncio.sleep(30)
 
-async def main():
-    bot = RoomsWatcherBot()
-    await bot.login_as_guest('Kalalak')
 
-if __name__ == '__main__':
-    asyncio.run(main())
+bot = RoomsWatcherBot()
+bot.login_as_guest('Kalalak')
