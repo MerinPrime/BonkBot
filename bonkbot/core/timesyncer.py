@@ -24,13 +24,21 @@ class TimeSyncer:
         self._task = None
 
     def __del__(self):
-        self._task.cancel()
-
+        asyncio.create_task(self.stop())
+    
+    async def stop(self):
+        if self._task:
+            self._task.cancel()
+            try:
+                await self._task
+            except asyncio.CancelledError:
+                pass
+    
     async def _sync_task(self):
         try:
             while True:
                 await self.sync()
-                await asyncio.sleep(self.delay)
+                await asyncio.sleep(self.interval)
         except asyncio.CancelledError:
             pass
 
@@ -38,7 +46,7 @@ class TimeSyncer:
         self._task = asyncio.create_task(self._sync_task())
 
     def now(self):
-        return time.time() * 1000 + self.offset
+        return time.time() * 1000 - self.offset
 
     async def sync(self):
         async with self._lock:
@@ -56,14 +64,15 @@ class TimeSyncer:
         t1 = self.now()
         ts = data['result']
 
-        offset = ts - t1 + (t1 - t0) / 2
+        offset = t1 + (t1 - t0) / 2 - ts
         self._time_sum += offset
 
         del self._ids_time[data['id']]
 
         if self._in_progress == 0:
-            total_offset = int(self._time_sum / self.repeat)
-            self.offset += total_offset
+            mean_offset = int(self._time_sum / self.repeat)
+            self.offset += mean_offset
             self._time_sum = 0
-            await self.event_emitter.emit_async('change', total_offset)
+            print(self.offset)
+            await self.event_emitter.emit_async('change', mean_offset)
             await self.event_emitter.emit_async('sync', 'end')
