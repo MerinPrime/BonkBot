@@ -53,8 +53,8 @@ class Room:
         self._bot.add_room(self)
 
     def __del__(self):
-        self._bot.event_loop.run_until_complete(self.disconnect())
-        self._bot.remove_room(self)
+        if self._bot.event_loop.is_running():
+            self._bot.event_loop.run_until_complete(self.disconnect())
 
     async def disconnect(self):
         if self.is_connected:
@@ -67,6 +67,7 @@ class Room:
         self._synced = False
         self._peer_id = None
         self._is_connected = False
+        self._bot.remove_room(self)
 
     @property
     def name(self) -> str:

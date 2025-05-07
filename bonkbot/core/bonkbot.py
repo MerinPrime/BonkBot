@@ -33,10 +33,12 @@ class BonkBot(BotEventHandler):
         self._rooms = []
 
     def __del__(self):
-        self.event_loop.run_until_complete(self.stop())
-
+        if self.event_loop.is_running():
+            self.event_loop.run_until_complete(self.stop())
+    
     async def stop(self) -> None:
-        await self._aiohttp_session.close()
+        if not self.aiohttp_session.closed:
+            await self.aiohttp_session.close()
         for room in self._rooms:
             await room.disconnect()
 
@@ -139,7 +141,7 @@ class BonkBot(BotEventHandler):
     async def login_with_password(self, name: str, password: str, *, remember: bool = False) -> Union[str, None]:
         if self._is_logged:
             raise ValueError('BonkBot already logged in')
-        response = await self._aiohttp_session.post(
+        response = await self.aiohttp_session.post(
             login_legacy_api,
             data={
                 'username': name,
@@ -158,7 +160,7 @@ class BonkBot(BotEventHandler):
     async def login_with_token(self, remember_token: str) -> None:
         if self._is_logged:
             raise ValueError('BonkBot already logged in')
-        response = await self._aiohttp_session.post(
+        response = await self.aiohttp_session.post(
             login_legacy_api,
             data={
                 'rememberToken': remember_token,
@@ -172,7 +174,7 @@ class BonkBot(BotEventHandler):
         await self._start(BotData.from_login_response(response_data))
 
     async def fetch_rooms(self) -> List[RoomInfo]:
-        response = await self._aiohttp_session.post(
+        response = await self.aiohttp_session.post(
             get_rooms_api,
             data={
                 'version': PROTOCOL_VERSION,
