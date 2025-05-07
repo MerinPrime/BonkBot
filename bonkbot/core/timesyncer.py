@@ -1,7 +1,6 @@
 import asyncio
 import time
-from itertools import repeat
-from typing import Dict
+from typing import Dict, Optional
 
 import socketio
 from pymitter import EventEmitter
@@ -50,7 +49,7 @@ class TimeSyncer:
     def now(self):
         return time.time() * 1000 - self.offset
 
-    async def sync(self, *, repeat: int = None, delay: float = None):
+    async def sync(self, *, repeat: Optional[int] = None, delay: Optional[float] = None):
         if repeat is None:
             repeat = self.repeat
         if delay is None:
