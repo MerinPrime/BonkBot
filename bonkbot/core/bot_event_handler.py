@@ -1,15 +1,19 @@
 import asyncio
 import inspect
-from typing import Any, Callable, Coroutine
+from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
 from pymitter import EventEmitter
 
+if TYPE_CHECKING:
+    from ..core.room import Room
+    from ..types.room.room_action import RoomAction
+
 
 class BotEventHandler:
-    event_emitter: EventEmitter
+    _event_emitter: EventEmitter
 
     def __init__(self):
-        self.event_emitter = EventEmitter()
+        self._event_emitter = EventEmitter()
         for name, method in inspect.getmembers(self, predicate=inspect.ismethod):
             if name.startswith("_on_") or name.startswith("on_"):
                 self.event(method)
@@ -38,11 +42,17 @@ class BotEventHandler:
                 f"Handler expected to get {handler_params} arguments, but got {func_params}"
             )
 
-        self.event_emitter.off(event_name, handler)
-        self.event_emitter.on(event_name, function)
+        self._event_emitter.off(event_name, handler)
+        self._event_emitter.on(event_name, function)
+
+    async def dispatch(self, event: str, *args, **kwargs) -> None:
+        await self._event_emitter.emit_async(event, *args, **kwargs)
 
     async def _on_ready(self) -> None:
         pass
 
     async def _on_error(self, error: Exception) -> None:
         raise error
+
+    async def _on_room_connection(self, room: "Room", action: "RoomAction") -> None:
+        pass

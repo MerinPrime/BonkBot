@@ -1,6 +1,5 @@
 import asyncio
 import dataclasses
-import time
 from typing import TYPE_CHECKING, Dict, Union
 
 import socketio
@@ -123,7 +122,7 @@ class Room:
 
     async def connect(self) -> None:
         if self.is_connected:
-            await self._bot.event_emitter.emit_async('on_error', RoomAlreadyConnected(self))
+            await self._bot.dispatch('on_error', RoomAlreadyConnected(self))
         self._bind_listeners()
         async def init_socket():
             await self._socket.connect(bonk_socket_api.format(self._server.name), transports=['websocket'])
@@ -138,7 +137,6 @@ class Room:
             await self._create()
         else:
             await self._join()
-        print('connected', time.time())
 
     async def _create(self) -> None:
         name = self._room_params.name
@@ -190,7 +188,7 @@ class Room:
         @self.timesyncer.event_emitter.on('change')
         async def on_change(offset: int):
             if self._time_offset is not None:
-                await self._bot.event_emitter.emit_async('time_offset_change', self, offset - self._time_offset)
+                await self._bot.dispatch('time_offset_change', self, offset - self._time_offset)
             self._time_offset = offset
 
         await self.timesyncer.start()

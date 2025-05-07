@@ -35,7 +35,7 @@ class BonkBot(BotEventHandler):
     def __del__(self):
         if self.event_loop.is_running():
             self.event_loop.run_until_complete(self.stop())
-    
+
     async def stop(self) -> None:
         if not self.aiohttp_session.closed:
             await self.aiohttp_session.close()
@@ -117,7 +117,7 @@ class BonkBot(BotEventHandler):
     async def _start(self, data: BotData) -> None:
         self._data = data
         self._is_logged = True
-        await self.event_emitter.emit_async('on_ready')
+        await self.dispatch('on_ready')
 
     def login_as_guest(self, name: str) -> None:
         if self._is_logged:
@@ -155,12 +155,12 @@ class BonkBot(BotEventHandler):
             response.raise_for_status()
             response_data = await response.json()
             if response_data['r'] == 'fail':
-                await self.event_emitter.emit_async('on_error', ApiError(ErrorType.from_string(response_data['e'])))
+                await self.dispatch('on_error', ApiError(ErrorType.from_string(response_data['e'])))
                 return
             await self._start(BotData.from_login_response(response_data))
             return response_data['rememberToken']
         return self.event_loop.run_until_complete(login())
-    
+
     def login_with_token(self, remember_token: str) -> None:
         if self._is_logged:
             raise ValueError('BonkBot already logged in')
@@ -174,7 +174,7 @@ class BonkBot(BotEventHandler):
             response.raise_for_status()
             response_data = await response.json()
             if response_data['r'] == 'fail':
-                await self.event_emitter.emit_async('on_error', ApiError(ErrorType.from_string(response_data['e'])))
+                await self.dispatch('on_error', ApiError(ErrorType.from_string(response_data['e'])))
                 return
             await self._start(BotData.from_login_response(response_data))
         return self.event_loop.run_until_complete(login())
