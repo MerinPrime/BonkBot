@@ -29,4 +29,8 @@ async def on_ready():
         previous_rooms = current_rooms
         await asyncio.sleep(30)
 
-bot.login_as_guest('Kalalak')
+async def main():
+    await bot.login_as_guest('Kalalak')
+
+if __name__ == '__main__':
+    asyncio.run(main())
