@@ -53,6 +53,9 @@ class BotEventHandler:
     async def _on_ready(self, bot: "BonkBot") -> None:
         pass
 
+    async def _on_logout(self, bot: "BonkBot") -> None:
+        pass
+
     async def _on_error(self, bot: "BonkBot", error: Exception) -> None:
         raise error
 

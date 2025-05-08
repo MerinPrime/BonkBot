@@ -3,6 +3,7 @@ import dataclasses
 import random
 import string
 import time
+from idlelib.pyparse import trans
 from typing import TYPE_CHECKING, Dict, List, Union
 
 import socketio
@@ -62,11 +63,7 @@ class Room:
         self._bot_player = None
         self._connect_event = asyncio.Event()
         self._bot.add_room(self)
-
-    def __del__(self):
-        if self._bot.event_loop.is_running():
-            self._bot.event_loop.run_until_complete(self.disconnect())
-
+    
     async def disconnect(self):
         if self.is_connected:
             await self._socket.disconnect()
@@ -184,7 +181,7 @@ class Room:
             return
         self._bind_listeners()
         async def init_socket():
-            await self._socket.connect(bonk_socket_api.format(self._server.name))
+            await self._socket.connect(bonk_socket_api.format(self._server.name), transports=['websocket'])
             await self._make_timesync()
         await asyncio.gather(
             init_socket(),
@@ -314,6 +311,10 @@ class Room:
         await self._connect_event.wait()
 
     def _bind_listeners(self):
+        @self.socket.event
+        async def disconnect():
+            await self.disconnect()
+        
         @self.socket.on(1)
         async def on_ping_data(pings: Dict, player_id: int):
             await self.socket.emit(1, {'id': player_id})

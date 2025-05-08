@@ -24,7 +24,7 @@ class BonkBot(BotEventHandler):
     _data: Union[BotData, None]
     _aiohttp_session: Union[aiohttp.ClientSession, None]
     _is_logged: bool
-    event_loop: asyncio.AbstractEventLoop
+    _event_loop: asyncio.AbstractEventLoop
     _rooms: List[Room]
     server: Server
 
@@ -32,20 +32,23 @@ class BonkBot(BotEventHandler):
         super().__init__()
         self._data = None
         self._is_logged = False
-        self.event_loop = event_loop if event_loop is not None else asyncio.get_event_loop()
+        self._event_loop = event_loop if event_loop is not None else asyncio.get_event_loop()
         self._aiohttp_session = aiohttp.ClientSession(loop=self.event_loop)
         self._rooms = []
         self.server = Server.WARSAW
-
-    def __del__(self):
-        if self.event_loop.is_running():
-            self.event_loop.run_until_complete(self.stop())
-
-    async def stop(self) -> None:
+    
+    async def logout(self) -> None:
+        self._is_logged = False
         if not self.aiohttp_session.closed:
             await self.aiohttp_session.close()
         for room in self._rooms:
             await room.disconnect()
+        self._data = None
+        self._event_loop = None
+        self._aiohttp_session = None
+        self._rooms = []
+        self.server = Server.WARSAW
+        await self.dispatch('on_logout', self)
 
     def add_room(self, room: "Room") -> None:
         self._rooms.append(room)
@@ -54,8 +57,16 @@ class BonkBot(BotEventHandler):
         self._rooms.remove(room)
 
     @property
+    def event_loop(self) -> asyncio.AbstractEventLoop:
+        return self._event_loop
+    
+    @property
     def is_logged(self) -> bool:
         return self._is_logged
+
+    @property
+    def rooms(self) -> List["Room"]:
+        return self._rooms.copy()
 
     @property
     def aiohttp_session(self) -> aiohttp.ClientSession:
@@ -240,3 +251,6 @@ class BonkBot(BotEventHandler):
                 max_level=room['maxlevel'],
             ) for room in response_data['rooms']
         ]
+
+    async def wait_for_connection(self):
+        await asyncio.gather(*[room.wait_for_connection() for room in self.rooms])

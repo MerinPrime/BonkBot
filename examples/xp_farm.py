@@ -3,6 +3,11 @@ import asyncio
 from bonkbot.core import Room
 from bonkbot.core.bonkbot import BonkBot
 
+"""
+This example implements a xp farm.
+For each account starting bot and farming xp.
+"""
+
 accounts = [('name', 'password')]
 
 async def main():
@@ -33,30 +38,46 @@ async def main():
 
 
     print('--- Creating rooms ---')
-    rooms = []
     connect_tasks = []
 
     for bot in bots:
         room = bot.create_room(name='XP Farm', unlisted=True, max_players=1)
-        rooms.append(room)
         connect_tasks.append(room.connect())
 
     await asyncio.gather(*connect_tasks)
 
 
     print('--- Wait to rooms connection ---')
-    await asyncio.gather(*[room.wait_for_connection() for room in rooms])
+    await asyncio.gather(*[bot.wait_for_connection() for bot in bots])
 
 
     print('--- Started XP farm ---')
     while True:
+        for bot in bots.copy():
+            if not bot.rooms:
+                await bot.logout()
+            if not bot.is_logged:
+                bots.remove(bot)
+
         for _ in range(20):
-            gain_xp_tasks = [room.gain_xp() for room in rooms]
+            gain_xp_tasks = []
+            for bot in bots.copy():
+                if not bot.rooms:
+                    await bot.logout()
+                if not bot.is_logged:
+                    bots.remove(bot)
+                    continue
+                gain_xp_tasks.append(bot.rooms[0].gain_xp())
             await asyncio.gather(*gain_xp_tasks)
             await asyncio.sleep(5)
         await asyncio.sleep(20 * 55)
 
+event_loop = asyncio.get_event_loop()
+main_task = None
 try:
-    asyncio.run(main())
+    main_task = event_loop.create_task(main())
+    event_loop.run_until_complete(main_task)
 except KeyboardInterrupt:
-    print("XP Farming stopped.")
+    if main_task and not main_task.done():
+        main_task.cancel()
+    print("XP farm stopped.")
