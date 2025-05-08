@@ -1,14 +1,18 @@
 from dataclasses import dataclass
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
-    from ..mode import Mode
+    pass
 
 
+# Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMapProperties.ts
 @dataclass
 class MapProperties:
-    grid_size: int = 25
-    players_dont_collide: bool = False
-    respawn_on_death: bool = False
-    players_can_fly: bool = False
-    complex_physics: bool = False
+    grid_size: int
+    players_dont_collide: bool
+    respawn_on_death: bool
+    players_can_fly: bool
+    complex_physics: bool
+    a1: Optional[bool]
+    a2: Optional[bool]
+    a3: Optional[bool]

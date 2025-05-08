@@ -1,10 +1,18 @@
-from dataclasses import dataclass
+from typing import TYPE_CHECKING, List
 
-from .map_metadata import MapMetadata
-from .map_properties import MapProperties
+if TYPE_CHECKING:
+    from .cap_zone import CapZone
+    from .map_metadata import MapMetadata
+    from .map_physics import MapPhysics
+    from .map_properties import MapProperties
+    from .spawn import Spawn
 
 
+# Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMap.ts
 class Map:
-    version: int = 1
-    metadata: MapMetadata
-    properties: MapProperties
+    version: int
+    metadata: 'MapMetadata'
+    properties: 'MapProperties'
+    physics: 'MapPhysics'
+    spawns: List['Spawn']
+    cap_zones: List['CapZone']
