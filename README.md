@@ -21,6 +21,7 @@ pip install https://github.com/MerinPrime/BonkBot.git
 ## Bot examples
 - [Rooms Watcher ( Decorators )](examples/rooms_watcher.py)
 - [Rooms Watcher ( Class based )](examples/oop_rooms_watcher.py)
+- [XP Farm](examples/xp_farm.py)
 
 ## Documentation
 In the future i want to write docstrings but idk what i should write in them
