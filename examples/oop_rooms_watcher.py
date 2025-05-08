@@ -30,4 +30,4 @@ class RoomsWatcherBot(BonkBot):
 
 
 bot = RoomsWatcherBot()
-bot.login_as_guest('Kalalak')
+bot.event_loop.run_until_complete(bot.login_as_guest('Kalalak'))
