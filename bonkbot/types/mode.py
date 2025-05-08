@@ -26,7 +26,7 @@ class Mode(enum.Enum):
         return self.value.mode
 
     @staticmethod
-    def from_mode_code(string: str) -> "Mode":
+    def from_mode_code(string: str) -> 'Mode':
         for mode in Mode:
             if mode.mode == string:
                 return mode

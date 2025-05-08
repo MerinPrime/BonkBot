@@ -33,7 +33,7 @@ class ByteBuffer:
         self.offset = 0
         self.size = len(self.bytes)
 
-    def from_base64(self, data: str, *, uri_encoded: bool = False) -> "ByteBuffer":
+    def from_base64(self, data: str, *, uri_encoded: bool = False) -> 'ByteBuffer':
         if uri_encoded:
             data = unquote(data)
         self.bytes += base64.b64decode(data)

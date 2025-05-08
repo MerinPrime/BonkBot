@@ -5,8 +5,8 @@ if TYPE_CHECKING:
 
 
 class ApiError(Exception):
-    error_type: "ErrorType"
+    error_type: 'ErrorType'
 
-    def __init__(self, error_type: "ErrorType"):
+    def __init__(self, error_type: 'ErrorType'):
         self.error_type = error_type
         super().__init__(self.error_type)

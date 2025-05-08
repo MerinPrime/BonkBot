@@ -17,8 +17,8 @@ select = [
     "SIM",
     "PTH",
     "RUF",
-#    "D",
     "FBT",
+    "Q",
 ]
 ignore = [
     "RUF006",
@@ -26,6 +26,7 @@ ignore = [
     "E501",
     "SIM108",
     "FBT001",
+    "E741",
 ]
 
 [lint.per-file-ignores]

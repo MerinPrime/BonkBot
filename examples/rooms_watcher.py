@@ -3,10 +3,10 @@ import asyncio
 from bonkbot.core.bonkbot import BonkBot
 from bonkbot.types import Mode
 
-"""
+'''
 This example implements a room watcher.
 The bot monitors all active rooms and logs only available VTOL rooms.
-"""
+'''
 
 bot = BonkBot()
 

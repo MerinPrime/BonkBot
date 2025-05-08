@@ -29,9 +29,9 @@ if TYPE_CHECKING:
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/network/NetworkEngine.ts
 class Room:
-    _bot: "BonkBot"
-    _room_params: Union["RoomJoinParams", "RoomCreateParams"]
-    _room_data: "RoomData"
+    _bot: 'BonkBot'
+    _room_params: Union['RoomJoinParams', 'RoomCreateParams']
+    _room_data: 'RoomData'
     _total_players: int
     _server: Server
     _action: RoomAction
@@ -41,11 +41,11 @@ class Room:
     _synced: bool
     _peer_id: str
     _is_connected: bool
-    _players: List["Player"]
-    _bot_player: "Player"
+    _players: List['Player']
+    _bot_player: 'Player'
     _connect_event: asyncio.Event
 
-    def __init__(self, bot: "BonkBot", room_params: Union["RoomJoinParams", "RoomCreateParams"],
+    def __init__(self, bot: 'BonkBot', room_params: Union['RoomJoinParams', 'RoomCreateParams'],
                  *, server: Server = Server.WARSAW) -> None:
         self._bot = bot
         self._room_params = dataclasses.replace(room_params)
@@ -102,7 +102,7 @@ class Room:
         return len(self._room_data.players)
 
     @property
-    def players(self) -> List["Player"]:
+    def players(self) -> List['Player']:
         return self._room_data.players
 
     @property
@@ -110,7 +110,7 @@ class Room:
         return self._room_data.password is not None
 
     @property
-    def mode(self) -> "Mode":
+    def mode(self) -> 'Mode':
         return self._room_data.mode
 
     @property
@@ -126,7 +126,7 @@ class Room:
         return self._room_data.password
 
     @property
-    def host(self) -> "Player":
+    def host(self) -> 'Player':
         return self._room_data.host
 
     @property
@@ -134,7 +134,7 @@ class Room:
         return self._room_data.rounds
 
     @property
-    def team_state(self) -> "TeamState":
+    def team_state(self) -> 'TeamState':
         return self._room_data.team_state
 
     @property
@@ -150,7 +150,7 @@ class Room:
         return self._socket
 
     @property
-    def server(self) -> "Server":
+    def server(self) -> 'Server':
         return self._server
 
     @property
@@ -168,11 +168,11 @@ class Room:
         return room_link_api.format(self.join_id, self.join_bypass)
 
     @property
-    def bot(self) -> "BonkBot":
+    def bot(self) -> 'BonkBot':
         return self._bot
 
     @property
-    def bot_player(self) -> "Player":
+    def bot_player(self) -> 'Player':
         return self._bot_player
 
     async def connect(self) -> None:
@@ -197,7 +197,7 @@ class Room:
     async def _create(self) -> None:
         name = self._room_params.name
         if name is None:
-            name = f'{self._bot.name}\'s game'
+            name = f"{self._bot.name}'s game"
         data = {
             'peerID': self._peer_id,
             'roomName': name,
@@ -382,58 +382,58 @@ class Room:
             self._room_data.players.append(player)
             await self._bot.dispatch('on_player_join', self, player)
             bad_map_data = {
-                "v": 13,
-                "s": {
-                    "re": False,
-                    "nc": False,
-                    "pq": 1,
-                    "gd": 25,
-                    "fl": False
+                'v': 13,
+                's': {
+                    're': False,
+                    'nc': False,
+                    'pq': 1,
+                    'gd': 25,
+                    'fl': False
                 },
-                "physics": {
-                    "shapes": [],
-                    "fixtures": [],
-                    "bodies": [],
-                    "bro": [],
-                    "joints": [],
-                    "ppm": 12
+                'physics': {
+                    'shapes': [],
+                    'fixtures': [],
+                    'bodies': [],
+                    'bro': [],
+                    'joints': [],
+                    'ppm': 12
                 },
-                "spawns": [],
-                "capZones": [],
-                "m": {
-                    "a": 'kalalak',
-                    "n": 'kalalak',
-                    "dbv": 2,
-                    "id": -1,
-                    "authid": -1,
-                    "date": '',
-                    "rxid": 0,
-                    "rxn": "",
-                    "rxa": "",
-                    "rxdb": 1,
-                    "cr": [
-                        "💀"
+                'spawns': [],
+                'capZones': [],
+                'm': {
+                    'a': 'kalalak',
+                    'n': 'kalalak',
+                    'dbv': 2,
+                    'id': -1,
+                    'authid': -1,
+                    'date': '',
+                    'rxid': 0,
+                    'rxn': '',
+                    'rxa': '',
+                    'rxdb': 1,
+                    'cr': [
+                        '💀'
                     ],
-                    "pub": True,
-                    "mo": "",
-                    "vu": 5,
-                    "vd": 5
+                    'pub': True,
+                    'mo': '',
+                    'vu': 5,
+                    'vd': 5
                 }
             }
             await self._socket.emit(
                 11,
                 {
-                    "sid": player_id,
-                    "gs": {
-                        "map": bad_map_data,
-                        "gt": 2,
-                        "wl": self.rounds,
-                        "q": False,
-                        "tl": self.team_lock,
-                        "tea": self.team_state != TeamState.FFA,
-                        "ga": self.mode.engine,
-                        "mo": self.mode.mode,
-                        "bal": []
+                    'sid': player_id,
+                    'gs': {
+                        'map': bad_map_data,
+                        'gt': 2,
+                        'wl': self.rounds,
+                        'q': False,
+                        'tl': self.team_lock,
+                        'tea': self.team_state != TeamState.FFA,
+                        'ga': self.mode.engine,
+                        'mo': self.mode.mode,
+                        'bal': []
                     }
                 })
             await asyncio.sleep(5)
@@ -442,19 +442,19 @@ class Room:
         @self.socket.on(16)
         async def on_error(error) -> None:
             print(error)
-            if error != "rate_limit_pong":
+            if error != 'rate_limit_pong':
                 await self.bot.dispatch('on_error', self.bot, ApiError(ErrorType.RATE_LIMITED))
 
             if error in [
-                "invalid_params",
-                "password_wrong",
-                "room_full",
-                "players_xp_too_high",
-                "players_xp_too_low",
-                "guests_not_allowed",
-                "already_in_this_room",
-                "room_not_found",
-                "avatar_data_invalid"
+                'invalid_params',
+                'password_wrong',
+                'room_full',
+                'players_xp_too_high',
+                'players_xp_too_low',
+                'guests_not_allowed',
+                'already_in_this_room',
+                'room_not_found',
+                'avatar_data_invalid'
             ]:
                 await self.disconnect()
 

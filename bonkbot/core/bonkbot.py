@@ -50,10 +50,10 @@ class BonkBot(BotEventHandler):
         self._rooms = []
         self.server = Server.WARSAW
 
-    def add_room(self, room: "Room") -> None:
+    def add_room(self, room: 'Room') -> None:
         self._rooms.append(room)
 
-    def remove_room(self, room: "Room") -> None:
+    def remove_room(self, room: 'Room') -> None:
         self._rooms.remove(room)
 
     @property
@@ -65,7 +65,7 @@ class BonkBot(BotEventHandler):
         return self._is_logged
 
     @property
-    def rooms(self) -> List["Room"]:
+    def rooms(self) -> List['Room']:
         return self._rooms.copy()
 
     @property
@@ -190,7 +190,7 @@ class BonkBot(BotEventHandler):
         await self._start(BotData.from_login_response(response_data))
 
     def create_room(self, name: str = '', password: str = '', *, unlisted: bool = False,
-                    max_players: int = 6, min_level: int = 0, max_level: int = 999, server: "Server" = None) -> "Room":
+                    max_players: int = 6, min_level: int = 0, max_level: int = 999, server: 'Server' = None) -> 'Room':
         if server is None:
             server = self.server
         room = Room(bot=self, room_params=RoomCreateParams(
@@ -203,7 +203,7 @@ class BonkBot(BotEventHandler):
         ), server=server)
         return room
 
-    def join_room(self, room_info: "RoomInfo", password: str = '', bypass: str = '', *, server: Optional["Server"] = None) -> "Room":
+    def join_room(self, room_info: 'RoomInfo', password: str = '', bypass: str = '', *, server: Optional['Server'] = None) -> 'Room':
         if server is None:
             server = self.server
         room = Room(bot=self, room_params=RoomJoinParams(
@@ -213,7 +213,7 @@ class BonkBot(BotEventHandler):
         ), server=server)
         return room
 
-    async def update_server(self) -> "Server":
+    async def update_server(self) -> 'Server':
         response = await self.aiohttp_session.post(
             get_rooms_api,
             data={

@@ -11,6 +11,6 @@ class RoomInfo:
     players: int
     max_players: int
     has_password: bool
-    mode: "Mode"
+    mode: 'Mode'
     min_level: int
     max_level: int

@@ -18,7 +18,7 @@ class Layer:
     color: int = 0
 
     @staticmethod
-    def from_buffer(buffer: ByteBuffer) -> Union["Layer", None]:
+    def from_buffer(buffer: ByteBuffer) -> Union['Layer', None]:
         if buffer.read_uint8() != 10:
             return None
         if buffer.read_uint8() == 7:
@@ -38,26 +38,26 @@ class Layer:
         return layer
 
     @staticmethod
-    def from_json(data: Dict) -> "Layer":
+    def from_json(data: Dict) -> 'Layer':
         layer = Layer()
-        layer.id = data["id"]
-        layer.scale = data["scale"]
-        layer.angle = data["angle"]
-        layer.x = data["x"]
-        layer.y = data["y"]
-        layer.flip_x = data["flipX"]
-        layer.flip_y = data["flipY"]
-        layer.color = data["color"]
+        layer.id = data['id']
+        layer.scale = data['scale']
+        layer.angle = data['angle']
+        layer.x = data['x']
+        layer.y = data['y']
+        layer.flip_x = data['flipX']
+        layer.flip_y = data['flipY']
+        layer.color = data['color']
         return layer
 
     def to_json(self) -> Dict:
         return {
-            "id": self.id,
-            "scale": self.scale,
-            "angle": self.angle,
-            "x": self.x,
-            "y": self.y,
-            "flip_x": self.flip_x,
-            "flip_y": self.flip_y,
-            "color": self.color,
+            'id': self.id,
+            'scale': self.scale,
+            'angle': self.angle,
+            'x': self.x,
+            'y': self.y,
+            'flip_x': self.flip_x,
+            'flip_y': self.flip_y,
+            'color': self.color,
         }

@@ -12,7 +12,7 @@ class Avatar:
     base_color: int = 0x448aff
 
     @staticmethod
-    def from_buffer(buffer: ByteBuffer) -> "Avatar":
+    def from_buffer(buffer: ByteBuffer) -> 'Avatar':
         avatar = Avatar()
         if buffer.size == 0:
             return avatar
@@ -37,10 +37,10 @@ class Avatar:
         return avatar
 
     @staticmethod
-    def from_json(data: Dict) -> "Avatar":
+    def from_json(data: Dict) -> 'Avatar':
         avatar = Avatar()
-        avatar.base_color = data["bc"]
-        avatar.layers = [Layer.from_json(layer) for layer in data["layers"]]
+        avatar.base_color = data['bc']
+        avatar.layers = [Layer.from_json(layer) for layer in data['layers']]
         return avatar
 
     def to_json(self) -> Dict:

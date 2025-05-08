@@ -13,12 +13,12 @@ if TYPE_CHECKING:
 
 @dataclasses.dataclass
 class Player:
-    bot: "BonkBot"
-    room: "Room"
-    data_connection: Union["DataConnection", None]
+    bot: 'BonkBot'
+    room: 'Room'
+    data_connection: Union['DataConnection', None]
     id: int
-    team: "Team"
-    avatar: "Avatar"
+    team: 'Team'
+    avatar: 'Avatar'
     name: str
     is_guest: bool
     ready: bool

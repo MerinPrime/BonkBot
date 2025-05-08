@@ -5,6 +5,6 @@ if TYPE_CHECKING:
 
 
 class RoomAlreadyConnected(Exception):
-    def __init__(self, room: "Room"):
+    def __init__(self, room: 'Room'):
         self.room = room
-        super().__init__(f"Room \'{room.name}\' already connected")
+        super().__init__(f"Room '{room.name}' already connected")

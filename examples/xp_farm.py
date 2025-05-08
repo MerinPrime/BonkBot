@@ -3,10 +3,10 @@ import asyncio
 from bonkbot.core import Room
 from bonkbot.core.bonkbot import BonkBot
 
-"""
+'''
 This example implements a xp farm.
 For each account starting bot and farming xp.
-"""
+'''
 
 accounts = [('name', 'password')]
 
@@ -81,4 +81,4 @@ except KeyboardInterrupt:
 finally:
     if main_task and not main_task.done():
         main_task.cancel()
-    print("XP farm stopped.")
+    print('XP farm stopped.')

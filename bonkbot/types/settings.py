@@ -31,7 +31,7 @@ class Settings:
     quality: int = 3
 
     @staticmethod
-    def from_buffer(buffer: ByteBuffer) -> "Settings":
+    def from_buffer(buffer: ByteBuffer) -> 'Settings':
         settings = Settings()
         if buffer.size == 0:
             return settings
