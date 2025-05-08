@@ -163,7 +163,7 @@ class BonkBot(BotEventHandler):
                 'username': name,
                 'password': password,
                 'remember': 'true' if remember else 'false',
-            }
+            },
         )
         response.raise_for_status()
         response_data = await response.json()
@@ -180,7 +180,7 @@ class BonkBot(BotEventHandler):
             login_legacy_api,
             data={
                 'rememberToken': remember_token,
-            }
+            },
         )
         response.raise_for_status()
         response_data = await response.json()
@@ -220,7 +220,7 @@ class BonkBot(BotEventHandler):
                 'version': PROTOCOL_VERSION,
                 'gl': 'y',
                 'token': self._data.token,
-            }
+            },
         )
         response.raise_for_status()
         response_data = await response.json()
@@ -235,7 +235,7 @@ class BonkBot(BotEventHandler):
                 'version': PROTOCOL_VERSION,
                 'gl': 'n',
                 'token': self._data.token,
-            }
+            },
         )
         response.raise_for_status()
         response_data = await response.json()
@@ -252,5 +252,5 @@ class BonkBot(BotEventHandler):
             ) for room in response_data['rooms']
         ]
 
-    async def wait_for_connection(self):
+    async def wait_for_connection(self) -> None:
         await asyncio.gather(*[room.wait_for_connection() for room in self.rooms])

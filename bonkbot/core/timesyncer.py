@@ -23,10 +23,7 @@ class TimeSyncer:
         self._lock = asyncio.Lock()
         self._task = None
 
-    def __del__(self):
-        asyncio.create_task(self.stop())
-
-    async def stop(self):
+    async def stop(self) -> None:
         if self._task:
             self._task.cancel()
             try:
@@ -34,7 +31,7 @@ class TimeSyncer:
             except asyncio.CancelledError:
                 pass
 
-    async def _sync_task(self):
+    async def _sync_task(self) -> None:
         try:
             await self.sync(repeat=3, delay=0.1)
             while True:
@@ -43,13 +40,13 @@ class TimeSyncer:
         except asyncio.CancelledError:
             pass
 
-    async def start(self):
+    async def start(self) -> None:
         self._task = asyncio.create_task(self._sync_task())
 
-    def now(self):
+    def now(self) -> float:
         return time.time() * 1000 - self.offset
 
-    async def sync(self, *, repeat: Optional[int] = None, delay: Optional[float] = None):
+    async def sync(self, *, repeat: Optional[int] = None, delay: Optional[float] = None) -> None:
         if repeat is None:
             repeat = self.repeat
         if delay is None:
@@ -63,7 +60,7 @@ class TimeSyncer:
                 await asyncio.sleep(delay)
                 self.sync_id += 1
 
-    async def on_result(self, data: Dict):
+    async def on_result(self, data: Dict) -> None:
         self._in_progress -= 1
         t0 = self._ids_time[data['id']]
         t1 = self.now()

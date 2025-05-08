@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class BotEventHandler:
     _event_emitter: EventEmitter
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._event_emitter = EventEmitter()
         for name, method in inspect.getmembers(self, predicate=inspect.ismethod):
             if name.startswith('_on_') or name.startswith('on_'):
@@ -41,7 +41,7 @@ class BotEventHandler:
         if func_params != handler_params:
             print(function.__name__)
             raise TypeError(
-                f'Handler expected to get {handler_params} arguments, but got {func_params}'
+                f'Handler expected to get {handler_params} arguments, but got {func_params}',
             )
 
         self._event_emitter.off(event_name, handler)

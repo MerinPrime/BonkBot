@@ -10,7 +10,7 @@ For each account starting bot and farming xp.
 
 accounts = [('name', 'password')]
 
-async def main():
+async def main() -> None:
     event_loop = asyncio.get_running_loop()
     bots = [BonkBot(event_loop=event_loop) for _ in accounts]
 
@@ -21,15 +21,15 @@ async def main():
         name, password = account
 
         @bot.event
-        async def on_ready(bot: BonkBot):
+        async def on_ready(bot: BonkBot) -> None:
             print(f'Bot started: {bot.name}, Level: {bot.level:.02f}, XP: {bot.xp}')
 
         @bot.event
-        async def on_xp_gain(room: Room, xp: int):
+        async def on_xp_gain(room: Room, xp: int) -> None:
             print(f'Bot: {room.bot.name}, Level: {room.bot.level:.02f}, XP: {room.bot.xp}')
 
         @bot.event
-        async def on_error(bot: BonkBot, error: Exception):
+        async def on_error(bot: BonkBot, error: Exception) -> None:
             print(f'Bot: {bot.name}, Error: {error}')
 
         login_tasks.append(bot.login_with_password(name, password))

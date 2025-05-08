@@ -14,7 +14,7 @@ class StaticPair:
     ihash_dict: dict
     next_idx: int
 
-    def __init__(self, keys: Optional[List[str]]):
+    def __init__(self, keys: Optional[List[str]]) -> None:
         self.hash_dict = {}
         self.next_idx = 0
 
@@ -24,7 +24,7 @@ class StaticPair:
             self.next_idx = len(keys)
             self.ihash_dict = {v: k for k, v in self.hash_dict.items()}
 
-    def encode(self, value: Optional[PsonValue], buffer: ByteBuffer = None):
+    def encode(self, value: Optional[PsonValue], buffer: ByteBuffer = None) -> ByteBuffer:
         if buffer is None:
             buffer = ByteBuffer()
 
@@ -106,37 +106,37 @@ class StaticPair:
 
         if code == T.NULL:
             return None
-        elif code == T.TRUE:
+        if code == T.TRUE:
             return True
-        elif code == T.FALSE:
+        if code == T.FALSE:
             return False
-        elif code == T.EOBJECT:
+        if code == T.EOBJECT:
             return {}
-        elif code == T.EARRAY:
+        if code == T.EARRAY:
             return []
-        elif code == T.ESTRING:
+        if code == T.ESTRING:
             return ''
-        elif code == T.OBJECT:
+        if code == T.OBJECT:
             obj = {}
             for _ in range(buffer.read_varint32()):
                 key = self.decode(buffer)
                 value = self.decode(buffer)
                 obj[key] = value
             return obj
-        elif code == T.ARRAY:
+        if code == T.ARRAY:
             arr = []
             for _ in range(buffer.read_varint32()):
                 arr.append(self.decode(buffer))
             return arr
-        elif code == T.INTEGER or code == T.LONG:
+        if code == T.INTEGER or code == T.LONG:
             return zigzag_decode32(buffer.read_varint32())
-        elif code == T.FLOAT:
+        if code == T.FLOAT:
             return buffer.read_float32()
-        elif code == T.DOUBLE:
+        if code == T.DOUBLE:
             return buffer.read_float64()
-        elif code == T.STRING:
+        if code == T.STRING:
             return buffer.read_str()
-        elif code == T.STRING_GET:
+        if code == T.STRING_GET:
             return self.ihash_dict[buffer.read_uint8()]
-        elif code == T.BINARY:
+        if code == T.BINARY:
             return buffer.read_bytes(buffer.read_varint32())

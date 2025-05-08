@@ -11,7 +11,7 @@ class Team(enum.IntEnum):
     YELLOW = 5
 
     @staticmethod
-    def from_number(self, value: int) -> 'Team':
+    def from_number(value: int) -> 'Team':
         for team in Team:
             if value == team.value:
                 return team

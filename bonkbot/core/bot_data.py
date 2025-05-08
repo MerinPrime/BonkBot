@@ -36,14 +36,14 @@ class BotData:
                 Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar2'], uri_encoded=True)),
                 Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar3'], uri_encoded=True)),
                 Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar4'], uri_encoded=True)),
-                Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar5'], uri_encoded=True))
+                Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar5'], uri_encoded=True)),
             ],
             friends = [Friend(
                 name=friend['name'],
                 dbid=friend['id'],
-                room_id=friend['roomid']
+                room_id=friend['roomid'],
             ) for friend in json_data['friends']],
             legacy_friends = [Friend(name=friend, dbid=None, room_id=None) for friend in json_data['legacyFriends'].split('#')],
-            settings = Settings.from_buffer(ByteBuffer().from_base64(json_data['controls'], uri_encoded=False)) if json_data['controls'] else Settings()
+            settings = Settings.from_buffer(ByteBuffer().from_base64(json_data['controls'], uri_encoded=False)) if json_data['controls'] else Settings(),
         )
         return data

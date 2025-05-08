@@ -19,6 +19,17 @@ select = [
     "RUF",
     "FBT",
     "Q",
+    "ANN",
+    "TYP",
+    "RET505",
+    "COM812",
+    "D300",
+    "TC001",
+    "TC002",
+    "TC003",
+    "TC005",
+    "TC005",
+    "TC007",
 ]
 ignore = [
     "RUF006",
@@ -27,12 +38,20 @@ ignore = [
     "SIM108",
     "FBT001",
     "E741",
+    "ANN002",
+    "ANN003",
 ]
 
 [lint.per-file-ignores]
 "__init__.py" = ["F401"]
 
 [lint.flake8-quotes]
-docstring-quotes = "single"
+docstring-quotes = "double"
 inline-quotes = "single"
 multiline-quotes = "single"
+
+[lint.flake8-annotations]
+mypy-init-return = true
+suppress-none-returning = false
+suppress-dummy-args = false
+allow-star-arg-any = true

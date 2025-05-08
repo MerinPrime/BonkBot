@@ -1,4 +1,4 @@
-from . import avatar, errors, room, map
+from . import avatar, errors, map, room
 from .friend import Friend
 from .input import InputFlag, Inputs
 from .mode import Mode

@@ -25,7 +25,7 @@ class ByteBuffer:
     offset: int
     size: int
 
-    def __init__(self, bytes: Optional[bytearray] = None):
+    def __init__(self, bytes: Optional[bytearray] = None) -> None:
         if bytes is None:
             self.bytes = bytearray()
         else:
@@ -177,5 +177,5 @@ class ByteBuffer:
         self.write_varint32(len(bs))
         self.write_bytes(bs)
 
-    def flipped(self):
+    def flipped(self) -> None:
         return self.bytes[::-1]

@@ -1,12 +1,10 @@
 import dataclasses
 from typing import TYPE_CHECKING, Union
 
-from ..types.avatar import Avatar
-
 if TYPE_CHECKING:
+    from peerjs_py.dataconnection import DataConnection
 
-    from peerjs.dataconnection import DataConnection
-
+    from ..types.avatar import Avatar
     from ..types.team import Team
     from .bonkbot import BonkBot
     from .room import Room

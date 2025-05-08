@@ -11,7 +11,7 @@ The bot monitors all active rooms and logs only available VTOL rooms.
 bot = BonkBot()
 
 @bot.event
-async def on_ready():
+async def on_ready() -> None:
     print('Rooms watcher started')
 
     previous_rooms = set()

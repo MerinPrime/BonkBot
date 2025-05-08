@@ -10,7 +10,7 @@ Using class inheriting to events.
 '''
 
 class RoomsWatcherBot(BonkBot):
-    async def on_ready(self):
+    async def on_ready(self) -> None:
         print('Rooms watcher started')
 
         previous_rooms = set()
