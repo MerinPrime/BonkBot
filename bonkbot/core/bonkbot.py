@@ -36,7 +36,7 @@ class BonkBot(BotEventHandler):
         self._aiohttp_session = aiohttp.ClientSession(loop=self.event_loop)
         self._rooms = []
         self.server = Server.WARSAW
-    
+
     async def logout(self) -> None:
         self._is_logged = False
         if not self.aiohttp_session.closed:
@@ -59,7 +59,7 @@ class BonkBot(BotEventHandler):
     @property
     def event_loop(self) -> asyncio.AbstractEventLoop:
         return self._event_loop
-    
+
     @property
     def is_logged(self) -> bool:
         return self._is_logged

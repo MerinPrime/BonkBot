@@ -3,7 +3,6 @@ import dataclasses
 import random
 import string
 import time
-from idlelib.pyparse import trans
 from typing import TYPE_CHECKING, Dict, List, Union
 
 import socketio
@@ -12,6 +11,7 @@ from peerjs_py.dataconnection.DataConnection import DataConnection
 
 from ..core.player import Player
 from ..types.avatar import Avatar
+from ..types.errors import ApiError, ErrorType
 from ..types.errors.room_already_connected import RoomAlreadyConnected
 from ..types.mode import Mode
 from ..types.room.room_action import RoomAction
@@ -63,7 +63,7 @@ class Room:
         self._bot_player = None
         self._connect_event = asyncio.Event()
         self._bot.add_room(self)
-    
+
     async def disconnect(self):
         if self.is_connected:
             await self._socket.disconnect()
@@ -314,7 +314,7 @@ class Room:
         @self.socket.event
         async def disconnect():
             await self.disconnect()
-        
+
         @self.socket.on(1)
         async def on_ping_data(pings: Dict, player_id: int):
             await self.socket.emit(1, {'id': player_id})
@@ -438,6 +438,25 @@ class Room:
                 })
             await asyncio.sleep(5)
             await self._socket.emit(34, {'id': 1})
+
+        @self.socket.on(16)
+        async def on_error(error) -> None:
+            print(error)
+            if error != "rate_limit_pong":
+                await self.bot.dispatch('on_error', self.bot, ApiError(ErrorType.RATE_LIMITED))
+
+            if error in [
+                "invalid_params",
+                "password_wrong",
+                "room_full",
+                "players_xp_too_high",
+                "players_xp_too_low",
+                "guests_not_allowed",
+                "already_in_this_room",
+                "room_not_found",
+                "avatar_data_invalid"
+            ]:
+                await self.disconnect()
 
         @self.socket.on(46)
         async def on_xp_gain(data: dict) -> None:
