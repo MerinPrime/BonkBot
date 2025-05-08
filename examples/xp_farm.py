@@ -8,7 +8,9 @@ This example implements a xp farm.
 For each account starting bot and farming xp.
 '''
 
-accounts = [('name', 'password')]
+accounts = [
+    ('name', 'password'),
+]
 
 async def main() -> None:
     event_loop = asyncio.get_running_loop()
@@ -30,7 +32,12 @@ async def main() -> None:
 
         @bot.event
         async def on_error(bot: BonkBot, error: Exception) -> None:
-            print(f'Bot: {bot.name}, Error: {error}')
+            # bot.name is not available if bot is not logged in
+            if not bot.is_logged:
+                print(f'Error: {error}')
+                bots.remove(bot)
+            else:
+                print(f'Bot: {bot.name}, Error: {error}')
 
         login_tasks.append(bot.login_with_password(name, password))
 

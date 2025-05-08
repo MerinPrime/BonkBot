@@ -323,7 +323,7 @@ class Room:
             await self._bot.dispatch('on_ping_update', self)
 
         @self.socket.on(2)
-        async def on_room_create() -> None:
+        async def on_room_create(*args) -> None:
             self._connect_event.set()
             await self._bot.dispatch('on_room_connection', self, RoomAction.CREATE)
 
