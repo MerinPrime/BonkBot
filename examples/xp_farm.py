@@ -58,6 +58,7 @@ async def main():
             gain_xp_tasks = []
             for bot in bots.copy():
                 if not bot.rooms:
+                    print(f'Bot logged out: {bot.name}')
                     await bot.logout()
                 if not bot.is_logged:
                     bots.remove(bot)
@@ -65,6 +66,9 @@ async def main():
                 gain_xp_tasks.append(bot.rooms[0].gain_xp())
             await asyncio.gather(*gain_xp_tasks)
             await asyncio.sleep(10)
+        if not bots:
+            print('--- No bots available  ---')
+            break
         await asyncio.sleep(1000)
 
 event_loop = asyncio.get_event_loop()
@@ -73,6 +77,8 @@ try:
     main_task = event_loop.create_task(main())
     event_loop.run_until_complete(main_task)
 except KeyboardInterrupt:
+    print('KeyboardInterrupt')
+finally:
     if main_task and not main_task.done():
         main_task.cancel()
     print("XP farm stopped.")

@@ -38,6 +38,7 @@ class BonkBot(BotEventHandler):
         self.server = Server.WARSAW
 
     async def logout(self) -> None:
+        await self.dispatch('on_logout', self)
         self._is_logged = False
         if not self.aiohttp_session.closed:
             await self.aiohttp_session.close()
@@ -48,7 +49,6 @@ class BonkBot(BotEventHandler):
         self._aiohttp_session = None
         self._rooms = []
         self.server = Server.WARSAW
-        await self.dispatch('on_logout', self)
 
     def add_room(self, room: "Room") -> None:
         self._rooms.append(room)
