@@ -24,11 +24,11 @@ class BonkBot(BotEventHandler):
     event_loop: asyncio.AbstractEventLoop
     _rooms: List[Room]
 
-    def __init__(self):
+    def __init__(self, event_loop: asyncio.AbstractEventLoop = None):
         super().__init__()
         self._data = None
         self._is_logged = False
-        self.event_loop = asyncio.get_event_loop()
+        self.event_loop = event_loop if event_loop is not None else asyncio.get_event_loop()
         self._aiohttp_session = aiohttp.ClientSession(loop=self.event_loop)
         self._rooms = []
 
@@ -119,65 +119,59 @@ class BonkBot(BotEventHandler):
         self._is_logged = True
         await self.dispatch('on_ready')
 
-    def login_as_guest(self, name: str) -> None:
+    async def login_as_guest(self, name: str) -> None:
         if self._is_logged:
             raise ValueError('BonkBot already logged in')
-        async def login():
-            validate_username(name)
-            data = BotData(
-                name=name,
-                token='',
-                dbid=0,
-                is_guest=True,
-                xp=0,
-                avatar=Avatar(),
-                active_avatar=0,
-                avatars=[Avatar() for _ in range(5)],
-                friends=[],
-                legacy_friends=[],
-                settings=Settings(),
-            )
-            await self._start(data)
-        self.event_loop.run_until_complete(login())
+        validate_username(name)
+        data = BotData(
+            name=name,
+            token='',
+            dbid=0,
+            is_guest=True,
+            xp=0,
+            avatar=Avatar(),
+            active_avatar=0,
+            avatars=[Avatar() for _ in range(5)],
+            friends=[],
+            legacy_friends=[],
+            settings=Settings(),
+        )
+        await self._start(data)
 
-    def login_with_password(self, name: str, password: str, *, remember: bool = False) -> Union[str, None]:
+    async def login_with_password(self, name: str, password: str, *, remember: bool = False) -> Union[str, None]:
         if self._is_logged:
             raise ValueError('BonkBot already logged in')
-        async def login():
-            response = await self._aiohttp_session.post(
-                login_legacy_api,
-                data={
-                    'username': name,
-                    'password': password,
-                    'remember': 'true' if remember else 'false',
-                }
-            )
-            response.raise_for_status()
-            response_data = await response.json()
-            if response_data['r'] == 'fail':
-                await self.dispatch('on_error', ApiError(ErrorType.from_string(response_data['e'])))
-                return
-            await self._start(BotData.from_login_response(response_data))
-            return response_data['rememberToken']
-        return self.event_loop.run_until_complete(login())
+        response = await self._aiohttp_session.post(
+            login_legacy_api,
+            data={
+                'username': name,
+                'password': password,
+                'remember': 'true' if remember else 'false',
+            }
+        )
+        response.raise_for_status()
+        response_data = await response.json()
+        if response_data['r'] == 'fail':
+            await self.dispatch('on_error', ApiError(ErrorType.from_string(response_data['e'])))
+            return
+        await self._start(BotData.from_login_response(response_data))
+        return response_data['rememberToken']
 
-    def login_with_token(self, remember_token: str) -> None:
+    async def login_with_token(self, remember_token: str) -> None:
         if self._is_logged:
             raise ValueError('BonkBot already logged in')
-        async def login():
-            response = await self._aiohttp_session.post(
-                login_legacy_api,
-                data={
-                    'rememberToken': remember_token,
-                }
-            )
-            response.raise_for_status()
-            response_data = await response.json()
-            if response_data['r'] == 'fail':
-                await self.dispatch('on_error', ApiError(ErrorType.from_string(response_data['e'])))
-                return
-            await self._start(BotData.from_login_response(response_data))
-        return self.event_loop.run_until_complete(login())
+        response = await self._aiohttp_session.post(
+            login_legacy_api,
+            data={
+                'rememberToken': remember_token,
+            }
+        )
+        response.raise_for_status()
+        response_data = await response.json()
+        if response_data['r'] == 'fail':
+            await self.dispatch('on_error', ApiError(ErrorType.from_string(response_data['e'])))
+            return
+        await self._start(BotData.from_login_response(response_data))
 
     async def fetch_rooms(self) -> List[RoomInfo]:
         response = await self.aiohttp_session.post(
