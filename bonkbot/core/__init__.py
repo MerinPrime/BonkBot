@@ -3,6 +3,7 @@ from .api import (
     bonk_peer_api,
     bonk_socket_api,
     get_rooms_api,
+    get_server_api,
     login_auto_api,
     login_legacy_api,
     room_link_api,

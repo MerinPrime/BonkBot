@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Union, Dict
+from typing import Dict, Union
 
 from ...pson.bytebuffer import ByteBuffer
 

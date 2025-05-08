@@ -14,6 +14,8 @@ class Avatar:
     @staticmethod
     def from_buffer(buffer: ByteBuffer) -> "Avatar":
         avatar = Avatar()
+        if buffer.size == 0:
+            return avatar
         avatar.layers = [None] * 16
         buffer.read_bytes(4)
         version = buffer.read_int16()
@@ -40,7 +42,7 @@ class Avatar:
         avatar.base_color = data["bc"]
         avatar.layers = [Layer.from_json(layer) for layer in data["layers"]]
         return avatar
-    
+
     def to_json(self) -> Dict:
         return {
             'bc': self.base_color,

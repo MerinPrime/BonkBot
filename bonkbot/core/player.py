@@ -1,5 +1,4 @@
 import dataclasses
-from dataclasses import field
 from typing import TYPE_CHECKING, Union
 
 from ..types.avatar import Avatar
@@ -8,9 +7,9 @@ if TYPE_CHECKING:
 
     from peerjs.dataconnection import DataConnection
 
+    from ..types.team import Team
     from .bonkbot import BonkBot
     from .room import Room
-    from ..types.team import Team
 
 @dataclasses.dataclass
 class Player:
@@ -32,7 +31,7 @@ class Player:
     @property
     def is_bot(self) -> bool:
         return self.room.bot == self
-    
+
     @property
     def is_host(self) -> bool:
         return self.room.host == self

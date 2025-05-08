@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 @dataclass(frozen=True)
 class RoomInfo:
     name: str
-    dbid: int
+    id: int
     players: int
     max_players: int
     has_password: bool

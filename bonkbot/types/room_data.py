@@ -20,7 +20,7 @@ class RoomData:
     team_lock: bool = False
     join_id: Union[str, None] = None
     join_bypass: str = ''
-    
+
     def player_by_id(self, player_id: int) -> "Player":
         for player in self.players:
             if player.id == player_id:

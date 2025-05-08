@@ -25,6 +25,7 @@ ignore = [
     "SIM105",
     "E501",
     "SIM108",
+    "FBT001",
 ]
 
 [lint.per-file-ignores]

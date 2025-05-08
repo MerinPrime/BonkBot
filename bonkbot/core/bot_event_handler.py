@@ -5,9 +5,10 @@ from typing import TYPE_CHECKING, Any, Callable, Coroutine
 from pymitter import EventEmitter
 
 if TYPE_CHECKING:
-    from ..core.room import Room
     from ..core.player import Player
+    from ..core.room import Room
     from ..types.room.room_action import RoomAction
+    from .bonkbot import BonkBot
 
 
 class BotEventHandler:
@@ -49,14 +50,26 @@ class BotEventHandler:
     async def dispatch(self, event: str, *args, **kwargs) -> None:
         await self._event_emitter.emit_async(event, *args, **kwargs)
 
-    async def _on_ready(self) -> None:
+    async def _on_ready(self, bot: "BonkBot") -> None:
         pass
 
-    async def _on_error(self, error: Exception) -> None:
+    async def _on_error(self, bot: "BonkBot", error: Exception) -> None:
         raise error
 
     async def _on_room_connection(self, room: "Room", action: "RoomAction") -> None:
         pass
 
     async def _on_player_join(self, room: "Room", player: "Player") -> None:
+        pass
+
+    async def _on_xp_gain(self, room: "Room", new_xp: int) -> None:
+        pass
+
+    async def _on_time_offset_change(self, room: "Room", offset: int) -> None:
+        pass
+
+    async def _on_room_id_obtain(self, room: "Room") -> None:
+        pass
+
+    async def _on_ping_update(self, room: "Room") -> None:
         pass

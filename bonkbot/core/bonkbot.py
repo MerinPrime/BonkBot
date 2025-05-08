@@ -1,13 +1,16 @@
 import asyncio
-from typing import List, Union
+from typing import List, Optional, Union
 
 import aiohttp
 
+from ..types import Server
 from ..types.avatar.avatar import Avatar
 from ..types.errors import ApiError, ErrorType
 from ..types.friend import Friend
 from ..types.mode import Mode
+from ..types.room.room_create_params import RoomCreateParams
 from ..types.room.room_info import RoomInfo
+from ..types.room.room_join_params import RoomJoinParams
 from ..types.settings import Settings
 from ..utils.api import validate_username
 from ..utils.xp import xp_to_level
@@ -23,14 +26,16 @@ class BonkBot(BotEventHandler):
     _is_logged: bool
     event_loop: asyncio.AbstractEventLoop
     _rooms: List[Room]
+    server: Server
 
-    def __init__(self, event_loop: asyncio.AbstractEventLoop = None):
+    def __init__(self, event_loop: Optional[asyncio.AbstractEventLoop] = None):
         super().__init__()
         self._data = None
         self._is_logged = False
         self.event_loop = event_loop if event_loop is not None else asyncio.get_event_loop()
         self._aiohttp_session = aiohttp.ClientSession(loop=self.event_loop)
         self._rooms = []
+        self.server = Server.WARSAW
 
     def __del__(self):
         if self.event_loop.is_running():
@@ -69,8 +74,8 @@ class BonkBot(BotEventHandler):
         return xp_to_level(self._data.xp)
 
     @property
-    def dbid(self) -> int:
-        return self._data.dbid
+    def id(self) -> int:
+        return self._data.id
 
     @property
     def is_guest(self) -> int:
@@ -117,7 +122,7 @@ class BonkBot(BotEventHandler):
     async def _start(self, data: BotData) -> None:
         self._data = data
         self._is_logged = True
-        await self.dispatch('on_ready')
+        await self.dispatch('on_ready', self)
 
     async def login_as_guest(self, name: str) -> None:
         if self._is_logged:
@@ -126,7 +131,7 @@ class BonkBot(BotEventHandler):
         data = BotData(
             name=name,
             token='',
-            dbid=0,
+            id=0,
             is_guest=True,
             xp=0,
             avatar=Avatar(),
@@ -152,7 +157,7 @@ class BonkBot(BotEventHandler):
         response.raise_for_status()
         response_data = await response.json()
         if response_data['r'] == 'fail':
-            await self.dispatch('on_error', ApiError(ErrorType.from_string(response_data['e'])))
+            await self.dispatch('on_error', self, ApiError(ErrorType.from_string(response_data['e'])))
             return
         await self._start(BotData.from_login_response(response_data))
         return response_data['rememberToken']
@@ -169,9 +174,48 @@ class BonkBot(BotEventHandler):
         response.raise_for_status()
         response_data = await response.json()
         if response_data['r'] == 'fail':
-            await self.dispatch('on_error', ApiError(ErrorType.from_string(response_data['e'])))
+            await self.dispatch('on_error', self, ApiError(ErrorType.from_string(response_data['e'])))
             return
         await self._start(BotData.from_login_response(response_data))
+
+    def create_room(self, name: str = '', password: str = '', *, unlisted: bool = False,
+                    max_players: int = 6, min_level: int = 0, max_level: int = 999, server: "Server" = None) -> "Room":
+        if server is None:
+            server = self.server
+        room = Room(bot=self, room_params=RoomCreateParams(
+            name=name,
+            password=password,
+            unlisted=unlisted,
+            max_players=max_players,
+            min_level=min_level,
+            max_level=max_level,
+        ), server=server)
+        return room
+
+    def join_room(self, room_info: "RoomInfo", password: str = '', bypass: str = '', *, server: Optional["Server"] = None) -> "Room":
+        if server is None:
+            server = self.server
+        room = Room(bot=self, room_params=RoomJoinParams(
+            room_id=room_info.id,
+            password=password,
+            bypass=bypass,
+        ), server=server)
+        return room
+
+    async def update_server(self) -> "Server":
+        response = await self.aiohttp_session.post(
+            get_rooms_api,
+            data={
+                'version': PROTOCOL_VERSION,
+                'gl': 'y',
+                'token': self._data.token,
+            }
+        )
+        response.raise_for_status()
+        response_data = await response.json()
+        server = Server.from_name(response_data['createserver'])
+        self.server = server
+        return server
 
     async def fetch_rooms(self) -> List[RoomInfo]:
         response = await self.aiohttp_session.post(
@@ -184,11 +228,10 @@ class BonkBot(BotEventHandler):
         )
         response.raise_for_status()
         response_data = await response.json()
-
         return [
             RoomInfo(
                 name=room['roomname'],
-                dbid=room['id'],
+                id=room['id'],
                 players=room['players'],
                 max_players=room['maxplayers'],
                 has_password=room['password'] == 1,

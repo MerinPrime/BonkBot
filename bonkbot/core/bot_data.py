@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Union
+from typing import List
 
 from ..pson.bytebuffer import ByteBuffer
 from ..types.avatar.avatar import Avatar
@@ -11,7 +11,7 @@ from ..types.settings import Settings
 class BotData:
     name: str = ''
     token: str = ''
-    dbid: int = 0
+    id: int = 0
     is_guest: bool = True
     xp: int = 0
     avatar: Avatar = None
@@ -26,7 +26,7 @@ class BotData:
         data = BotData(
             name = json_data['username'],
             token = json_data['token'],
-            dbid = json_data['id'],
+            id= json_data['id'],
             is_guest = False,
             xp = json_data['xp'],
             avatar = Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar'], uri_encoded=True)),
@@ -44,6 +44,6 @@ class BotData:
                 room_id=friend['roomid']
             ) for friend in json_data['friends']],
             legacy_friends = [Friend(name=friend, dbid=None, room_id=None) for friend in json_data['legacyFriends'].split('#')],
-            settings = Settings.from_buffer(ByteBuffer().from_base64(json_data['controls'], uri_encoded=False))
+            settings = Settings.from_buffer(ByteBuffer().from_base64(json_data['controls'], uri_encoded=False)) if json_data['controls'] else Settings()
         )
         return data

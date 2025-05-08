@@ -3,25 +3,25 @@ import dataclasses
 import random
 import string
 import time
-from typing import TYPE_CHECKING, Dict, Union, List
+from typing import TYPE_CHECKING, Dict, List, Union
 
 import socketio
-from peerjs_py import PeerEventType, PeerOptions, Peer
+from peerjs_py import Peer, PeerEventType, PeerOptions
 from peerjs_py.dataconnection.DataConnection import DataConnection
 
+from ..core.player import Player
 from ..types.avatar import Avatar
 from ..types.errors.room_already_connected import RoomAlreadyConnected
+from ..types.mode import Mode
 from ..types.room.room_action import RoomAction
 from ..types.room.room_create_params import RoomCreateParams
 from ..types.room.room_join_params import RoomJoinParams
 from ..types.room_data import RoomData
 from ..types.server import Server
+from ..types.team import Team, TeamState
 from . import PROTOCOL_VERSION
-from .api import bonk_socket_api, room_link_api
+from .api import bonk_peer_api, bonk_socket_api, room_link_api
 from .timesyncer import TimeSyncer
-from ..core.player import Player
-from ..types.mode import Mode
-from ..types.team import TeamState, Team
 
 if TYPE_CHECKING:
     from .bonkbot import BonkBot
@@ -42,6 +42,7 @@ class Room:
     _is_connected: bool
     _players: List["Player"]
     _bot_player: "Player"
+    _connect_event: asyncio.Event
 
     def __init__(self, bot: "BonkBot", room_params: Union["RoomJoinParams", "RoomCreateParams"],
                  *, server: Server = Server.WARSAW) -> None:
@@ -59,6 +60,7 @@ class Room:
         self._is_connected = False
         self._players = []
         self._bot_player = None
+        self._connect_event = asyncio.Event()
         self._bot.add_room(self)
 
     def __del__(self):
@@ -71,11 +73,15 @@ class Room:
         if self.peer_ready:
             await self._peer.destroy()
         self._room_data = None
+        self._total_players = 0
         self._peer_ready = False
         self._time_offset = None
         self._synced = False
         self._peer_id = None
         self._is_connected = False
+        self._players = []
+        self._bot_player = None
+        self._connect_event.clear()
         self._bot.remove_room(self)
 
     @property
@@ -97,7 +103,7 @@ class Room:
     @property
     def player_count(self) -> int:
         return len(self._room_data.players)
-    
+
     @property
     def players(self) -> List["Player"]:
         return self._room_data.players
@@ -165,15 +171,20 @@ class Room:
         return room_link_api.format(self.join_id, self.join_bypass)
 
     @property
-    def bot(self) -> "Player":
+    def bot(self) -> "BonkBot":
+        return self._bot
+
+    @property
+    def bot_player(self) -> "Player":
         return self._bot_player
 
     async def connect(self) -> None:
         if self.is_connected:
-            await self._bot.dispatch('on_error', RoomAlreadyConnected(self))
+            await self._bot.dispatch('on_error', self.bot, RoomAlreadyConnected(self))
+            return
         self._bind_listeners()
         async def init_socket():
-            await self._socket.connect(bonk_socket_api.format(self._server.name), transports=['websocket'])
+            await self._socket.connect(bonk_socket_api.format(self._server.name))
             await self._make_timesync()
         await asyncio.gather(
             init_socket(),
@@ -181,7 +192,6 @@ class Room:
         )
 
     async def _init_connection(self):
-        print('beb')
         if self._action == RoomAction.CREATE:
             await self._create()
         else:
@@ -196,7 +206,7 @@ class Room:
             'roomName': name,
             'maxPlayers': self._room_params.max_players,
             'password': self._room_params.password,
-            'dbid': self._bot.dbid,
+            'id': self._bot.id,
             'guest': self._bot.is_guest,
             'minLevel': self._room_params.min_level,
             'maxLevel': self._room_params.max_level,
@@ -234,7 +244,6 @@ class Room:
             players=[self._bot_player]
         )
         self._total_players = 1
-        print(123)
         await self._socket.emit(12, data)
 
     async def _join(self) -> None:
@@ -259,17 +268,15 @@ class Room:
         @self.timesyncer.event_emitter.on('change')
         async def on_change(offset: int):
             if self._time_offset is not None:
-                await self._bot.dispatch('time_offset_change', self, offset - self._time_offset)
+                await self._bot.dispatch('on_time_offset_change', self, offset - self._time_offset)
             self._time_offset = offset
 
         await self.timesyncer.start()
 
     async def _make_peer(self):
-        print('123')
-        response = await self._bot.aiohttp_session.get('https://b2warsaw1.bonk.io/myapp/peerjs/id')
-        peer_id = await response.text()
+        peer_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10)) + '000000'
         self._peer = Peer(id=peer_id, options=PeerOptions(
-            host='{}.bonk.io'.format(self._server.name),
+            host=bonk_peer_api.format(self._server.name),
             port=443,
             path='/myapp',
             secure=True
@@ -289,41 +296,42 @@ class Room:
 
         @self._peer.on(PeerEventType.Error.value)
         async def on_error(error: str) -> None:
-            pass
+            print(error)
 
         await self._peer.start()
-        # TODO: fix peers or end fork of peerjs-python
 
     async def _process_new_connection(self, connection: DataConnection) -> None:
         async def on_data(data: Dict) -> None:
             print(data,time.time())
-        
+
         connection.data_channel.on('message', lambda data: asyncio.create_task(on_data(data)))
 
     async def _init_player_peer(self, player: Player):
         player.data_connection = await self._peer.connect(player.peer_id)
-        print(player.data_connection)
         await self._process_new_connection(player.data_connection)
-    
+
+    async def wait_for_connection(self):
+        await self._connect_event.wait()
+
     def _bind_listeners(self):
         @self.socket.on(1)
         async def on_ping_data(pings: Dict, player_id: int):
             await self.socket.emit(1, {'id': player_id})
             for player_id, ping in pings.items():
                 self._room_data.players[int(player_id)].ping = ping
-            await self._bot.dispatch('on_ping_data', self)
-        
+            await self._bot.dispatch('on_ping_update', self)
+
         @self.socket.on(2)
         async def on_room_create(*args):
+            self._connect_event.set()
             await self._bot.dispatch('on_room_connection', self, RoomAction.CREATE)
-        
+
         @self.socket.on(3)
         async def on_room_join(bot_id: int, host_id: int, players: Dict, timestamp: int, team_lock: bool,
                                  join_id: int, join_bypass: str, *args):
             self._room_data.join_id = f'{join_id:06}'
             self._room_data.join_bypass = join_bypass
             self._room_data.team_lock = team_lock
-            self._room_data.host_id = host_id
             self._total_players = len(players)
             for player_id, player_data in players.items():
                 player = Player(
@@ -348,6 +356,7 @@ class Room:
                 self._room_data.players.append(player)
             self._bot_player = self._room_data.player_by_id(bot_id)
             self._room_data.host = self._room_data.player_by_id(host_id)
+            self._connect_event.set()
             await self._bot.dispatch('on_room_connection', self, RoomAction.JOIN)
 
         @self.socket.on(4)
@@ -358,7 +367,7 @@ class Room:
                 room=self,
                 data_connection=None,
                 id=player_id,
-                team=Team.FFA if self.team_state == TeamState.FFA and self.team_lock == False else Team.SPECTATOR,
+                team=Team.FFA if self.team_state == TeamState.FFA and not self.team_lock else Team.SPECTATOR,
                 avatar=Avatar.from_json(avatar),
                 peer_id=peer_id,
                 name=username,
@@ -368,7 +377,6 @@ class Room:
                 level=level,
                 joined_with_bypass=joined_with_bypass,
             )
-            print('join')
             asyncio.create_task(self._init_player_peer(player))
             self._room_data.players.append(player)
             await self._bot.dispatch('on_player_join', self, player)
@@ -395,7 +403,7 @@ class Room:
                     "a": 'kalalak',
                     "n": 'kalalak',
                     "dbv": 2,
-                    "dbid": -1,
+                    "id": -1,
                     "authid": -1,
                     "date": '',
                     "rxid": 0,
@@ -430,11 +438,21 @@ class Room:
             await asyncio.sleep(5)
             await self._socket.emit(34, {'id': 1})
 
+        @self.socket.on(46)
+        async def on_xp_gain(data: dict) -> None:
+            new_xp = data['newXP']
+            self._bot._data.xp = new_xp
+            if 'newToken' in data:
+                self._bot._token = data['newToken']
+
+            await self._bot.dispatch('on_xp_gain', self, new_xp)
+
         @self.socket.on(49)
         async def on_room_id_obtain(join_id: int, join_bypass: str):
             self._room_data.join_id = f'{join_id:06}'
             self._room_data.join_bypass = join_bypass
-            print(self.join_link)
             await self._bot.dispatch('on_room_id_obtain', self)
-        
 
+    async def gain_xp(self):
+        '''Get 100 xp. Limit 18000 in day, 2000 in 20 minutes'''
+        await self.socket.emit(38)

@@ -33,6 +33,8 @@ class Settings:
     @staticmethod
     def from_buffer(buffer: ByteBuffer) -> "Settings":
         settings = Settings()
+        if buffer.size == 0:
+            return settings
         settings.version = buffer.read_uint16()
 
         if settings.version >= 1:

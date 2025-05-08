@@ -9,7 +9,7 @@ class Team(enum.IntEnum):
     BLUE = 3
     GREEN = 4
     YELLOW = 5
-    
+
     @staticmethod
     def from_number(self, value: int) -> "Team":
         for team in Team:
