@@ -52,13 +52,8 @@ async def main():
 
 
     print('--- Started XP farm ---')
+    await asyncio.sleep(10)
     while True:
-        for bot in bots.copy():
-            if not bot.rooms:
-                await bot.logout()
-            if not bot.is_logged:
-                bots.remove(bot)
-
         for _ in range(20):
             gain_xp_tasks = []
             for bot in bots.copy():
@@ -69,8 +64,8 @@ async def main():
                     continue
                 gain_xp_tasks.append(bot.rooms[0].gain_xp())
             await asyncio.gather(*gain_xp_tasks)
-            await asyncio.sleep(5)
-        await asyncio.sleep(20 * 55)
+            await asyncio.sleep(10)
+        await asyncio.sleep(1000)
 
 event_loop = asyncio.get_event_loop()
 main_task = None
