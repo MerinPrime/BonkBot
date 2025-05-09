@@ -52,20 +52,20 @@ class Settings:
             settings.special2 = buffer.read_uint16()
 
         if settings.version >= 2:
-            settings.filter = buffer.read_uint8() == 1
+            settings.filter = buffer.read_bool()
 
         if settings.version >= 3:
-            settings.stats = buffer.read_uint8() == 1
+            settings.stats = buffer.read_bool()
 
         if 3 <= settings.version <= 5:
-            legacyQualityFlag = buffer.read_uint8() == 1
+            legacyQualityFlag = buffer.read_bool()
             if legacyQualityFlag:
                 settings.quality = 3
             else:
                 settings.quality = 2
 
         if settings.version >= 4:
-            settings.help = buffer.read_uint8() == 1
+            settings.help = buffer.read_bool()
 
         if settings.version >= 3:
             settings.up3 = buffer.read_uint16()
