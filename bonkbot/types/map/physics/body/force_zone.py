@@ -1,5 +1,6 @@
 import enum
 from dataclasses import dataclass
+from typing import Tuple
 
 
 class ForceZoneType(enum.IntEnum):
@@ -17,11 +18,12 @@ class ForceZoneType(enum.IntEnum):
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IBodyForceZoneProperties.ts
 @dataclass
 class ForceZone:
-    enabled: bool
-    type: 'ForceZoneType'
-    x_force: float
-    y_force: float
-    push_players: bool
-    push_bodies: bool
-    push_arrows: bool
-    center_force: float
+    enabled: bool = False
+    type: 'ForceZoneType' = ForceZoneType.ABSOLUTE
+    # ABSOLUTE & RELATIVE
+    force: Tuple[float, float] = (0, 0)
+    # CENTER_PUSH & CENTER_PULL
+    center_force: float = 0
+    push_players: bool = True
+    push_bodies: bool = True
+    push_arrows: bool = True

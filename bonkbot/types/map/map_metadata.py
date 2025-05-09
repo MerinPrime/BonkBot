@@ -1,25 +1,24 @@
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Optional
+from dataclasses import dataclass, field
+from typing import List, Optional
 
-if TYPE_CHECKING:
-    from ..mode import Mode
+from ..mode import Mode
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMapMetadata.ts
 @dataclass
 class MapMetadata:
-    name: str
-    author: str
-    database_version: int
-    database_id: int
-    original_author: str
-    original_name: str
-    original_database_version: int
-    original_database_id: int
-    is_owner: bool
-    contributors: List[str]
-    date: str
-    auth_id: int
-    mode: 'Mode'
-    votes_down: Optional[int]
-    votes_up: Optional[int]
+    name: str = 'noauthor'
+    author: str = 'noname'
+    database_version: int = 2
+    database_id: int = -1
+    original_author: str = ''
+    original_name: str = ''
+    original_database_version: int = 1
+    original_database_id: int = 0
+    is_published: bool = False
+    contributors: List[str] = field(default_factory=list)
+    date: str = ''
+    auth_id: int = -1
+    mode: 'Mode' = Mode.NONE
+    votes_down: Optional[int] = None
+    votes_up: Optional[int] = None

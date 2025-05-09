@@ -32,8 +32,8 @@ class Layer:
         layer.angle = buffer.read_float32()
         layer.x = buffer.read_float32()
         layer.y = buffer.read_float32()
-        layer.flip_x = buffer.read_uint8() == 1
-        layer.flip_y = buffer.read_uint8() == 1
+        layer.flip_x = buffer.read_bool()
+        layer.flip_y = buffer.read_bool()
         layer.color = buffer.read_int32()
         return layer
 

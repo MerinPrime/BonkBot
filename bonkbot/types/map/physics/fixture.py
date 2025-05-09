@@ -5,17 +5,22 @@ from typing import Optional
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IFixture.ts
 @dataclass
 class Fixture:
-    name: str
-    color: float
-    density: float
-    fric_players: Optional[bool]
-    friction: float
-    death: bool
-    inner_grapple: Optional[bool]
-    no_grapple: bool
-    no_physics: bool
-    restitution: float
     shape_id: int
-    sn: Optional[bool]
-    fs: Optional[bool]
-    zp: Optional[int]
+
+    name: str = 'Def Fix'
+    color: float = 0x4F7CAC
+
+    density: float = 0.3
+    restitution: float = 0.8
+    friction: Optional[float] = 0.3
+
+    friction_players: Optional[bool] = None
+    inner_grapple: Optional[bool] = None
+
+    no_grapple: bool = False
+    no_physics: bool = False
+    death: bool = False
+
+    sn: Optional[bool] = None
+    fs: Optional[bool] = None
+    zp: Optional[int] = None

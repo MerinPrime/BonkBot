@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
@@ -11,9 +11,9 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMapPhysics.ts
 @dataclass
 class MapPhysics:
-    bodies: List['Body']
-    fixtures: List['Fixture']
-    joints: List['Joint']
-    shapes: List['Shape']
-    bro: List[int]
-    ppm: float
+    bodies: List['Body'] = field(default_factory=list)
+    fixtures: List['Fixture'] = field(default_factory=list)
+    joints: List['Joint'] = field(default_factory=list)
+    shapes: List['Shape'] = field(default_factory=list)
+    bro: List[int] = field(default_factory=list)
+    ppm: int = 12

@@ -1,21 +1,22 @@
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from dataclasses import dataclass, field
+from typing import List, Optional, Tuple
 
-if TYPE_CHECKING:
-    from .body_force import BodyForce
-    from .body_shape import BodyShape
-    from .force_zone import ForceZone
+from .body_force import BodyForce
+from .body_shape import BodyShape
+from .force_zone import ForceZone
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IBody.ts
 @dataclass
 class Body:
-    name: Optional[str]
-    angle: float
-    angle_velocity: float
-    fx: List[int]
-    position: Tuple[float, float]
-    linear_velocity: Tuple[float, float]
-    shape: 'BodyShape'
-    force: Optional['BodyForce']
-    force_zone: Optional['ForceZone']
+    name: Optional[str] = None
+
+    position: Tuple[float, float] = (0, 0)
+    linear_velocity: Tuple[float, float] = (0, 0)
+    angle: float = 0
+    angular_velocity: float = 0
+
+    fixtures: List[int] = field(default_factory=list)
+    shape: 'BodyShape' = field(default_factory=BodyShape)
+    force: 'BodyForce' = field(default_factory=BodyForce)
+    force_zone: 'ForceZone' = field(default_factory=ForceZone)

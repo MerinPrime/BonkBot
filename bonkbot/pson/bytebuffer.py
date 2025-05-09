@@ -117,7 +117,7 @@ class ByteBuffer:
     def read_utf(self) -> str:
         length = self.read_uint16()
         return self.read_bytes(length).decode('utf-8')
-    
+
     def read_vstr(self) -> float:
         length = self.read_varint32()
         return self.read_bytes(length).decode('utf-8')

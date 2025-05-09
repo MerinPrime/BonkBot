@@ -5,12 +5,12 @@ from typing import Optional, Tuple
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/ISpawn.ts
 @dataclass
 class Spawn:
-    name: str
-    allowed_ffa: bool
-    blue: bool
-    red: bool
-    green: Optional[bool]
-    yellow: Optional[bool]
-    priority: float
-    position: Tuple[float, float]
-    velocity: Tuple[float, float]
+    name: str = 'Spawn'
+    ffa: bool = True
+    blue: bool = True
+    red: bool = True
+    green: Optional[bool] = False
+    yellow: Optional[bool] = False
+    priority: float = 5
+    position: Tuple[float, float] = (400, 300)
+    velocity: Tuple[float, float] = (0, 0)
