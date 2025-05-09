@@ -6,7 +6,7 @@ import time
 from typing import TYPE_CHECKING, Dict, List, Union
 
 import socketio
-from peerjs_py import Peer, PeerEventType, PeerOptions
+from peerjs_py import Peer, PeerOptions
 from peerjs_py.dataconnection.DataConnection import DataConnection
 
 from ..core.player import Player
@@ -15,7 +15,7 @@ from ..types.errors import ApiError, ErrorType
 from ..types.errors.room_already_connected import RoomAlreadyConnected
 from ..types.room.room_action import RoomAction
 from ..types.room.room_create_params import RoomCreateParams
-from ..types.room_data import RoomData
+from ..types.room.room_data import RoomData
 from ..types.server import Server
 from ..types.team import Team, TeamState
 from . import PROTOCOL_VERSION
@@ -175,6 +175,9 @@ class Room:
     def bot_player(self) -> 'Player':
         return self._bot_player
 
+    def get_player_by_id(self, player_id: int) -> 'Player':
+        return self._room_data.player_by_id(player_id)
+
     async def connect(self) -> None:
         if self.is_connected:
             await self._bot.dispatch('on_error', self.bot, RoomAlreadyConnected(self))
@@ -279,29 +282,29 @@ class Room:
             secure=True,
         ))
 
-        @self._peer.on(PeerEventType.Open.value)
+        @self._peer.on('open')
         async def on_open(peer_id: str) -> None:
             self._peer_ready = True
             self._peer_id = peer_id
             if self._synced:
                 await self._init_connection()
 
-        @self._peer.on(PeerEventType.Connection.value)
+        @self._peer.on('connection')
         async def on_connection(connection: DataConnection) -> None:
             self._peer_ready = True
             # TODO: set data connection for player
 
-        @self._peer.on(PeerEventType.Error.value)
+        @self._peer.on('error')
         async def on_error(error: str) -> None:
             print(error)
 
         await self._peer.start()
 
     async def _process_new_connection(self, connection: DataConnection) -> None:
-        async def on_data(data: Dict) -> None:
+        @connection.data_channel.on('message')
+        async def on_message(data: Dict) -> None:
             print(data,time.time())
 
-        connection.data_channel.on('message', lambda data: asyncio.create_task(on_data(data)))
 
     async def _init_player_peer(self, player: Player) -> None:
         player.data_connection = await self._peer.connect(player.peer_id)
@@ -457,12 +460,18 @@ class Room:
             ]:
                 await self.disconnect()
 
+        @self.socket.on(45)
+        async def on_level_up(data: dict) -> None:
+            player = self.get_player_by_id(data['sid'])
+            player.level = data['lv']
+            await self.bot.dispatch('on_level_up', self, player)
+
         @self.socket.on(46)
         async def on_xp_gain(data: dict) -> None:
             new_xp = data['newXP']
             self._bot._data.xp = new_xp
             if 'newToken' in data:
-                self._bot._token = data['newToken']
+                self._bot._data.token = data['newToken']
 
             await self._bot.dispatch('on_xp_gain', self, new_xp)
 

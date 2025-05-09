@@ -76,3 +76,6 @@ class BotEventHandler:
 
     async def _on_ping_update(self, room: 'Room') -> None:
         pass
+
+    async def _on_level_up(self, bot: 'Room', player: 'Player') -> None:
+        pass
