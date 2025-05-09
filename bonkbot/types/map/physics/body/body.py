@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, List, Optional, Tuple
 if TYPE_CHECKING:
     from .body_force import BodyForce
     from .body_shape import BodyShape
-    from .force_zone_properties import ForceZoneProperties
+    from .force_zone import ForceZone
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IBody.ts
@@ -18,4 +18,4 @@ class Body:
     linear_velocity: Tuple[float, float]
     shape: 'BodyShape'
     force: Optional['BodyForce']
-    force_zone: Optional['ForceZoneProperties']
+    force_zone: Optional['ForceZone']

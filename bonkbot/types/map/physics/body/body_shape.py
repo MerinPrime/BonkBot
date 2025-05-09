@@ -2,15 +2,15 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .collide import CollideFlag, CollideGroup
-    from .shape_body_type import ShapeBodyType
+    from ..collide import CollideFlag, CollideGroup
+    from .body_type import BodyType
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IBodyShape.ts
 @dataclass
 class BodyShape:
     name: str
-    body_type: 'ShapeBodyType'
+    body_type: 'BodyType'
     fric_players: bool
     collide_mask: 'CollideFlag'
     collide_group: 'CollideGroup'

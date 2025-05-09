@@ -1,6 +1,6 @@
 import enum
 
 
-class ShapeBodyType(enum.Enum):
+class BodyType(enum.Enum):
     DYNAMIC = 'd'
     STATIC = 's'

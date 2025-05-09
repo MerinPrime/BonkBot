@@ -1,4 +1,5 @@
 import enum
+from dataclasses import dataclass
 
 
 class CaptureType(enum.IntEnum):
@@ -13,3 +14,12 @@ class CaptureType(enum.IntEnum):
         for capture_type in CaptureType:
             if type_id == capture_type.value:
                 return capture_type
+
+
+# Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/ICapZone.ts
+@dataclass
+class CaptureZone:
+    name: str
+    shape_id: int
+    seconds: float
+    type: 'CaptureType'

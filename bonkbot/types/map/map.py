@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
-    from .cap_zone import CapZone
+    from .capture_zone import CaptureZone
     from .map_metadata import MapMetadata
-    from .map_physics import MapPhysics
     from .map_properties import MapProperties
+    from .physics.map_physics import MapPhysics
     from .spawn import Spawn
 
 
@@ -15,4 +15,4 @@ class Map:
     properties: 'MapProperties'
     physics: 'MapPhysics'
     spawns: List['Spawn']
-    cap_zones: List['CapZone']
+    cap_zones: List['CaptureZone']
