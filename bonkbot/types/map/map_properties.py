@@ -10,6 +10,6 @@ class MapProperties:
     respawn_on_death: bool = False
     players_can_fly: bool = False
     complex_physics: bool = False
-    a1: Optional[bool] = True
-    a2: Optional[bool] = False
-    a3: Optional[bool] = False
+    a1: Optional[bool] = None
+    a2: Optional[bool] = None
+    a3: Optional[bool] = None

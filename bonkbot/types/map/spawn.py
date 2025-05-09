@@ -9,8 +9,8 @@ class Spawn:
     ffa: bool = True
     blue: bool = True
     red: bool = True
-    green: Optional[bool] = False
-    yellow: Optional[bool] = False
+    green: Optional[bool] = None
+    yellow: Optional[bool] = None
     priority: float = 5
     position: Tuple[float, float] = (400, 300)
     velocity: Tuple[float, float] = (0, 0)
