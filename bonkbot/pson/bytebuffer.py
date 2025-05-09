@@ -137,6 +137,9 @@ class ByteBuffer:
     def write_uint8(self, value: int) -> None:
         self.write_bytes(struct.pack('>B', value))
 
+    def write_bool(self, value: bool) -> None:
+        self.write_uint8(int(value))
+
     def write_int8(self, value: int) -> None:
         self.write_bytes(struct.pack('>b', value))
 
