@@ -3,6 +3,8 @@ import struct
 from typing import Optional
 from urllib.parse import unquote
 
+from lzstring import LZString
+
 
 def zigzag_encode32(value: int) -> int:
     return (((value | 1) << 1) ^ (value >> 31)) & 0xFFFFFFFF
@@ -33,15 +35,28 @@ class ByteBuffer:
         self.offset = 0
         self.size = len(self.bytes)
 
-    def from_base64(self, data: str, *, uri_encoded: bool = False) -> 'ByteBuffer':
-        if uri_encoded:
-            data = unquote(data)
-        self.bytes += base64.b64decode(data)
-        return self
-
     def read_bytes(self, count: int = 1) -> bytearray:
         self.offset += count
         return self.bytes[self.offset-count:self.offset]
+
+    def from_base64(self, data: str, *, uri_encoded: bool = False,
+                    lz_encoded: bool = False, case_encoded: bool = False) -> 'ByteBuffer':
+        if uri_encoded:
+            data = unquote(data)
+        if case_encoded:
+            temp_data = ''
+            for i, char in enumerate(data):
+                if i <= 100 and char.islower():
+                    temp_data += char.upper()
+                elif i <= 100 and char.isupper():
+                    temp_data += char.lower()
+                else:
+                    temp_data += char
+            data = temp_data
+        if lz_encoded:
+            data = LZString.decompressFromEncodedURIComponent(data)
+        self.bytes += base64.b64decode(data)
+        return self
 
     def read_uint8(self) -> int:
         return struct.unpack('>B', self.read_bytes(1))[0]
@@ -95,10 +110,14 @@ class ByteBuffer:
     def read_float64(self) -> float:
         return struct.unpack('>d', self.read_bytes(8))[0]
 
-    def read_str(self) -> float:
+    def read_str(self) -> str:
         length = self.read_uint8()
         return self.read_bytes(length).decode('utf-8')
 
+    def read_utf(self) -> str:
+        length = self.read_uint16()
+        return self.read_bytes(length).decode('utf-8')
+    
     def read_vstr(self) -> float:
         length = self.read_varint32()
         return self.read_bytes(length).decode('utf-8')
@@ -172,6 +191,11 @@ class ByteBuffer:
         self.write_uint8(len(bs))
         self.write_bytes(bs)
 
+    def write_utf(self, value: str) -> None:
+        bs = value.encode('utf-8')
+        self.write_uint16(len(bs))
+        self.write_bytes(bs)
+
     def write_vstr(self, value: str) -> None:
         bs = value.encode('utf-8')
         self.write_varint32(len(bs))
@@ -179,3 +203,6 @@ class ByteBuffer:
 
     def flipped(self) -> None:
         return self.bytes[::-1]
+
+    def read_bool(self) -> bool:
+        return self.read_uint8() == 1
