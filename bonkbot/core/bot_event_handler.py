@@ -99,3 +99,9 @@ class BotEventHandler:
 
     async def _on_ready_reset(self, room: 'Room') -> None:
         pass
+
+    async def _on_player_mute(self, room: 'Room', player: 'Player') -> None:
+        pass
+
+    async def _on_player_unmute(self, room: 'Room', player: 'Player') -> None:
+        pass

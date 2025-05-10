@@ -25,6 +25,7 @@ class Player:
     name: str
     is_guest: bool
     ready: bool
+    muted: bool
     tabbed: bool
     level: int
     peer_id: str = ''

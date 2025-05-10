@@ -524,6 +524,18 @@ class Room:
                 player.ready = False
             await self.bot.dispatch('on_ready_reset', self)
 
+        @self.socket.on(SocketEvents.Incoming.PLAYER_MUTED)
+        async def on_player_mute(player_id: int, data: dict) -> None:
+            player = self.get_player_by_id(player_id)
+            player.muted = True
+            await self.bot.dispatch('on_player_mute', self, player)
+
+        @self.socket.on(SocketEvents.Incoming.PLAYER_UNMUTED)
+        async def on_player_unmute(player_id: int, data: dict) -> None:
+            player = self.get_player_by_id(player_id)
+            player.muted = False
+            await self.bot.dispatch('on_player_unmute', self, player)
+
         @self.socket.on(SocketEvents.Incoming.PLAYER_INPUT)
         async def on_move(player_id: int, data: Dict) -> None:
             player = self.get_player_by_id(player_id)

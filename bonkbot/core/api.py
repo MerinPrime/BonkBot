@@ -21,6 +21,8 @@ class SocketEvents:
         PLAYER_INPUT = 7
         READY_CHANGE = 8
         READY_RESET = 9
+        PLAYER_MUTED = 10
+        PLAYER_UNMUTED = 11
         GAME_END = 13
         GAME_START = 15
         STATUS = 16
