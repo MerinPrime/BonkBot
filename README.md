@@ -24,4 +24,4 @@ pip install https://github.com/MerinPrime/BonkBot.git
 - [XP Farm](examples/xp_farm.py)
 
 ## Documentation
-In the future i want to write docstrings but idk what i should write in them
+In the future i want to write docstrings but idk what i should to write in them
