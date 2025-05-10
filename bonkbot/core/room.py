@@ -341,10 +341,7 @@ class Room:
         async def on_connection(connection: DataConnection) -> None:
             self._peer_ready = True
             self._connections.append(connection)
-            print(connection)
             for player in self._room_data.players:
-                print(connection.peer)
-                print(player.peer_id)
                 if player.peer_id == connection.peer:
                     player.data_connection = connection
                     break
@@ -570,7 +567,7 @@ class Room:
         @self.socket.on(SocketEvents.Incoming.GAME_START)
         async def on_game_start(unix_time: int, map_data: str, game_settings: dict) -> None:
             pair = StaticPair(PSON_KEYS)
-            self._map = pair.decode(ByteBuffer().from_base64(map_data, case_encoded=True, lz_encoded=True))
+            self._map = BonkMap.from_json(game_settings['map'])
             self._room_data.rounds = game_settings['wl']
             self._room_data.team_lock = game_settings['tl']
             self._room_data.mode = Mode.from_mode_code(game_settings['mo'])
@@ -603,6 +600,53 @@ class Room:
             player = self.get_player_by_id(player_id)
             await self.bot.dispatch('on_message', self, player, message)
 
+        @self.socket.on(SocketEvents.Incoming.INFORM_IN_LOBBY)
+        async def inform_in_lobby(game_settings: dict) -> None:
+            self._map = BonkMap.from_json(game_settings['map'])
+            self._room_data.rounds = game_settings['wl']
+            self._room_data.team_lock = game_settings['tl']
+            self._room_data.mode = Mode.from_mode_code(game_settings['mo'])
+            for player in self.players:
+                if player.id >= len(game_settings['bal']):
+                    player.balance = 0
+                    continue
+                player.balance = game_settings['bal'][player.id]
+            if not game_settings['tea']:
+                self._room_data.team_state = TeamState.FFA
+            elif self._room_data.mode == Mode.FOOTBALL:
+                self._room_data.team_state = TeamState.DUO
+            else:
+                self._room_data.team_state = TeamState.ALL
+
+        @self.socket.on(SocketEvents.Incoming.ON_KICK)
+        async def on_player_kick(player_id: int, is_ban: bool) -> None:
+            player = self.get_player_by_id(player_id)
+            if is_ban:
+                await self.bot.dispatch('on_ban', self, player)
+            else:
+                await self.bot.dispatch('on_kick', self, player)
+            if player.is_bot:
+                await self.disconnect()
+
+        @self.socket.on(SocketEvents.Incoming.MODE_CHANGE)
+        async def on_mode_change(engine: str, mode: str) -> None:
+            self._room_data.mode = Mode.from_mode_code(mode)
+            await self.bot.dispatch('on_mode_change', self)
+
+        @self.socket.on(SocketEvents.Incoming.ROUNDS_CHANGE)
+        async def on_rounds_change(rounds: int) -> None:
+            self._room_data.rounds = rounds
+            await self.bot.dispatch('on_rounds_change', self)
+
+        @self.socket.on(SocketEvents.Incoming.MAP_CHANGE)
+        async def on_map_change(encoded_map: str) -> None:
+            self._map = BonkMap.decode_from_database(encoded_map)
+            await self.bot.dispatch('on_map_change', self)
+
+        @self.socket.on(SocketEvents.Incoming.AFK_WARN)
+        async def on_afk_warn() -> None:
+            await self.bot.dispatch('on_afk_warn', self)
+        
         @self.socket.on(SocketEvents.Incoming.STATUS)
         async def on_error(error: str) -> None:
             if error != RATE_LIMIT_PONG:

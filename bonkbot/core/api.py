@@ -30,6 +30,12 @@ class SocketEvents:
         PLAYER_TEAM_CHANGE = 18
         TEAM_LOCK = 19
         MESSAGE = 20
+        INFORM_IN_LOBBY = 21
+        ON_KICK = 24
+        MODE_CHANGE = 26
+        ROUNDS_CHANGE = 27
+        MAP_CHANGE = 29
+        AFK_WARN = 32
         LEVEL_UP = 45
         XP_GAIN = 46
         ROOM_ID_OBTAIN = 49

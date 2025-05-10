@@ -116,11 +116,29 @@ class BotEventHandler:
     async def _on_game_start(self, room: 'Room', unix_time: int) -> None:
         pass
 
-    async def _on_player_team_change(self, room: 'Room', player: 'Player', team: 'Team') -> None:
+    async def _on_player_team_change(self, room: 'Room', player: 'Player') -> None:
         pass
 
     async def _on_team_lock(self, room: 'Room') -> None:
         pass
 
     async def _on_message(self, room: 'Room', player: 'Player', message: str) -> None:
+        pass
+
+    async def _on_ban(self, room: 'Room', player: 'Player') -> None:
+        pass
+
+    async def _on_kick(self, room: 'Room', player: 'Player') -> None:
+        pass
+
+    async def _on_mode_change(self, room: 'Room') -> None:
+        pass
+
+    async def _on_rounds_change(self, room: 'Room') -> None:
+        pass
+
+    async def _on_map_change(self, room: 'Room') -> None:
+        pass
+
+    async def _on_afk_warn(self, room: 'Room') -> None:
         pass
