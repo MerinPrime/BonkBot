@@ -90,3 +90,12 @@ class BotEventHandler:
 
     async def _on_player_left(self, room: 'Room', player: 'Player') -> None:
         pass
+
+    async def _on_host_left(self, room: 'Room', player: 'Player') -> None:
+        pass
+
+    async def _on_ready_change(self, room: 'Room', player: 'Player') -> None:
+        pass
+
+    async def _on_ready_reset(self, room: 'Room') -> None:
+        pass

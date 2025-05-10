@@ -20,6 +20,7 @@ class SocketEvents:
         HOST_LEFT = 6
         PLAYER_INPUT = 7
         READY_CHANGE = 8
+        READY_RESET = 9
         GAME_END = 13
         GAME_START = 15
         STATUS = 16

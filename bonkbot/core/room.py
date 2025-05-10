@@ -502,6 +502,28 @@ class Room:
                 await player.data_connection.close()
             await self.bot.dispatch('on_player_left', self, player)
 
+        @self.socket.on(SocketEvents.Incoming.HOST_LEFT)
+        async def on_host_left(old_host_id: int, new_host_id: int, data: Dict) -> None:
+            old_host = self.get_player_by_id(old_host_id)
+            new_host = self.get_player_by_id(new_host_id)
+            self.players.remove(old_host)
+            if old_host.data_connection and old_host.data_connection.open:
+                await old_host.data_connection.close()
+            self._room_data.host = new_host
+            await self.bot.dispatch('on_host_left', self, old_host)
+
+        @self.socket.on(SocketEvents.Incoming.READY_CHANGE)
+        async def on_ready_change(player_id: int, state: bool) -> None:
+            player = self.get_player_by_id(player_id)
+            player.ready = state
+            await self.bot.dispatch('on_ready_change', self, player)
+
+        @self.socket.on(SocketEvents.Incoming.READY_RESET)
+        async def on_ready_reset() -> None:
+            for player in self.players:
+                player.ready = False
+            await self.bot.dispatch('on_ready_reset', self)
+
         @self.socket.on(SocketEvents.Incoming.PLAYER_INPUT)
         async def on_move(player_id: int, data: Dict) -> None:
             player = self.get_player_by_id(player_id)
@@ -526,7 +548,7 @@ class Room:
                 move.unreverted = False
                 player.moves[move.sequence] = move
                 await self.bot.dispatch('on_player_move', self, player, move)
-
+        
         @self.socket.on(SocketEvents.Incoming.STATUS)
         async def on_error(error: str) -> None:
             if error != RATE_LIMIT_PONG:
@@ -534,7 +556,7 @@ class Room:
 
             if error in CRITICAL_API_ERRORS:
                 await self.disconnect()
-
+        
         @self.socket.on(SocketEvents.Incoming.LEVEL_UP)
         async def on_level_up(data: dict) -> None:
             player = self.get_player_by_id(data['sid'])
