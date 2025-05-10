@@ -26,6 +26,7 @@ class Player:
     tabbed: bool
     level: int
     peer_id: str = ''
+    balance: int = 0
     ping: int = 105
     joined_with_bypass: Union[bool, None] = None
     moves: Dict[str, PlayerMove] = field(default_factory=dict)

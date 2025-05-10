@@ -1,7 +1,6 @@
 import asyncio
 import copy
 import dataclasses
-import json
 import random
 import string
 import time
@@ -469,7 +468,11 @@ class Room:
                 joined_with_bypass=joined_with_bypass,
             )
             self._room_data.players.append(player)
+            self._total_players += 1
             await self._bot.dispatch('on_player_join', self, player)
+            bal = [0] * self._total_players
+            for player in self.players:
+                bal[player.id] = player.balance
             await self._socket.emit(
                 11,
                 {
@@ -483,11 +486,9 @@ class Room:
                         'tea': self.team_state != TeamState.FFA,
                         'ga': self.mode.engine,
                         'mo': self.mode.mode,
-                        'bal': [],
+                        'bal': bal,
                     },
                 })
-            await asyncio.sleep(5)
-            await self._socket.emit(34, {'id': 1})
 
         @self.socket.on(5)
         async def on_player_left(player_id: int, data: Dict) -> None:
