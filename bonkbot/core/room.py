@@ -4,7 +4,7 @@ import dataclasses
 import random
 import string
 import time
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import socketio
 from peerjs_py import Peer, PeerOptions
@@ -12,11 +12,12 @@ from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
 from peerjs_py.dataconnection.DataConnection import DataConnection
 
 from ..core.player import Player
-from ..pson import StaticPair, ByteBuffer
+from ..types import Inputs
 from ..types.avatar import Avatar
 from ..types.errors import ApiError, ErrorType
 from ..types.errors.room_already_connected import RoomAlreadyConnected
 from ..types.map.bonkmap import BonkMap
+from ..types.mode import Mode
 from ..types.player_move import PlayerMove
 from ..types.room.room_action import RoomAction
 from ..types.room.room_create_params import RoomCreateParams
@@ -30,12 +31,11 @@ from .api import (
     SocketEvents,
     bonk_peer_api,
     bonk_socket_api,
-    room_link_api, PSON_KEYS,
+    room_link_api,
 )
 from .timesyncer import TimeSyncer
 
 if TYPE_CHECKING:
-    from ..types.mode import Mode
     from ..types.room.room_join_params import RoomJoinParams
     from .bonkbot import BonkBot
 
@@ -58,6 +58,7 @@ class Room:
     _map: BonkMap
     _connection: List['DataConnection']
     _p2p_revert_task: asyncio.Task
+    sequence: int
 
     def __init__(self, bot: 'BonkBot', room_params: Union['RoomJoinParams', 'RoomCreateParams'],
                  *, server: Server = Server.WARSAW) -> None:
@@ -80,6 +81,7 @@ class Room:
         self._connect_event = asyncio.Event()
         self._bot.add_room(self)
         self._map = BonkMap.decode_from_database('ILAcJAhBFBjBzCIDCAbAcgBwEYA1IDOAWgMrAAeAJgFYCiwytlAjEQGLoAMsAtm50gCmAdwbBIbACoBDAOrNh2AOIBVeAFlcATXIBJZAAtURJak4BpaMAASJAExsCW2eQPTRkACJFdITwDMANRB6RhZ2Ll5+JCgAdhjgX08PGKsYa0gE8WB0LLz8goKrCGZA7B4AVgNsWUCAa10OAHstfFR-AGoAeh7envAbLoA3Pr7O0d7waWxMOyzM4DYALxBhKjp4FSVXSiUiId4BQuO8roAWfOQugYTPLsl1JcfnlZO394-Pk7TgaFpMv4QegQZDCNh1LKeYAAeWKXwKMH+vyQgUksCUbAAzNg6pAiHlhJ4IfDCioAcCQGwVJjIAZKHYLkggA')
+        self.sequence = 0
 
     async def disconnect(self) -> None:
         if self.is_connected:
@@ -95,6 +97,7 @@ class Room:
         self._is_connected = False
         self._connections = []
         self._bot_player = None
+        self.sequence = 0
         self._p2p_revert_task.cancel()
         try:
             await self._p2p_revert_task
@@ -232,14 +235,14 @@ class Room:
                     time_since_move = time.time() - move.time
                     if time_since_move > 2000:
                         break
-                    if move.time > 800 and move.by_peer and not move.by_socket and not move.peer_ignored and not move.reverted:
+                    if time_since_move > 800 and move.by_peer and not move.by_socket and not move.peer_ignored and not move.reverted:
                         move.reverted = True
                         player.peer_reverts += 1
                         if player.peer_reverts >= 4:
                             player.peer_reverts = 0
                             player.peer_ban_level += 1
                             player.peer_ban_until = time.time() + 15000 * (2 ** player.peer_ban_level)
-                        await self.bot.dispatch('on_move_revert', self, player, move)
+                        asyncio.create_task(self.bot.dispatch('on_move_revert', self, player, move))
             await asyncio.sleep(0.1)
 
     async def _init_connection(self) -> None:
@@ -362,10 +365,13 @@ class Room:
                     if iplayer.peer_id == connection.peer:
                         player = iplayer
                         break
-                return player
+            return player
 
-        async def on_data(data: Dict) -> None:
+        @connection.on('data')
+        def on_data(data: Dict) -> None:
             player = get_player()
+            if player is None:
+                return
             if player.moves.get(data['c']) is not None:
                 player.moves[data['c']].by_peer = True
             elif player.peer_ban_until > time.time():
@@ -382,9 +388,7 @@ class Room:
                 move.inputs.flags = data['i']
                 move.sequence = data['c']
                 player.moves[move.sequence] = move
-                await self.bot.dispatch('on_player_move', self, player, move)
-
-        connection.on('data', lambda data: asyncio.create_task(on_data(data)))
+                asyncio.create_task(self.bot.dispatch('on_player_move', self, player, copy.deepcopy(move)))
 
     async def _init_player_peer(self, player: Player) -> None:
         player.data_connection = await self._peer.connect(player.peer_id)
@@ -402,7 +406,7 @@ class Room:
         async def on_ping_data(pings: Dict, player_id: int) -> None:
             await self.socket.emit(SocketEvents.Outgoing.PING_DATA, {'id': player_id})
             for player_id, ping in pings.items():
-                self._room_data.players[int(player_id)].ping = ping
+                self.get_player_by_id(int(player_id)).ping = ping
             await self._bot.dispatch('on_ping_update', self)
 
         @self.socket.on(SocketEvents.Incoming.ROOM_CREATE)
@@ -465,7 +469,6 @@ class Room:
             )
             self._room_data.players.append(player)
             self._total_players += 1
-            await self._bot.dispatch('on_player_join', self, player)
             bal = [0] * self._total_players
             for player in self.players:
                 bal[player.id] = player.balance
@@ -485,6 +488,7 @@ class Room:
                         'bal': bal,
                     },
                 })
+            await self._bot.dispatch('on_player_join', self, player)
 
         @self.socket.on(SocketEvents.Incoming.PLAYER_LEFT)
         async def on_player_left(player_id: int, data: Dict) -> None:
@@ -497,6 +501,10 @@ class Room:
         @self.socket.on(SocketEvents.Incoming.HOST_LEFT)
         async def on_host_left(old_host_id: int, new_host_id: int, data: Dict) -> None:
             old_host = self.get_player_by_id(old_host_id)
+            if new_host_id == -1:
+                await self.bot.dispatch('on_host_left', self, old_host)
+                await self.disconnect()
+                return
             new_host = self.get_player_by_id(new_host_id)
             self.players.remove(old_host)
             if old_host.data_connection and old_host.data_connection.open:
@@ -514,20 +522,22 @@ class Room:
                 move.by_socket = True
                 if move.reverted:
                     move.unreverted = True
-                    await self.bot.dispatch('on_player_move', self, player, move)
+                    asyncio.create_task(self.bot.dispatch('on_player_move', self, player, copy.deepcopy(move)))
                 elif move.peer_ignored:
-                    await self.bot.dispatch('on_player_move', self, player, move)
+                    asyncio.create_task(self.bot.dispatch('on_player_move', self, player, copy.deepcopy(move)))
             else:
                 move = PlayerMove()
                 move.time = time.time()
                 move.frame = data['f']
+                move.inputs.flags = data['i']
+                move.sequence = data['c']
                 move.by_peer = False
                 move.peer_ignored = False
                 move.by_socket = True
                 move.reverted = False
                 move.unreverted = False
                 player.moves[move.sequence] = move
-                await self.bot.dispatch('on_player_move', self, player, move)
+                asyncio.create_task(self.bot.dispatch('on_player_move', self, player, copy.deepcopy(move)))
 
         @self.socket.on(SocketEvents.Incoming.READY_CHANGE)
         async def on_ready_change(player_id: int, state: bool) -> None:
@@ -566,8 +576,7 @@ class Room:
 
         @self.socket.on(SocketEvents.Incoming.GAME_START)
         async def on_game_start(unix_time: int, map_data: str, game_settings: dict) -> None:
-            pair = StaticPair(PSON_KEYS)
-            self._map = BonkMap.from_json(game_settings['map'])
+            self._map = BonkMap.decode_from_database(game_settings['map'])
             self._room_data.rounds = game_settings['wl']
             self._room_data.team_lock = game_settings['tl']
             self._room_data.mode = Mode.from_mode_code(game_settings['mo'])
@@ -646,7 +655,7 @@ class Room:
         @self.socket.on(SocketEvents.Incoming.AFK_WARN)
         async def on_afk_warn() -> None:
             await self.bot.dispatch('on_afk_warn', self)
-        
+
         @self.socket.on(SocketEvents.Incoming.STATUS)
         async def on_error(error: str) -> None:
             if error != RATE_LIMIT_PONG:
@@ -654,7 +663,7 @@ class Room:
 
             if error in CRITICAL_API_ERRORS:
                 await self.disconnect()
-        
+
         @self.socket.on(SocketEvents.Incoming.LEVEL_UP)
         async def on_level_up(data: dict) -> None:
             player = self.get_player_by_id(data['sid'])
@@ -681,3 +690,22 @@ class Room:
     async def gain_xp(self) -> None:
         """Get 100 xp. Limit 18000 in day, 2000 in 20 minutes"""
         await self.socket.emit(SocketEvents.Outgoing.XP_GAIN)
+
+    async def move(self, frame: int, inputs: Inputs, sequence: Optional[int] = None) -> None:
+        if sequence is None:
+            sequence = self.sequence
+            self.sequence += 1
+        await self.socket.emit(
+            SocketEvents.Outgoing.MOVE,
+            {
+                'i': inputs.flags,
+                'f': frame,
+                'c': sequence,
+            },
+        )
+        move = PlayerMove()
+        move.frame = frame
+        move.inputs = inputs
+        move.sequence = sequence
+        move.time = time.time()
+        self.bot_player.moves[self.sequence] = move

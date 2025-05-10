@@ -4,12 +4,10 @@ from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
 from pymitter import EventEmitter
 
-
 if TYPE_CHECKING:
-    from ..types.player_move import PlayerMove
-    from ..types import Team
     from ..core.player import Player
     from ..core.room import Room
+    from ..types.player_move import PlayerMove
     from ..types.room.room_action import RoomAction
     from .bonkbot import BonkBot
 

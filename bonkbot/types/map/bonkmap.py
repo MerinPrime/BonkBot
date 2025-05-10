@@ -1,13 +1,13 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, List
 
-from .physics import CollideGroup
 from ...core.api import MAP_VERSION
 from ...pson.bytebuffer import ByteBuffer
 from ..mode import Mode
 from .capture_zone import CaptureType, CaptureZone
 from .map_metadata import MapMetadata
 from .map_properties import MapProperties
+from .physics import CollideGroup
 from .physics.body.body import Body
 from .physics.body.body_type import BodyType
 from .physics.body.force_zone import ForceZoneType
@@ -539,7 +539,7 @@ class BonkMap:
         bonk_map.properties.players_dont_collide = json_data['s']['nc']
         bonk_map.properties.respawn_on_death = json_data['s']['re']
         bonk_map.properties.players_can_fly = json_data['s']['fl']
-        bonk_map.properties.complex_physics = True if json_data['s']['pq'] == 2 else False
+        bonk_map.properties.complex_physics = json_data['s']['pq'] == 2
         if json_data['s'].get('a1') is not None:
             bonk_map.physics.a1 = json_data['s']['a1']
         if json_data['s'].get('a2') is not None:
