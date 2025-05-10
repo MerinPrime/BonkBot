@@ -36,9 +36,22 @@ class SocketEvents:
         ROUNDS_CHANGE = 27
         MAP_CHANGE = 29
         AFK_WARN = 32
+        MAP_SUGGEST_HOST = 33
+        MAP_SUGGEST_CLIENT = 34
+        SET_BALANCE = 36
+        TEAMS_TOGGLE = 39
+        REPLAY_RECORD = 40
+        HOST_CHANGE = 41
+        FRIEND_REQUEST = 42
+        COUNTDOWN = 43
+        COUNTDOWN_ABORT = 44
         LEVEL_UP = 45
         XP_GAIN = 46
+        INITIAL_STATE = 48
         ROOM_ID_OBTAIN = 49
+        PLAYER_TABBED = 52
+        ROOM_NAME_CHANGE = 58
+        ROOM_PASS_CHANGE = 59
 
     class Outgoing(enum.IntEnum):
         PING_DATA = 1

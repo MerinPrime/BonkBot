@@ -1,10 +1,11 @@
 import asyncio
 import inspect
-from typing import TYPE_CHECKING, Any, Callable, Coroutine
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict, List
 
 from pymitter import EventEmitter
 
 if TYPE_CHECKING:
+    from ..types.map.bonkmap import BonkMap
     from ..core.player import Player
     from ..core.room import Room
     from ..types.player_move import PlayerMove
@@ -139,4 +140,40 @@ class BotEventHandler:
         pass
 
     async def _on_afk_warn(self, room: 'Room') -> None:
+        pass
+
+    async def _on_map_suggest_host(self, room: 'Room', player: 'Player', map: 'BonkMap') -> None:
+        pass
+
+    async def _on_map_suggest_client(self, room: 'Room', player: 'Player', name: str, author: str) -> None:
+        pass
+
+    async def _on_set_balance(self, room: 'Room', player: 'Player', balance: int) -> None:
+        pass
+
+    async def _on_teams_toggle(self, room: 'Room') -> None:
+        pass
+
+    async def _on_replay_record(self, room: 'Room', player: 'Player') -> None:
+        pass
+
+    async def _on_host_change(self, room: 'Room', old_host: 'Player') -> None:
+        pass
+
+    async def _on_countdown(self, room: 'Room', number: int) -> None:
+        pass
+
+    async def _on_countdown_abort(self, room: 'Room') -> None:
+        pass
+
+    async def _on_initial_state(self, room: 'Room', frame: int, random: List[int], initial_state: Dict, state_id: int) -> None:
+        pass
+
+    async def _on_player_tabbed(self, room: 'Room', player: 'Player') -> None:
+        pass
+
+    async def _on_room_name_change(self, room: 'Room') -> None:
+        pass
+
+    async def _on_room_pass_change(self, room: 'Room') -> None:
         pass

@@ -1,7 +1,8 @@
 import dataclasses
 from dataclasses import field
-from typing import TYPE_CHECKING, Dict, Union
+from typing import TYPE_CHECKING, Dict, Union, Tuple, List
 
+from ..types import Inputs
 from ..types.errors import ApiError, ErrorType
 from ..types.player_move import PlayerMove
 from ..types.team import Team
@@ -29,7 +30,8 @@ class Player:
     balance: int = 0
     ping: int = 105
     joined_with_bypass: Union[bool, None] = None
-    moves: Dict[str, PlayerMove] = field(default_factory=dict)
+    moves: Dict[str, 'PlayerMove'] = field(default_factory=dict)
+    prev_inputs: List[Tuple[int, 'Inputs']] = field(default_factory=list)
     peer_ban_until: float = 0
     peer_ban_level: int = 0
     peer_reverts: int = 0
