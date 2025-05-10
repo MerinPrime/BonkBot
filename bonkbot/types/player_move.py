@@ -1,5 +1,4 @@
-import enum
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .input import Inputs
 
@@ -7,7 +6,7 @@ from .input import Inputs
 @dataclass
 class PlayerMove:
     frame: int = 0
-    inputs: Inputs = Inputs()
+    inputs: Inputs = field(default_factory=Inputs)
     sequence: int = 0
     time: float = 0
     by_socket: bool = False
@@ -15,8 +14,8 @@ class PlayerMove:
     reverted: bool = False
     unreverted: bool = False
     peer_ignored: bool = False
-    
-    def to_json(self):
+
+    def to_json(self) -> dict:
         return {
             'f': self.frame,
             'i': self.inputs.flags,

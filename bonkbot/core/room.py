@@ -5,16 +5,14 @@ import json
 import random
 import string
 import time
-from typing import TYPE_CHECKING, Dict, List, Union, Tuple
+from typing import TYPE_CHECKING, Dict, List, Union
 
 import socketio
-from aiortc.rtcicetransport import TURN_REGEX
 from peerjs_py import Peer, PeerOptions
 from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
 from peerjs_py.dataconnection.DataConnection import DataConnection
 
 from ..core.player import Player
-from ..types.input import InputFlag, Inputs
 from ..types.avatar import Avatar
 from ..types.errors import ApiError, ErrorType
 from ..types.errors.room_already_connected import RoomAlreadyConnected
@@ -53,7 +51,7 @@ class Room:
     _map: BonkMap
     _connection: List['DataConnection']
     _p2p_revert_task: asyncio.Task
-    
+
     def __init__(self, bot: 'BonkBot', room_params: Union['RoomJoinParams', 'RoomCreateParams'],
                  *, server: Server = Server.WARSAW) -> None:
         self._bot = bot
@@ -75,7 +73,7 @@ class Room:
         self._connect_event = asyncio.Event()
         self._bot.add_room(self)
         self._map = BonkMap.decode_from_database('ILAcJAhBFBjBzCIDCAbAcgBwEYA1IDOAWgMrAAeAJgFYCiwytlAjEQGLoAMsAtm50gCmAdwbBIbACoBDAOrNh2AOIBVeAFlcATXIBJZAAtURJak4BpaMAASJAExsCW2eQPTRkACJFdITwDMANRB6RhZ2Ll5+JCgAdhjgX08PGKsYa0gE8WB0LLz8goKrCGZA7B4AVgNsWUCAa10OAHstfFR-AGoAeh7envAbLoA3Pr7O0d7waWxMOyzM4DYALxBhKjp4FSVXSiUiId4BQuO8roAWfOQugYTPLsl1JcfnlZO394-Pk7TgaFpMv4QegQZDCNh1LKeYAAeWKXwKMH+vyQgUksCUbAAzNg6pAiHlhJ4IfDCioAcCQGwVJjIAZKHYLkggA')
-    
+
     async def disconnect(self) -> None:
         if self.is_connected:
             await self._socket.disconnect()
@@ -100,7 +98,7 @@ class Room:
         self._bot.remove_room(self)
 
     @property
-    def map(self) -> str:
+    def map(self) -> BonkMap:
         return copy.deepcopy(self._map)
 
     @property
@@ -212,8 +210,8 @@ class Room:
             self._make_peer(),
         )
         self._p2p_revert_task = asyncio.create_task(self._handle_p2p_revert())
-    
-    async def _handle_p2p_revert(self):
+
+    async def _handle_p2p_revert(self) -> None:
         await self.wait_for_connection()
         while True:
             for player in self.players:
@@ -236,7 +234,7 @@ class Room:
                             player.peer_ban_until = time.time() + 15000 * (2 ** player.peer_ban_level)
                         await self.bot.dispatch('on_move_revert', self, player, move)
             await asyncio.sleep(0.1)
-    
+
     async def _init_connection(self) -> None:
         if self._action == RoomAction.CREATE:
             await self._create()
@@ -364,7 +362,7 @@ class Room:
                         player = iplayer
                         break
                 return player
-        
+
         async def on_data(data: Dict) -> None:
             player = get_player()
             if player.moves.get(data['c']) is not None:
@@ -384,8 +382,8 @@ class Room:
                 move.sequence = data['c']
                 player.moves[move.sequence] = move
                 await self.bot.dispatch('on_player_move', self, player, move)
-        
-        connection.on('data', lambda data: self.bot.event_loop.run_until_complete(on_data(data)))
+
+        connection.on('data', lambda data: asyncio.create_task(on_data(data)))
 
     async def _init_player_peer(self, player: Player) -> None:
         player.data_connection = await self._peer.connect(player.peer_id)
@@ -498,7 +496,7 @@ class Room:
             if player.data_connection and player.data_connection.open:
                 await player.data_connection.close()
             await self.bot.dispatch('on_player_left', self, player)
-        
+
         @self.socket.on(7)
         async def on_move(player_id: int, data: Dict) -> None:
             player = self.get_player_by_id(player_id)

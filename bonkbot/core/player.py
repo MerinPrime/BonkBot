@@ -1,6 +1,6 @@
 import dataclasses
 from dataclasses import field
-from typing import TYPE_CHECKING, Union, List, Dict
+from typing import TYPE_CHECKING, Dict, Union
 
 from ..types.player_move import PlayerMove
 
