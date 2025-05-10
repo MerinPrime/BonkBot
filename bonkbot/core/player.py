@@ -1,8 +1,9 @@
 import dataclasses
 from typing import TYPE_CHECKING, Union
 
+
 if TYPE_CHECKING:
-    from peerjs_py.dataconnection import DataConnection
+    from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
 
     from ..types.avatar import Avatar
     from ..types.team import Team
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
 class Player:
     bot: 'BonkBot'
     room: 'Room'
-    data_connection: Union['DataConnection', None]
+    data_connection: Union['BinaryPack', None]
     id: int
     team: 'Team'
     avatar: 'Avatar'

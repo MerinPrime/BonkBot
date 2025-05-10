@@ -1,18 +1,23 @@
 import asyncio
+import copy
 import dataclasses
+import json
 import random
 import string
 import time
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, Dict, List, Union, Tuple
 
 import socketio
 from peerjs_py import Peer, PeerOptions
+from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
 from peerjs_py.dataconnection.DataConnection import DataConnection
 
 from ..core.player import Player
+from ..types.input import InputFlag, Inputs
 from ..types.avatar import Avatar
 from ..types.errors import ApiError, ErrorType
 from ..types.errors.room_already_connected import RoomAlreadyConnected
+from ..types.map.bonkmap import BonkMap
 from ..types.room.room_action import RoomAction
 from ..types.room.room_create_params import RoomCreateParams
 from ..types.room.room_data import RoomData
@@ -41,9 +46,10 @@ class Room:
     _synced: bool
     _peer_id: str
     _is_connected: bool
-    _players: List['Player']
     _bot_player: 'Player'
     _connect_event: asyncio.Event
+    _map: BonkMap
+    _connection: List['DataConnection']
 
     def __init__(self, bot: 'BonkBot', room_params: Union['RoomJoinParams', 'RoomCreateParams'],
                  *, server: Server = Server.WARSAW) -> None:
@@ -59,11 +65,12 @@ class Room:
         self._synced = False
         self._peer_id = None
         self._is_connected = False
-        self._players = []
         self._bot_player = None
+        self._connections = []
         self._connect_event = asyncio.Event()
         self._bot.add_room(self)
-
+        self._map = BonkMap.decode_from_database('ILAcJAhBFBjBzCIDCAbAcgBwEYA1IDOAWgMrAAeAJgFYCiwytlAjEQGLoAMsAtm50gCmAdwbBIbACoBDAOrNh2AOIBVeAFlcATXIBJZAAtURJak4BpaMAASJAExsCW2eQPTRkACJFdITwDMANRB6RhZ2Ll5+JCgAdhjgX08PGKsYa0gE8WB0LLz8goKrCGZA7B4AVgNsWUCAa10OAHstfFR-AGoAeh7envAbLoA3Pr7O0d7waWxMOyzM4DYALxBhKjp4FSVXSiUiId4BQuO8roAWfOQugYTPLsl1JcfnlZO394-Pk7TgaFpMv4QegQZDCNh1LKeYAAeWKXwKMH+vyQgUksCUbAAzNg6pAiHlhJ4IfDCioAcCQGwVJjIAZKHYLkggA')
+    
     async def disconnect(self) -> None:
         if self.is_connected:
             await self._socket.disconnect()
@@ -76,10 +83,14 @@ class Room:
         self._synced = False
         self._peer_id = None
         self._is_connected = False
-        self._players = []
+        self._connections = []
         self._bot_player = None
         self._connect_event.clear()
         self._bot.remove_room(self)
+
+    @property
+    def map(self) -> str:
+        return copy.deepcopy(self._map)
 
     @property
     def name(self) -> str:
@@ -190,7 +201,7 @@ class Room:
             init_socket(),
             self._make_peer(),
         )
-
+    
     async def _init_connection(self) -> None:
         if self._action == RoomAction.CREATE:
             await self._create()
@@ -292,7 +303,15 @@ class Room:
         @self._peer.on('connection')
         async def on_connection(connection: DataConnection) -> None:
             self._peer_ready = True
-            # TODO: set data connection for player
+            self._connections.append(connection)
+            print(connection)
+            for player in self._room_data.players:
+                print(connection.peer)
+                print(player.peer_id)
+                if player.peer_id == connection.peer:
+                    player.data_connection = connection
+                    break
+            await self._process_new_connection(connection)
 
         @self._peer.on('error')
         async def on_error(error: str) -> None:
@@ -300,11 +319,26 @@ class Room:
 
         await self._peer.start()
 
-    async def _process_new_connection(self, connection: DataConnection) -> None:
-        @connection.data_channel.on('message')
-        async def on_message(data: Dict) -> None:
-            print(data,time.time())
-
+    async def _process_new_connection(self, connection: BinaryPack) -> None:
+        async def on_data(data: Dict) -> None:
+            orig = data['i']
+            r = orig & InputFlag.RIGHT != 0
+            l = orig & InputFlag.LEFT != 0
+            data['i'] = orig & ~(InputFlag.RIGHT | InputFlag.LEFT)
+            if r:
+                data['i'] = data['i'] | InputFlag.LEFT
+            if l:
+                data['i'] = data['i'] | InputFlag.RIGHT
+            if r and l:
+                data['i'] = data['i'] & ~InputFlag.LEFT
+            await self.socket.emit(4, data)
+            for player in self.players:
+                if player.data_connection is None or not player.data_connection.open:
+                    continue
+                print(player)
+                await player.data_connection.send(json.dumps(data))
+        
+        connection.on('data', lambda data: self.bot.event_loop.run_until_complete(on_data(data)))
 
     async def _init_player_peer(self, player: Player) -> None:
         player.data_connection = await self._peer.connect(player.peer_id)
@@ -327,7 +361,6 @@ class Room:
 
         @self.socket.on(2)
         async def on_room_create(*args) -> None:
-            self._connect_event.set()
             await self._bot.dispatch('on_room_connection', self, RoomAction.CREATE)
 
         @self.socket.on(3)
@@ -360,16 +393,25 @@ class Room:
                 self._room_data.players.append(player)
             self._bot_player = self._room_data.player_by_id(bot_id)
             self._room_data.host = self._room_data.player_by_id(host_id)
+            self._is_connected = True
             self._connect_event.set()
             await self._bot.dispatch('on_room_connection', self, RoomAction.JOIN)
 
         @self.socket.on(4)
         async def on_player_join(player_id: int, peer_id: str, username: str, is_guest: bool, level: int,
                 joined_with_bypass: int, avatar: Dict) -> None:
+            connection = None
+            print(self._connections)
+            for data_connection in self._connections:
+                print(data_connection.peer)
+                print(peer_id)
+                if data_connection.peer == peer_id:
+                    connection = data_connection
+                    break
             player = Player(
                 bot=self._bot,
                 room=self,
-                data_connection=None,
+                data_connection=connection,
                 id=player_id,
                 team=Team.FFA if self.team_state == TeamState.FFA and not self.team_lock else Team.SPECTATOR,
                 avatar=Avatar.from_json(avatar),
@@ -381,54 +423,14 @@ class Room:
                 level=level,
                 joined_with_bypass=joined_with_bypass,
             )
-            asyncio.create_task(self._init_player_peer(player))
             self._room_data.players.append(player)
             await self._bot.dispatch('on_player_join', self, player)
-            bad_map_data = {
-                'v': 13,
-                's': {
-                    're': False,
-                    'nc': False,
-                    'pq': 1,
-                    'gd': 25,
-                    'fl': False,
-                },
-                'physics': {
-                    'shapes': [],
-                    'fixtures': [],
-                    'bodies': [],
-                    'bro': [],
-                    'joints': [],
-                    'ppm': 12,
-                },
-                'spawns': [],
-                'capZones': [],
-                'm': {
-                    'a': 'kalalak',
-                    'n': 'kalalak',
-                    'dbv': 2,
-                    'id': -1,
-                    'authid': -1,
-                    'date': '',
-                    'rxid': 0,
-                    'rxn': '',
-                    'rxa': '',
-                    'rxdb': 1,
-                    'cr': [
-                        '💀',
-                    ],
-                    'pub': True,
-                    'mo': '',
-                    'vu': 5,
-                    'vd': 5,
-                },
-            }
             await self._socket.emit(
                 11,
                 {
                     'sid': player_id,
                     'gs': {
-                        'map': bad_map_data,
+                        'map': self._map.to_json(),
                         'gt': 2,
                         'wl': self.rounds,
                         'q': False,
@@ -479,6 +481,8 @@ class Room:
         async def on_room_id_obtain(join_id: int, join_bypass: str) -> None:
             self._room_data.join_id = f'{join_id:06}'
             self._room_data.join_bypass = join_bypass
+            self._is_connected = True
+            self._connect_event.set()
             await self._bot.dispatch('on_room_id_obtain', self)
 
     async def gain_xp(self) -> None:
