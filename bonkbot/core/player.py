@@ -1,6 +1,8 @@
 import dataclasses
-from typing import TYPE_CHECKING, Union
+from dataclasses import field
+from typing import TYPE_CHECKING, Union, List, Dict
 
+from ..types.player_move import PlayerMove
 
 if TYPE_CHECKING:
     from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
@@ -26,6 +28,10 @@ class Player:
     peer_id: str = ''
     ping: int = 105
     joined_with_bypass: Union[bool, None] = None
+    moves: Dict[str, PlayerMove] = field(default_factory=dict)
+    peer_ban_until: float = 0
+    peer_ban_level: int = 0
+    peer_reverts: int = 0
 
     @property
     def is_bot(self) -> bool:

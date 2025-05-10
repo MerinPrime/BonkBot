@@ -8,6 +8,7 @@ import time
 from typing import TYPE_CHECKING, Dict, List, Union, Tuple
 
 import socketio
+from aiortc.rtcicetransport import TURN_REGEX
 from peerjs_py import Peer, PeerOptions
 from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
 from peerjs_py.dataconnection.DataConnection import DataConnection
@@ -18,6 +19,7 @@ from ..types.avatar import Avatar
 from ..types.errors import ApiError, ErrorType
 from ..types.errors.room_already_connected import RoomAlreadyConnected
 from ..types.map.bonkmap import BonkMap
+from ..types.player_move import PlayerMove
 from ..types.room.room_action import RoomAction
 from ..types.room.room_create_params import RoomCreateParams
 from ..types.room.room_data import RoomData
@@ -50,7 +52,8 @@ class Room:
     _connect_event: asyncio.Event
     _map: BonkMap
     _connection: List['DataConnection']
-
+    _p2p_revert_task: asyncio.Task
+    
     def __init__(self, bot: 'BonkBot', room_params: Union['RoomJoinParams', 'RoomCreateParams'],
                  *, server: Server = Server.WARSAW) -> None:
         self._bot = bot
@@ -66,6 +69,7 @@ class Room:
         self._peer_id = None
         self._is_connected = False
         self._bot_player = None
+        self._p2p_revert_task = None
         self._connections = []
         self._connect_event = asyncio.Event()
         self._bot.add_room(self)
@@ -85,6 +89,12 @@ class Room:
         self._is_connected = False
         self._connections = []
         self._bot_player = None
+        self._p2p_revert_task.cancel()
+        try:
+            await self._p2p_revert_task
+        except asyncio.CancelledError:
+            pass
+        self._p2p_revert_task = None
         self._connect_event.clear()
         self._bot.remove_room(self)
 
@@ -201,6 +211,31 @@ class Room:
             init_socket(),
             self._make_peer(),
         )
+        self._p2p_revert_task = asyncio.create_task(self._handle_p2p_revert())
+    
+    async def _handle_p2p_revert(self):
+        await self.wait_for_connection()
+        while True:
+            for player in self.players:
+                num_player_moves = len(player.moves)
+                start_index = num_player_moves - 1
+                end_index = max(0, num_player_moves - 1000)
+                for i in range(start_index, end_index, -1):
+                    move = player.moves[i]
+                    if move is None:
+                        continue
+                    time_since_move = time.time() - move.time
+                    if time_since_move > 2000:
+                        break
+                    if time > 800 and move.by_peer and not move.by_socket and not move.peer_ignored and not move.reverted:
+                        move.reverted = True
+                        player.peer_reverts += 1
+                        if player.peer_reverts >= 4:
+                            player.peer_reverts = 0
+                            player.peer_ban_level += 1
+                            player.peer_ban_until = time.time() + 15000 * (2 ** player.peer_ban_level)
+                        await self.bot.dispatch('on_move_revert', self, player, move)
+            await asyncio.sleep(0.1)
     
     async def _init_connection(self) -> None:
         if self._action == RoomAction.CREATE:
@@ -320,23 +355,35 @@ class Room:
         await self._peer.start()
 
     async def _process_new_connection(self, connection: BinaryPack) -> None:
+        player = None
+        def get_player() -> Player:
+            nonlocal player
+            if player is None:
+                for iplayer in self._room_data.players:
+                    if iplayer.peer_id == connection.peer:
+                        player = iplayer
+                        break
+                return player
+        
         async def on_data(data: Dict) -> None:
-            orig = data['i']
-            r = orig & InputFlag.RIGHT != 0
-            l = orig & InputFlag.LEFT != 0
-            data['i'] = orig & ~(InputFlag.RIGHT | InputFlag.LEFT)
-            if r:
-                data['i'] = data['i'] | InputFlag.LEFT
-            if l:
-                data['i'] = data['i'] | InputFlag.RIGHT
-            if r and l:
-                data['i'] = data['i'] & ~InputFlag.LEFT
-            await self.socket.emit(4, data)
-            for player in self.players:
-                if player.data_connection is None or not player.data_connection.open:
-                    continue
-                print(player)
-                await player.data_connection.send(json.dumps(data))
+            player = get_player()
+            if player.moves.get(data['c']) is not None:
+                player.moves[data['c']].by_peer = True
+            elif player.peer_ban_until > time.time():
+                pass
+            else:
+                move = PlayerMove()
+                move.time = time.time()
+                move.frame = data['f']
+                move.by_peer = True
+                move.peer_ignored = False
+                move.by_socket = False
+                move.reverted = False
+                move.unreverted = False
+                move.inputs.flags = data['i']
+                move.sequence = data['c']
+                player.moves[move.sequence] = move
+                await self.bot.dispatch('on_player_move', self, player, move)
         
         connection.on('data', lambda data: self.bot.event_loop.run_until_complete(on_data(data)))
 
@@ -443,6 +490,31 @@ class Room:
                 })
             await asyncio.sleep(5)
             await self._socket.emit(34, {'id': 1})
+
+        @self.socket.on(7)
+        async def on_move(player_id: int, data: Dict) -> None:
+            player = self.get_player_by_id(player_id)
+            if player is None:
+                return
+            if player.moves.get(data['c']) is not None:
+                move = player.moves[data['c']]
+                move.by_socket = True
+                if move.reverted:
+                    move.unreverted = True
+                    await self.bot.dispatch('on_player_move', self, player, move)
+                elif move.peer_ignored:
+                    await self.bot.dispatch('on_player_move', self, player, move)
+            else:
+                move = PlayerMove()
+                move.time = time.time()
+                move.frame = data['f']
+                move.by_peer = False
+                move.peer_ignored = False
+                move.by_socket = True
+                move.reverted = False
+                move.unreverted = False
+                player.moves[move.sequence] = move
+                await self.bot.dispatch('on_player_move', self, player, move)
 
         @self.socket.on(16)
         async def on_error(error: str) -> None:

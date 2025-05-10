@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
 from pymitter import EventEmitter
 
+from ..types.player_move import PlayerMove
+
 if TYPE_CHECKING:
     from ..core.player import Player
     from ..core.room import Room
@@ -77,5 +79,11 @@ class BotEventHandler:
     async def _on_ping_update(self, room: 'Room') -> None:
         pass
 
-    async def _on_level_up(self, bot: 'Room', player: 'Player') -> None:
+    async def _on_level_up(self, room: 'Room', player: 'Player') -> None:
+        pass
+
+    async def _on_player_move(self, room: 'Room', player: 'Player', move: PlayerMove) -> None:
+        pass
+
+    async def _on_move_revert(self, room: 'Room', player: 'Player', move: PlayerMove) -> None:
         pass
