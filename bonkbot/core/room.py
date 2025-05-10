@@ -227,7 +227,7 @@ class Room:
                     time_since_move = time.time() - move.time
                     if time_since_move > 2000:
                         break
-                    if time > 800 and move.by_peer and not move.by_socket and not move.peer_ignored and not move.reverted:
+                    if move.time > 800 and move.by_peer and not move.by_socket and not move.peer_ignored and not move.reverted:
                         move.reverted = True
                         player.peer_reverts += 1
                         if player.peer_reverts >= 4:
