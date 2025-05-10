@@ -446,7 +446,7 @@ class Room:
 
         @self.socket.on(4)
         async def on_player_join(player_id: int, peer_id: str, username: str, is_guest: bool, level: int,
-                joined_with_bypass: int, avatar: Dict) -> None:
+                                 joined_with_bypass: int, avatar: Dict) -> None:
             connection = None
             print(self._connections)
             for data_connection in self._connections:
@@ -491,6 +491,14 @@ class Room:
             await asyncio.sleep(5)
             await self._socket.emit(34, {'id': 1})
 
+        @self.socket.on(5)
+        async def on_player_left(player_id: int, data: Dict) -> None:
+            player = self.get_player_by_id(player_id)
+            self.players.remove(player)
+            if player.data_connection and player.data_connection.open:
+                await player.data_connection.close()
+            await self.bot.dispatch('on_player_left', self, player)
+        
         @self.socket.on(7)
         async def on_move(player_id: int, data: Dict) -> None:
             player = self.get_player_by_id(player_id)

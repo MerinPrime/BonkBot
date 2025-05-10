@@ -87,3 +87,6 @@ class BotEventHandler:
 
     async def _on_move_revert(self, room: 'Room', player: 'Player', move: PlayerMove) -> None:
         pass
+
+    async def _on_player_left(self, room: 'Room', player: 'Player') -> None:
+        pass
