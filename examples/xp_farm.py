@@ -1,7 +1,10 @@
 import asyncio
+from typing import TYPE_CHECKING
 
-from bonkbot.core import Room
 from bonkbot.core.bonkbot import BonkBot
+
+if TYPE_CHECKING:
+    from bonkbot.core import Room
 
 '''
 This example implements a xp farm.
@@ -23,15 +26,15 @@ async def main() -> None:
         name, password = account
 
         @bot.event
-        async def on_ready(bot: BonkBot) -> None:
+        async def on_ready(bot: 'BonkBot') -> None:
             print(f'Bot started: {bot.name}, Level: {bot.level:.02f}, XP: {bot.xp}')
 
         @bot.event
-        async def on_xp_gain(room: Room, xp: int) -> None:
+        async def on_xp_gain(room: 'Room', xp: int) -> None:
             print(f'Bot: {room.bot.name}, Level: {room.bot.level:.02f}, XP: {room.bot.xp}')
 
         @bot.event
-        async def on_error(bot: BonkBot, error: Exception) -> None:
+        async def on_error(bot: 'BonkBot', error: Exception) -> None:
             # bot.name is not available if bot is not logged in
             if not bot.is_logged:
                 print(f'Error: {error}')
