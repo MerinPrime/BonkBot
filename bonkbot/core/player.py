@@ -18,13 +18,13 @@ if TYPE_CHECKING:
 class Player:
     bot: 'BonkBot'
     room: 'Room'
-    data_connection: Union['BinaryPack', None]
     id: int
     team: 'Team'
     avatar: 'Avatar'
     name: str
     is_guest: bool
     level: int
+    data_connection: Union['BinaryPack', None] = None
     peer_id: str = ''
     balance: int = 0
     ping: int = 105

@@ -277,7 +277,6 @@ class Room:
         self._bot_player = Player(
             bot=self._bot,
             room=self,
-            data_connection=None,
             id=0,
             team=Team.FFA,
             avatar=self._bot.active_avatar,
@@ -424,7 +423,6 @@ class Room:
                 player = Player(
                     bot=self._bot,
                     room=self,
-                    data_connection=None,
                     id=player_id,
                     team=Team.from_number(player_data['team']),
                     avatar=Avatar.from_json(player_data['avatar']),
