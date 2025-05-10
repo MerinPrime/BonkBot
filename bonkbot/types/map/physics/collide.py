@@ -16,3 +16,9 @@ class CollideGroup(enum.IntEnum):
     B = 2
     C = 4
     D = 8
+
+    @classmethod
+    def from_id(cls, id: int) -> 'CollideGroup':
+        for collide_group in CollideGroup:
+            if collide_group == id:
+                return collide_group

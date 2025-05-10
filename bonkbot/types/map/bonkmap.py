@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, List
 
+from .physics import CollideGroup
 from ...core.api import MAP_VERSION
 from ...pson.bytebuffer import ByteBuffer
 from ..mode import Mode
@@ -513,5 +514,206 @@ class BonkMap:
     @classmethod
     def from_json(cls, json_data: dict) -> 'BonkMap':
         bonk_map = BonkMap()
-        
+        bonk_map.version = json_data['v']
+        # region Metadata
+        bonk_map.metadata.author = json_data['m']['a']
+        bonk_map.metadata.name = json_data['m']['n']
+        bonk_map.metadata.database_version = json_data['m']['dbv']
+        bonk_map.metadata.database_id = json_data['m']['dbid']
+        bonk_map.metadata.original_author = json_data['m']['rxa']
+        bonk_map.metadata.original_name = json_data['m']['rxn']
+        bonk_map.metadata.original_database_version = json_data['m']['rxdb']
+        bonk_map.metadata.original_database_id = json_data['m']['rxid']
+        bonk_map.metadata.is_published = json_data['m']['pub']
+        bonk_map.metadata.contributors = json_data['m']['cr']
+        bonk_map.metadata.date = json_data['m']['date']
+        bonk_map.metadata.auth_id = json_data['m']['authid']
+        bonk_map.metadata.mode = Mode.from_mode_code(json_data['m']['mo'])
+        if json_data['m'].get('vd') is not None:
+            bonk_map.metadata.votes_down = json_data['m']['vd']
+        if json_data['m'].get('vu') is not None:
+            bonk_map.metadata.votes_up = json_data['m']['vu']
+        # endregion
+        # region Properties
+        bonk_map.properties.grid_size = json_data['s']['gd']
+        bonk_map.properties.players_dont_collide = json_data['s']['nc']
+        bonk_map.properties.respawn_on_death = json_data['s']['re']
+        bonk_map.properties.players_can_fly = json_data['s']['fl']
+        bonk_map.properties.complex_physics = True if json_data['s']['pq'] == 2 else False
+        if json_data['s'].get('a1') is not None:
+            bonk_map.physics.a1 = json_data['s']['a1']
+        if json_data['s'].get('a2') is not None:
+            bonk_map.physics.a2 = json_data['s']['a2']
+        if json_data['s'].get('a3') is not None:
+            bonk_map.physics.a3 = json_data['s']['a3']
+        # endregion
+        # region Physics
+        for body_data in json_data['physics']['bodies']:
+            body = Body()
+            if body_data.get('n') is not None:
+                body.name = body_data['n']
+            body.angle = body_data['a']
+            body.angular_velocity = body_data['av']
+            body.fixtures = body_data['fx']
+            body.position = (body_data['p'][0], body_data['p'][1])
+            body.linear_velocity = (body_data['lv'][0], body_data['lv'][1])
+            body.force.force_x = body_data['cf']['x']
+            body.force.force_y = body_data['cf']['y']
+            body.force.is_relative = body_data['cf']['w']
+            body.force.torque = body_data['cf']['ct']
+            body.force_zone.enabled = body_data['fz']['on']
+            body.force_zone.force = (body_data['fz']['x'], body_data['fz']['y'])
+            body.force_zone.type = ForceZoneType.from_id(body_data['fz']['t'])
+            body.force_zone.push_players = body_data['fz']['d']
+            body.force_zone.push_bodies = body_data['fz']['p']
+            body.force_zone.push_arrows = body_data['fz']['a']
+            body.force_zone.center_force = body_data['fz']['cf']
+            body.shape.body_type = BodyType.from_name(body_data['s']['type'])
+            body.shape.name = body_data['s']['name']
+            body.shape.friction_players = body_data['s']['fricp']
+            body.shape.linear_damping = body_data['s']['ld']
+            body.shape.angular_damping = body_data['s']['ad']
+            body.shape.density = body_data['s']['de']
+            body.shape.friction = body_data['s']['fric']
+            body.shape.restitution = body_data['s']['re']
+            body.shape.fixed_rotation = body_data['s']['fr']
+            body.shape.anti_tunnel = body_data['s']['bu']
+            body.shape.collide_group = CollideGroup.from_id(body_data['s']['f_c'])
+            if body_data['s']['f_1']:
+                body.shape.collide_mask |= CollideFlag.A
+            if body_data['s']['f_2']:
+                body.shape.collide_mask |= CollideFlag.B
+            if body_data['s']['f_3']:
+                body.shape.collide_mask |= CollideFlag.C
+            if body_data['s']['f_4']:
+                body.shape.collide_mask |= CollideFlag.D
+            if body_data['s']['f_p']:
+                body.shape.collide_mask |= CollideFlag.PLAYERS
+            bonk_map.physics.bodies.append(body)
+        for fixture_data in json_data['physics']['fixtures']:
+            fixture = Fixture(-1)
+            fixture.death = fixture_data['d']
+            fixture.color = fixture_data['f']
+            fixture.friction_players = fixture_data['fp']
+            fixture.density = fixture_data['de']
+            fixture.friction = fixture_data['fr']
+            fixture.restitution = fixture_data['re']
+            fixture.name = fixture_data['n']
+            fixture.no_grapple = fixture_data['ng']
+            fixture.no_physics = fixture_data['np']
+            fixture.shape_id = fixture_data['sh']
+            if fixture_data.get('ig') is not None:
+                fixture.inner_grapple = fixture_data['ig']
+            if fixture_data.get('sn') is not None:
+                fixture.sn = fixture_data['sn']
+            if fixture_data.get('fs') is not None:
+                fixture.fs = fixture_data['fs']
+            if fixture_data.get('zp') is not None:
+                fixture.zp = fixture_data['zp']
+            bonk_map.physics.fixtures.append(fixture)
+        for joint_data in json_data['physics']['joints']:
+            joint = None
+            if joint_data['type'] == 'rv':
+                joint = RevoluteJoint()
+                joint.shape_a_id = joint_data['ba']
+                joint.shape_b_id = joint_data['bb']
+                joint.pivot = joint_data['aa']
+                joint.from_angle = joint_data['d']['la']
+                joint.to_angle = joint_data['d']['ua']
+                joint.turn_force = joint_data['d']['mmt']
+                joint.motor_speed = joint_data['d']['ms']
+                joint.enable_limit = joint_data['d']['el']
+                joint.enable_motor = joint_data['d']['em']
+                joint.col_attached = joint_data['d']['cc']
+                joint.break_force = joint_data['d']['bf']
+                joint.draw_line = joint_data['d']['dl']
+            elif joint_data['type'] == 'd':
+                joint = DistanceJoint()
+                joint.shape_a_id = joint_data['ba']
+                joint.shape_b_id = joint_data['bb']
+                joint.pivot = joint_data['aa']
+                joint.attach = joint_data['ab']
+                joint.softness = joint_data['d']['fh']
+                joint.damping = joint_data['d']['dr']
+                joint.col_attached = joint_data['d']['cc']
+                joint.break_force = joint_data['d']['bf']
+                joint.draw_line = joint_data['d']['dl']
+            elif joint_data['type'] == 'lpj':
+                joint = LPJJoint()
+                joint.shape_a_id = joint_data['ba']
+                joint.shape_b_id = joint_data['bb']
+                joint.position = (joint_data['pax'], joint_data['pay'])
+                joint.angle = joint_data['pa']
+                joint.force = joint_data['pf']
+                joint.pl = joint_data['pl']
+                joint.pu = joint_data['pu']
+                joint.length = joint_data['plen']
+                joint.speed = joint_data['pms']
+                joint.col_attached = joint_data['d']['cc']
+                joint.break_force = joint_data['d']['bf']
+                joint.draw_line = joint_data['d']['dl']
+            elif joint_data['type'] == 'lsj':
+                joint = LSJJoint()
+                joint.shape_a_id = joint_data['ba']
+                joint.shape_b_id = joint_data['bb']
+                joint.position = (joint_data['sax'], joint_data['say'])
+                joint.force = joint_data['sf']
+                joint.length = joint_data['slen']
+                joint.col_attached = joint_data['d']['cc']
+                joint.break_force = joint_data['d']['bf']
+                joint.draw_line = joint_data['d']['dl']
+            elif joint_data['type'] == 'g':
+                joint = GearJoint()
+                joint.name = joint_data['n']
+                joint.joint_a_id = joint_data['ja']
+                joint.joint_b_id = joint_data['jb']
+                joint.ratio = joint_data['r']
+            bonk_map.physics.joints.append(joint)
+        for shape_data in json_data['physics']['shapes']:
+            shape = None
+            if shape_data['type'] == 'bx':
+                shape = BoxShape()
+                shape.width = shape_data['w']
+                shape.height = shape_data['h']
+                shape.angle = shape_data['a']
+                shape.shrink = shape_data['sk']
+            elif shape_data['type'] == 'ci':
+                shape = CircleShape()
+                shape.radius = shape_data['r']
+                shape.shrink = shape_data['sk']
+            elif shape_data['type'] == 'po':
+                shape = PolygonShape()
+                shape.angle = shape_data['a']
+                shape.scale = shape_data['s']
+                shape.vertices = [(x, y) for x, y in shape_data['v']]
+            bonk_map.physics.shapes.append(shape)
+        bonk_map.physics.bro = json_data['physics']['bro']
+        bonk_map.physics.ppm = json_data['physics']['ppm']
+        # endregion
+        # region Capture zones
+        for spawn_data in json_data['spawns']:
+            spawn = Spawn()
+            spawn.name = spawn_data['n']
+            spawn.priority = spawn_data['priority']
+            spawn.position = (spawn_data['x'], spawn_data['y'])
+            spawn.velocity = (spawn_data['xv'], spawn_data['yv'])
+            spawn.ffa = spawn_data['f']
+            spawn.blue = spawn_data['b']
+            spawn.red = spawn_data['r']
+            if spawn_data.get('gr') is not None:
+                spawn.green = spawn_data['gr']
+            if spawn_data.get('ye') is not None:
+                spawn.yellow = spawn_data['ye']
+            bonk_map.spawns.append(spawn)
+        # endregion
+        # region Capture zones
+        for capture_zone_data in json_data['capZones']:
+            capture_zone = CaptureZone()
+            capture_zone.name = capture_zone_data['n']
+            capture_zone.shape_id = capture_zone_data['i']
+            capture_zone.seconds = capture_zone_data['l']
+            if capture_zone_data.get('ty') is not None:
+                capture_zone.type = CaptureType.from_id(capture_zone_data['ty'])
+            bonk_map.cap_zones.append(capture_zone)
+        # endregion
         return bonk_map
