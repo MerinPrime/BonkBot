@@ -23,7 +23,14 @@ from ..types.room.room_data import RoomData
 from ..types.server import Server
 from ..types.team import Team, TeamState
 from . import PROTOCOL_VERSION
-from .api import bonk_peer_api, bonk_socket_api, room_link_api
+from .api import (
+    CRITICAL_API_ERRORS,
+    RATE_LIMIT_PONG,
+    SocketEvents,
+    bonk_peer_api,
+    bonk_socket_api,
+    room_link_api,
+)
 from .timesyncer import TimeSyncer
 
 if TYPE_CHECKING:
@@ -287,7 +294,7 @@ class Room:
             players=[self._bot_player],
         )
         self._total_players = 1
-        await self._socket.emit(12, data)
+        await self._socket.emit(SocketEvents.Outgoing.CREATE_ROOM, data)
 
     async def _join(self) -> None:
         pass
@@ -396,18 +403,18 @@ class Room:
         async def disconnect() -> None:
             await self.disconnect()
 
-        @self.socket.on(1)
+        @self.socket.on(SocketEvents.Incoming.PING_DATA)
         async def on_ping_data(pings: Dict, player_id: int) -> None:
-            await self.socket.emit(1, {'id': player_id})
+            await self.socket.emit(SocketEvents.Outgoing.PING_DATA, {'id': player_id})
             for player_id, ping in pings.items():
                 self._room_data.players[int(player_id)].ping = ping
             await self._bot.dispatch('on_ping_update', self)
 
-        @self.socket.on(2)
+        @self.socket.on(SocketEvents.Incoming.ROOM_CREATE)
         async def on_room_create(*args) -> None:
             await self._bot.dispatch('on_room_connection', self, RoomAction.CREATE)
 
-        @self.socket.on(3)
+        @self.socket.on(SocketEvents.Incoming.ROOM_JOIN)
         async def on_room_join(bot_id: int, host_id: int, players: Dict, timestamp: int, team_lock: bool,
                                join_id: int, join_bypass: str) -> None:
             self._room_data.join_id = f'{join_id:06}'
@@ -441,14 +448,11 @@ class Room:
             self._connect_event.set()
             await self._bot.dispatch('on_room_connection', self, RoomAction.JOIN)
 
-        @self.socket.on(4)
+        @self.socket.on(SocketEvents.Incoming.PLAYER_JOIN)
         async def on_player_join(player_id: int, peer_id: str, username: str, is_guest: bool, level: int,
                                  joined_with_bypass: int, avatar: Dict) -> None:
             connection = None
-            print(self._connections)
             for data_connection in self._connections:
-                print(data_connection.peer)
-                print(peer_id)
                 if data_connection.peer == peer_id:
                     connection = data_connection
                     break
@@ -474,7 +478,7 @@ class Room:
             for player in self.players:
                 bal[player.id] = player.balance
             await self._socket.emit(
-                11,
+                SocketEvents.Outgoing.INFORM_IN_LOBBY,
                 {
                     'sid': player_id,
                     'gs': {
@@ -490,7 +494,7 @@ class Room:
                     },
                 })
 
-        @self.socket.on(5)
+        @self.socket.on(SocketEvents.Incoming.PLAYER_LEFT)
         async def on_player_left(player_id: int, data: Dict) -> None:
             player = self.get_player_by_id(player_id)
             self.players.remove(player)
@@ -498,7 +502,7 @@ class Room:
                 await player.data_connection.close()
             await self.bot.dispatch('on_player_left', self, player)
 
-        @self.socket.on(7)
+        @self.socket.on(SocketEvents.Incoming.PLAYER_INPUT)
         async def on_move(player_id: int, data: Dict) -> None:
             player = self.get_player_by_id(player_id)
             if player is None:
@@ -523,31 +527,21 @@ class Room:
                 player.moves[move.sequence] = move
                 await self.bot.dispatch('on_player_move', self, player, move)
 
-        @self.socket.on(16)
+        @self.socket.on(SocketEvents.Incoming.STATUS)
         async def on_error(error: str) -> None:
-            if error != 'rate_limit_pong':
+            if error != RATE_LIMIT_PONG:
                 await self.bot.dispatch('on_error', self.bot, ApiError(ErrorType.RATE_LIMITED))
 
-            if error in [
-                'invalid_params',
-                'password_wrong',
-                'room_full',
-                'players_xp_too_high',
-                'players_xp_too_low',
-                'guests_not_allowed',
-                'already_in_this_room',
-                'room_not_found',
-                'avatar_data_invalid',
-            ]:
+            if error in CRITICAL_API_ERRORS:
                 await self.disconnect()
 
-        @self.socket.on(45)
+        @self.socket.on(SocketEvents.Incoming.LEVEL_UP)
         async def on_level_up(data: dict) -> None:
             player = self.get_player_by_id(data['sid'])
             player.level = data['lv']
             await self.bot.dispatch('on_level_up', self, player)
 
-        @self.socket.on(46)
+        @self.socket.on(SocketEvents.Incoming.XP_GAIN)
         async def on_xp_gain(data: dict) -> None:
             new_xp = data['newXP']
             self._bot._data.xp = new_xp
@@ -556,7 +550,7 @@ class Room:
 
             await self._bot.dispatch('on_xp_gain', self, new_xp)
 
-        @self.socket.on(49)
+        @self.socket.on(SocketEvents.Incoming.ROOM_ID_OBTAIN)
         async def on_room_id_obtain(join_id: int, join_bypass: str) -> None:
             self._room_data.join_id = f'{join_id:06}'
             self._room_data.join_bypass = join_bypass
@@ -566,4 +560,4 @@ class Room:
 
     async def gain_xp(self) -> None:
         """Get 100 xp. Limit 18000 in day, 2000 in 20 minutes"""
-        await self.socket.emit(38)
+        await self.socket.emit(SocketEvents.Outgoing.XP_GAIN)
