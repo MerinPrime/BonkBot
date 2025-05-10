@@ -4,9 +4,10 @@ from typing import TYPE_CHECKING, Any, Callable, Coroutine
 
 from pymitter import EventEmitter
 
-from ..types.player_move import PlayerMove
 
 if TYPE_CHECKING:
+    from ..types.player_move import PlayerMove
+    from ..types import Team
     from ..core.player import Player
     from ..core.room import Room
     from ..types.room.room_action import RoomAction
@@ -82,10 +83,10 @@ class BotEventHandler:
     async def _on_level_up(self, room: 'Room', player: 'Player') -> None:
         pass
 
-    async def _on_player_move(self, room: 'Room', player: 'Player', move: PlayerMove) -> None:
+    async def _on_player_move(self, room: 'Room', player: 'Player', move: 'PlayerMove') -> None:
         pass
 
-    async def _on_move_revert(self, room: 'Room', player: 'Player', move: PlayerMove) -> None:
+    async def _on_move_revert(self, room: 'Room', player: 'Player', move: 'PlayerMove') -> None:
         pass
 
     async def _on_player_left(self, room: 'Room', player: 'Player') -> None:
@@ -104,4 +105,22 @@ class BotEventHandler:
         pass
 
     async def _on_player_unmute(self, room: 'Room', player: 'Player') -> None:
+        pass
+
+    async def _on_player_name_change(self, room: 'Room', player: 'Player', old_name: str) -> None:
+        pass
+
+    async def _on_game_end(self, room: 'Room') -> None:
+        pass
+
+    async def _on_game_start(self, room: 'Room', unix_time: int) -> None:
+        pass
+
+    async def _on_player_team_change(self, room: 'Room', player: 'Player', team: 'Team') -> None:
+        pass
+
+    async def _on_team_lock(self, room: 'Room') -> None:
+        pass
+
+    async def _on_message(self, room: 'Room', player: 'Player', message: str) -> None:
         pass

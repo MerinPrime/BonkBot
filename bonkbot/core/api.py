@@ -23,9 +23,13 @@ class SocketEvents:
         READY_RESET = 9
         PLAYER_MUTED = 10
         PLAYER_UNMUTED = 11
+        PLAYER_NAME_CHANGE = 12
         GAME_END = 13
         GAME_START = 15
         STATUS = 16
+        PLAYER_TEAM_CHANGE = 18
+        TEAM_LOCK = 19
+        MESSAGE = 20
         LEVEL_UP = 45
         XP_GAIN = 46
         ROOM_ID_OBTAIN = 49

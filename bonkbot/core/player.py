@@ -24,9 +24,6 @@ class Player:
     avatar: 'Avatar'
     name: str
     is_guest: bool
-    ready: bool
-    muted: bool
-    tabbed: bool
     level: int
     peer_id: str = ''
     balance: int = 0
@@ -36,6 +33,9 @@ class Player:
     peer_ban_until: float = 0
     peer_ban_level: int = 0
     peer_reverts: int = 0
+    ready: bool = False
+    tabbed: bool = True
+    muted: bool = False
     is_friend: bool = False
 
     @property

@@ -12,6 +12,7 @@ from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
 from peerjs_py.dataconnection.DataConnection import DataConnection
 
 from ..core.player import Player
+from ..pson import StaticPair, ByteBuffer
 from ..types.avatar import Avatar
 from ..types.errors import ApiError, ErrorType
 from ..types.errors.room_already_connected import RoomAlreadyConnected
@@ -29,7 +30,7 @@ from .api import (
     SocketEvents,
     bonk_peer_api,
     bonk_socket_api,
-    room_link_api,
+    room_link_api, PSON_KEYS,
 )
 from .timesyncer import TimeSyncer
 
@@ -282,8 +283,6 @@ class Room:
             avatar=self._bot.active_avatar,
             name=self._bot.name,
             is_guest=self._bot.is_guest,
-            ready=False,
-            tabbed=True,
             level=self._bot.level,
             peer_id=self._peer_id,
             joined_with_bypass=None,
@@ -466,8 +465,6 @@ class Room:
                 peer_id=peer_id,
                 name=username,
                 is_guest=is_guest,
-                ready=False,
-                tabbed=True,
                 level=level,
                 joined_with_bypass=joined_with_bypass,
             )
@@ -512,30 +509,6 @@ class Room:
             self._room_data.host = new_host
             await self.bot.dispatch('on_host_left', self, old_host)
 
-        @self.socket.on(SocketEvents.Incoming.READY_CHANGE)
-        async def on_ready_change(player_id: int, state: bool) -> None:
-            player = self.get_player_by_id(player_id)
-            player.ready = state
-            await self.bot.dispatch('on_ready_change', self, player)
-
-        @self.socket.on(SocketEvents.Incoming.READY_RESET)
-        async def on_ready_reset() -> None:
-            for player in self.players:
-                player.ready = False
-            await self.bot.dispatch('on_ready_reset', self)
-
-        @self.socket.on(SocketEvents.Incoming.PLAYER_MUTED)
-        async def on_player_mute(player_id: int, data: dict) -> None:
-            player = self.get_player_by_id(player_id)
-            player.muted = True
-            await self.bot.dispatch('on_player_mute', self, player)
-
-        @self.socket.on(SocketEvents.Incoming.PLAYER_UNMUTED)
-        async def on_player_unmute(player_id: int, data: dict) -> None:
-            player = self.get_player_by_id(player_id)
-            player.muted = False
-            await self.bot.dispatch('on_player_unmute', self, player)
-
         @self.socket.on(SocketEvents.Incoming.PLAYER_INPUT)
         async def on_move(player_id: int, data: Dict) -> None:
             player = self.get_player_by_id(player_id)
@@ -560,7 +533,78 @@ class Room:
                 move.unreverted = False
                 player.moves[move.sequence] = move
                 await self.bot.dispatch('on_player_move', self, player, move)
-        
+
+        @self.socket.on(SocketEvents.Incoming.READY_CHANGE)
+        async def on_ready_change(player_id: int, state: bool) -> None:
+            player = self.get_player_by_id(player_id)
+            player.ready = state
+            await self.bot.dispatch('on_ready_change', self, player)
+
+        @self.socket.on(SocketEvents.Incoming.READY_RESET)
+        async def on_ready_reset() -> None:
+            for player in self.players:
+                player.ready = False
+            await self.bot.dispatch('on_ready_reset', self)
+
+        @self.socket.on(SocketEvents.Incoming.PLAYER_MUTED)
+        async def on_player_mute(player_id: int, data: dict) -> None:
+            player = self.get_player_by_id(player_id)
+            player.muted = True
+            await self.bot.dispatch('on_player_mute', self, player)
+
+        @self.socket.on(SocketEvents.Incoming.PLAYER_UNMUTED)
+        async def on_player_unmute(player_id: int, data: dict) -> None:
+            player = self.get_player_by_id(player_id)
+            player.muted = False
+            await self.bot.dispatch('on_player_unmute', self, player)
+
+        @self.socket.on(SocketEvents.Incoming.PLAYER_NAME_CHANGE)
+        async def on_player_name_change(player_id: int, new_name: str) -> None:
+            player = self.get_player_by_id(player_id)
+            old_name = player.name
+            player.name = new_name
+            await self.bot.dispatch('on_player_name_change', self, player, old_name)
+
+        @self.socket.on(SocketEvents.Incoming.GAME_END)
+        async def on_game_end() -> None:
+            await self.bot.dispatch('on_game_end', self)
+
+        @self.socket.on(SocketEvents.Incoming.GAME_START)
+        async def on_game_start(unix_time: int, map_data: str, game_settings: dict) -> None:
+            pair = StaticPair(PSON_KEYS)
+            self._map = pair.decode(ByteBuffer().from_base64(map_data, case_encoded=True, lz_encoded=True))
+            self._room_data.rounds = game_settings['wl']
+            self._room_data.team_lock = game_settings['tl']
+            self._room_data.mode = Mode.from_mode_code(game_settings['mo'])
+            for player in self.players:
+                if player.id >= len(game_settings['bal']):
+                    player.balance = 0
+                    continue
+                player.balance = game_settings['bal'][player.id]
+            if not game_settings['tea']:
+                self._room_data.team_state = TeamState.FFA
+            elif self._room_data.mode == Mode.FOOTBALL:
+                self._room_data.team_state = TeamState.DUO
+            else:
+                self._room_data.team_state = TeamState.ALL
+            await self.bot.dispatch('on_game_start', self, unix_time)
+
+        @self.socket.on(SocketEvents.Incoming.PLAYER_TEAM_CHANGE)
+        async def on_player_team_change(player_id: int, team: int) -> None:
+            player = self.get_player_by_id(player_id)
+            player.team = Team.from_number(team)
+            await self.bot.dispatch('on_player_team_change', self, player)
+
+        @self.socket.on(SocketEvents.Incoming.TEAM_LOCK)
+        async def on_team_lock(state: bool) -> None:
+            self._room_data.team_lock = state
+            await self.bot.dispatch('on_team_lock', self)
+
+        @self.socket.on(SocketEvents.Incoming.MESSAGE)
+        async def on_message(player_id: int, message: str) -> None:
+            player = self.get_player_by_id(player_id)
+            await self.bot.dispatch('on_message', self, player, message)
+
         @self.socket.on(SocketEvents.Incoming.STATUS)
         async def on_error(error: str) -> None:
             if error != RATE_LIMIT_PONG:

@@ -509,3 +509,9 @@ class BonkMap:
         # endregion
 
         return bonk_map
+
+    @classmethod
+    def from_json(cls, json_data: dict) -> 'BonkMap':
+        bonk_map = BonkMap()
+        
+        return bonk_map
