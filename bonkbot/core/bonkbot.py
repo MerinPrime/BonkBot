@@ -1,4 +1,6 @@
 import asyncio
+import json
+import re
 from typing import List, Optional, Union
 
 import aiohttp
@@ -7,6 +9,7 @@ from ..types import Server
 from ..types.avatar.avatar import Avatar
 from ..types.errors import ApiError, ErrorType
 from ..types.friend import Friend
+from ..types.map import BonkMap
 from ..types.mode import Mode
 from ..types.room.room_create_params import RoomCreateParams
 from ..types.room.room_info import RoomInfo
@@ -14,18 +17,24 @@ from ..types.room.room_join_params import RoomJoinParams
 from ..types.settings import Settings
 from ..utils.api import validate_username
 from ..utils.xp import xp_to_level
-from .api import PROTOCOL_VERSION, get_rooms_api, login_legacy_api
+from .api import (
+    PROTOCOL_VERSION,
+    get_friends_api,
+    get_own_maps_api,
+    get_rooms_api,
+    login_legacy_api, get_room_address_api, auto_join_api,
+)
 from .bot_data import BotData
 from .bot_event_handler import BotEventHandler
 from .room import Room
 
 
 class BonkBot(BotEventHandler):
-    _data: Union[BotData, None]
+    _data: Union['BotData', None]
     _aiohttp_session: Union[aiohttp.ClientSession, None]
     _is_logged: bool
     _event_loop: asyncio.AbstractEventLoop
-    _rooms: List[Room]
+    _rooms: List['Room']
     server: Server
 
     def __init__(self, event_loop: Optional[asyncio.AbstractEventLoop] = None):
@@ -203,13 +212,48 @@ class BonkBot(BotEventHandler):
         ), server=server)
         return room
 
-    def join_room(self, room_info: 'RoomInfo', password: str = '', bypass: str = '', *, server: Optional['Server'] = None) -> 'Room':
-        if server is None:
-            server = self.server
+    async def join_room(self, room_id: int, password: Optional[str] = None, bypass: Optional[str] = None) -> 'Room':
+        response = await self.aiohttp_session.post(
+            url=get_room_address_api,
+            data={
+                "id": room_id,
+            }
+        )
+        response.raise_for_status()
+        room_data = await response.json()
+        
+        if room_data['r'] == 'fail':
+            await self.dispatch('on_error', self, ApiError(ErrorType.from_string(room_data['e'])))
+            return
+        
+        server = Server.from_name(room_data['server'])
         room = Room(bot=self, room_params=RoomJoinParams(
-            room_id=room_info.id,
+            room_id=room_id,
             password=password,
             bypass=bypass,
+            name=room_data['roomname']
+        ), server=server)
+        return room
+
+    async def join_room_via_link(self, link: str, password: str = '') -> 'Room':
+        regex = r'/(\d{6})([a-zA-Z0-9]{5})?$'
+        match = re.search(regex, link)
+        room_id = match.group(1)
+        bypass = match.group(2)
+        response = await self.aiohttp_session.post(url=auto_join_api, data={'joinID': room_id})
+        response.raise_for_status()
+        room_data = await response.json()
+        
+        if room_data['r'] == 'failed':
+            await self.dispatch('on_error', self, ApiError(ErrorType.ROOM_NOT_FOUND))
+            return
+        
+        server = Server.from_name(room_data['server'])
+        room = Room(bot=self, room_params=RoomJoinParams(
+            room_id=room_data['address'],
+            password=password,
+            bypass=bypass,
+            name=room_data['roomname'],
         ), server=server)
         return room
 
@@ -260,3 +304,33 @@ class BonkBot(BotEventHandler):
 
     def update_token(self, new_token: str) -> None:
         self._data.token = new_token
+
+    async def fetch_friends(self) -> List['Friend']:
+        async with self.aiohttp_session.post(
+                url=get_friends_api,
+                data={
+                    'token': self.token,
+                    'task': 'getfriends',
+                },
+        ) as resp:
+            data = await resp.json()
+
+        return [Friend(
+            name=friend['name'],
+            dbid=friend['id'],
+            room_id=friend['roomid'],
+        ) for friend in data['friends']]
+
+    async def fetch_own_maps(self) -> List['BonkMap']:
+        async with self.aiohttp_session.post(
+                url=get_own_maps_api,
+                data={
+                    'token': self.token,
+                    'startingfrom': '0',
+                },
+        ) as resp:
+            data = await resp.json()
+
+        return [BonkMap.decode_from_database(bonk_map['leveldata']) for bonk_map in data['maps']]
+
+    # TODO: Get favs, b2, b1, map delete

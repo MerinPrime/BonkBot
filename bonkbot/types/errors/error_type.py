@@ -7,6 +7,7 @@ class ErrorType(enum.Enum):
     USERNAME_FAIL = 'username_fail'
     NOT_HOST = 'not_host'
     INVALID_BALANCE = 'invalid_balance'
+    ROOM_NOT_FOUND = 'roomnotfound'
 
     @staticmethod
     def from_string(code: str) -> 'ErrorType':

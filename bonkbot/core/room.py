@@ -12,7 +12,7 @@ from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
 from peerjs_py.dataconnection.DataConnection import DataConnection
 
 from ..core.player import Player
-from ..pson import StaticPair, ByteBuffer
+from ..pson import ByteBuffer, StaticPair
 from ..types import Inputs
 from ..types.avatar import Avatar
 from ..types.errors import ApiError, ErrorType
@@ -28,11 +28,12 @@ from ..types.team import Team, TeamState
 from . import PROTOCOL_VERSION
 from .api import (
     CRITICAL_API_ERRORS,
+    PSON_KEYS,
     RATE_LIMIT_PONG,
     SocketEvents,
     bonk_peer_api,
     bonk_socket_api,
-    room_link_api, PSON_KEYS,
+    room_link_api,
 )
 from .timesyncer import TimeSyncer
 
@@ -206,6 +207,10 @@ class Room:
     def bot_player(self) -> 'Player':
         return self._bot_player
 
+    @property
+    def is_host(self) -> bool:
+        return self.bot_player.is_host
+
     def get_player_by_id(self, player_id: int) -> 'Player':
         return self._room_data.player_by_id(player_id)
 
@@ -299,8 +304,34 @@ class Room:
         await self._socket.emit(SocketEvents.Outgoing.CREATE_ROOM, data)
 
     async def _join(self) -> None:
-        pass
-
+        password = self._room_params.password
+        if password is None:
+            password = ''
+        bypass = self._room_params.bypass
+        if bypass is None:
+            bypass = ''
+        data = {
+            'joinID': self._room_params.room_id,
+            'roomPassword': password,
+            'guest': self.bot.is_guest,
+            'dbid': 2,
+            'version': PROTOCOL_VERSION,
+            'peerID': self._peer_id,
+            'bypass': bypass,
+            'avatar': self._bot.active_avatar.to_json()
+        }
+        if self.bot.is_guest:
+            data['guestName'] = self.bot.name
+        else:
+            data['token'] = self.bot.token
+        self._room_data = RoomData(
+            name=self._room_params.name,
+            host=self._bot_player,
+            players=[self._bot_player],
+        )
+        self._total_players = 1
+        await self._socket.emit(SocketEvents.Outgoing.JOIN_ROOM, data)
+    
     async def _make_timesync(self) -> None:
         self.timesyncer = TimeSyncer(
             interval=10,
@@ -397,7 +428,7 @@ class Room:
 
     async def wait_for_connection(self) -> None:
         await self._connect_event.wait()
-    
+
     def _set_game_settings(self, game_settings: dict) -> None:
         self._map = BonkMap.decode_from_database(game_settings['map'])
         self._room_data.rounds = game_settings['wl']
@@ -414,7 +445,7 @@ class Room:
             self._room_data.team_state = TeamState.DUO
         else:
             self._room_data.team_state = TeamState.ALL
-    
+
     def _bind_listeners(self) -> None:
         @self.socket.event
         async def disconnect() -> None:
@@ -433,7 +464,7 @@ class Room:
 
         @self.socket.on(SocketEvents.Incoming.ROOM_JOIN)
         async def on_room_join(bot_id: int, host_id: int, players: List, timestamp: int, team_lock: bool,
-                               join_id: int, join_bypass: str) -> None:
+                               join_id: int, join_bypass: str, *args) -> None:
             self._room_data.join_id = f'{join_id:06}'
             self._room_data.join_bypass = join_bypass
             self._room_data.team_lock = team_lock
@@ -460,7 +491,7 @@ class Room:
                     avatar=Avatar.from_json(player_data['avatar']),
                     peer_id=player_data['peerID'],
                     name=player_data['userName'],
-                    is_guest=player_data['is_guest'],
+                    is_guest=player_data['guest'],
                     ready=player_data['ready'],
                     tabbed=player_data['tabbed'],
                     level=player_data['level'],
@@ -661,15 +692,11 @@ class Room:
         async def on_afk_warn() -> None:
             await self.bot.dispatch('on_afk_warn', self)
 
-        @self.socket.on(SocketEvents.Incoming.AFK_WARN)
-        async def on_afk_warn() -> None:
-            await self.bot.dispatch('on_afk_warn', self)
-
         @self.socket.on(SocketEvents.Incoming.MAP_SUGGEST_HOST)
         async def on_map_suggest_host(encoded_map: str, player_id: int) -> None:
             player = self.get_player_by_id(player_id)
-            map = BonkMap.decode_from_database(encoded_map)
-            await self.bot.dispatch('on_map_suggest_host', self, player, map)
+            bonk_map = BonkMap.decode_from_database(encoded_map)
+            await self.bot.dispatch('on_map_suggest_host', self, player, bonk_map)
 
         @self.socket.on(SocketEvents.Incoming.MAP_SUGGEST_CLIENT)
         async def on_map_suggest_client(name: str, author: str, player_id: int) -> None:
@@ -684,7 +711,12 @@ class Room:
 
         @self.socket.on(SocketEvents.Incoming.TEAMS_TOGGLE)
         async def on_teams_toggle(state: bool) -> None:
-            self._room_data.team_lock = state
+            if state and self.mode == Mode.FOOTBALL:
+                self._room_data.team_state = TeamState.DUO
+            elif state:
+                self._room_data.team_state = TeamState.ALL
+            else:
+                self._room_data.team_state = TeamState.FFA
             await self.bot.dispatch('on_teams_toggle', self)
 
         @self.socket.on(SocketEvents.Incoming.REPLAY_RECORD)
@@ -780,6 +812,83 @@ class Room:
                 else:
                     self._room_data.password = None
             await self._bot.dispatch('on_room_pass_change', self)
+
+    async def send_message(self, message: str) -> None:
+        await self.socket.emit(SocketEvents.Outgoing.SEND_MESSAGE, {'message': message})
+
+    async def set_ready(self, state: bool) -> None:
+        self.bot_player.ready = state
+        await self.socket.emit(SocketEvents.Outgoing.SET_READY, {'ready': state})
+
+    async def reset_all_ready(self) -> None:
+        if not self.is_host:
+            await self.bot.dispatch('on_error', ApiError(ErrorType.NOT_HOST))
+            return
+        for player in self.players:
+            player.ready = False
+        await self.socket.emit(SocketEvents.Outgoing.RESET_READY)
+
+    async def set_mode(self, mode: 'Mode') -> None:
+        if not self.is_host:
+            await self.bot.dispatch('on_error', ApiError(ErrorType.NOT_HOST))
+            return
+        await self.socket.emit(SocketEvents.Outgoing.SET_MODE, {'ga': mode.engine, 'mo': mode.mode})
+
+    async def set_rounds(self, rounds: int) -> None:
+        if not self.is_host:
+            await self.bot.dispatch('on_error', ApiError(ErrorType.NOT_HOST))
+            return
+        await self.socket.emit(SocketEvents.Outgoing.SET_ROUNDS, {'w': rounds})
+
+    async def set_team(self, team: Team) -> None:
+        await self.socket.emit(SocketEvents.Outgoing.SET_TEAM, {'targetTeam': team})
+
+    async def set_team_lock(self, state: bool) -> None:
+        if not self.is_host:
+            await self.bot.dispatch('on_error', ApiError(ErrorType.NOT_HOST))
+            return
+        await self.socket.emit(SocketEvents.Outgoing.SET_TEAM_LOCK, {'teamLock': state})
+
+    async def set_map(self, bonk_map: BonkMap) -> None:
+        # TODO: Implement
+        ...
+
+    async def request_map(self, bonk_map: BonkMap) -> None:
+        # TODO: Implement
+        ...
+
+    async def set_teams(self, state: bool) -> None:
+        if not self.is_host:
+            await self.bot.dispatch('on_error', ApiError(ErrorType.NOT_HOST))
+            return
+        if state and self.mode == Mode.FOOTBALL:
+            self._room_data.team_state = TeamState.DUO
+        elif state:
+            self._room_data.team_state = TeamState.ALL
+        else:
+            self._room_data.team_state = TeamState.FFA
+        await self.socket.emit(SocketEvents.Outgoing.SET_TEAM_STATE, {'t': state})
+
+    async def record_replay(self) -> None:
+        await self.socket.emit(SocketEvents.Outgoing.RECORD_REPLAY)
+
+    async def set_tabbed(self, state: bool) -> None:
+        self.bot_player.tabbed = state
+        await self.socket.emit(SocketEvents.Outgoing.CHANGE_ROOM_PASS, {'out': state})
+
+    async def change_password(self, new_password: str) -> None:
+        if not self.is_host:
+            await self.bot.dispatch('on_error', ApiError(ErrorType.NOT_HOST))
+            return
+        self._room_data.password = new_password
+        await self.socket.emit(SocketEvents.Outgoing.CHANGE_ROOM_PASS, {'newPass': new_password})
+
+    async def change_name(self, new_name: str) -> None:
+        if not self.is_host:
+            await self.bot.dispatch('on_error', ApiError(ErrorType.NOT_HOST))
+            return
+        self._room_data.name = new_name
+        await self.socket.emit(SocketEvents.Outgoing.CHANGE_ROOM_NAME, {'newName': new_name})
 
     async def gain_xp(self) -> None:
         """Get 100 xp. Limit 18000 in day, 2000 in 20 minutes"""

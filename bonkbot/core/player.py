@@ -1,17 +1,17 @@
 import dataclasses
 from dataclasses import field
-from typing import TYPE_CHECKING, Dict, Union, Tuple, List
+from typing import TYPE_CHECKING, Dict, List, Tuple, Union
 
-from ..types import Inputs
 from ..types.errors import ApiError, ErrorType
-from ..types.player_move import PlayerMove
 from ..types.team import Team
 from .api import SocketEvents
 
 if TYPE_CHECKING:
     from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
 
+    from ..types import Inputs
     from ..types.avatar import Avatar
+    from ..types.player_move import PlayerMove
     from .bonkbot import BonkBot
     from .room import Room
 

@@ -1,8 +1,10 @@
 from dataclasses import dataclass
+from typing import Optional, Union
 
 
 @dataclass(frozen=True)
 class RoomJoinParams:
     room_id: int
-    password: str = ''
-    bypass: str = ''
+    password: Optional[str] = None
+    bypass: Optional[str] = None
+    name: Union[str, None] = None

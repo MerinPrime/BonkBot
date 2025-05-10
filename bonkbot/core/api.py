@@ -5,10 +5,14 @@ MAP_VERSION = 49
 login_legacy_api = 'https://bonk2.io/scripts/login_legacy.php'
 login_auto_api = 'https://bonk2.io/scripts/login_auto.php'
 get_rooms_api = 'https://bonk2.io/scripts/getrooms.php'
+get_friends_api = 'https://bonk2.io/scripts/friends.php'
 get_server_api = 'https://bonk2.io/scripts/matchmaking_query.php'
+get_room_address_api = 'https://bonk2.io/scripts/getroomaddress.php'
+get_own_maps_api = 'https://bonk2.io/scripts/map_getown.php'
 bonk_socket_api = 'https://{}.bonk.io'
 bonk_peer_api = '{}.bonk.io'
 room_link_api = 'https://bonk.io/{}{}'
+auto_join_api = 'https://bonk2.io/scripts/autojoin.php'
 
 class SocketEvents:
     class Incoming(enum.IntEnum):
@@ -57,12 +61,25 @@ class SocketEvents:
         PING_DATA = 1
         MOVE = 4
         BAN = 9
+        SET_TEAM = 6
+        SET_TEAM_LOCK = 7
+        SEND_MESSAGE = 10
         INFORM_IN_LOBBY = 11
         CREATE_ROOM = 12
+        JOIN_ROOM = 13
+        SET_READY = 16
+        RESET_READY = 17
+        SET_MODE = 20
+        SET_ROUNDS = 21
         SET_BALANCE = 29
+        SET_TEAM_STATE = 32
+        RECORD_REPLAY = 33
         GIVE_HOST = 34
         FRIEND_REQUEST = 35
         XP_GAIN = 38
+        TABBED = 44
+        CHANGE_ROOM_NAME = 52
+        CHANGE_ROOM_PASS = 53
 
 RATE_LIMIT_PONG = 'rate_limit_pong'
 CRITICAL_API_ERRORS = [

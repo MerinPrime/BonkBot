@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict, List
 from pymitter import EventEmitter
 
 if TYPE_CHECKING:
-    from ..types.map.bonkmap import BonkMap
     from ..core.player import Player
     from ..core.room import Room
+    from ..types.map.bonkmap import BonkMap
     from ..types.player_move import PlayerMove
     from ..types.room.room_action import RoomAction
     from .bonkbot import BonkBot
