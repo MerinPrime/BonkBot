@@ -11,3 +11,4 @@ class ErrorType(enum.Enum):
         for error_type in ErrorType:
             if error_type.value == code:
                 return error_type
+        raise ValueError(f'{code} is not a valid error code')
