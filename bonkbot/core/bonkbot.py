@@ -254,3 +254,9 @@ class BonkBot(BotEventHandler):
 
     async def wait_for_connection(self) -> None:
         await asyncio.gather(*[room.wait_for_connection() for room in self.rooms])
+
+    def update_xp(self, new_xp: int) -> None:
+        self._data.xp = new_xp
+
+    def update_token(self, new_token: str) -> None:
+        self._data.token = new_token

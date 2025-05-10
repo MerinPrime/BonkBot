@@ -544,9 +544,9 @@ class Room:
         @self.socket.on(SocketEvents.Incoming.XP_GAIN)
         async def on_xp_gain(data: dict) -> None:
             new_xp = data['newXP']
-            self._bot._data.xp = new_xp
+            self._bot.update_xp(new_xp)
             if 'newToken' in data:
-                self._bot._data.token = data['newToken']
+                self._bot.update_token(data['newToken'])
 
             await self._bot.dispatch('on_xp_gain', self, new_xp)
 
