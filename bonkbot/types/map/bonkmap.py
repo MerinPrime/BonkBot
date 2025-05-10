@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, List
 
+from ...core.api import MAP_VERSION
 from ...pson.bytebuffer import ByteBuffer
 from ..mode import Mode
 from .capture_zone import CaptureType, CaptureZone
@@ -266,7 +267,7 @@ class BonkMap:
 
         bonk_map = BonkMap()
         bonk_map.version = buffer.read_int16()
-        if bonk_map.version > 15:
+        if bonk_map.version > MAP_VERSION:
             raise NotImplementedError('Future map version.')
 
         # region Properties
