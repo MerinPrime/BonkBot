@@ -29,8 +29,12 @@ class SocketEvents:
 
     class Outgoing(enum.IntEnum):
         PING_DATA = 1
+        BAN = 9
         INFORM_IN_LOBBY = 11
         CREATE_ROOM = 12
+        SET_BALANCE = 29
+        GIVE_HOST = 34
+        FRIEND_REQUEST = 35
         XP_GAIN = 38
 
 RATE_LIMIT_PONG = 'rate_limit_pong'
