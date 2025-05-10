@@ -63,6 +63,7 @@ class Room:
         self._total_players = 0
         self._action = RoomAction.CREATE if isinstance(room_params, RoomCreateParams) else RoomAction.JOIN
         self._socket = socketio.AsyncClient(ssl_verify=False)
+        self._bind_listeners()
         self._peer_ready = False
         self._time_offset = None
         self._synced = False
@@ -203,7 +204,6 @@ class Room:
         if self.is_connected:
             await self._bot.dispatch('on_error', self.bot, RoomAlreadyConnected(self))
             return
-        self._bind_listeners()
         async def init_socket() -> None:
             await self._socket.connect(bonk_socket_api.format(self._server.name), transports=['websocket'])
             await self._make_timesync()
