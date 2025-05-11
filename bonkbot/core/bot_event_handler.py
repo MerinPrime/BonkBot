@@ -115,7 +115,7 @@ class BotEventHandler:
     async def on_game_end(self, room: 'Room') -> None:
         pass
 
-    async def on_game_start(self, room: 'Room', unix_time: int) -> None:
+    async def on_game_start(self, room: 'Room', unix_time: int, initial_state: dict) -> None:
         pass
 
     async def on_player_team_change(self, room: 'Room', player: 'Player') -> None:

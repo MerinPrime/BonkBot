@@ -639,9 +639,16 @@ class Room:
                 player.moves.clear()
 
         @self.socket.on(SocketEvents.Incoming.GAME_START)
-        async def on_game_start(unix_time: int, map_data: str, game_settings: dict) -> None:
+        async def on_game_start(unix_time: int, encoded_state: str, game_settings: dict) -> None:
             self._set_game_settings(game_settings)
-            await self.bot.dispatch('on_game_start', self, unix_time)
+            pair = StaticPair(PSON_KEYS)
+            buffer = ByteBuffer().from_base64(encoded_state, case_encoded=True)
+            initial_state = pair.decode(buffer)
+            del initial_state['ms']
+            del initial_state['mm']
+            del initial_state['capZones']
+            del initial_state['physics']
+            await self.bot.dispatch('on_game_start', self, unix_time, initial_state)
 
         @self.socket.on(SocketEvents.Incoming.PLAYER_TEAM_CHANGE)
         async def on_player_team_change(player_id: int, team: int) -> None:
