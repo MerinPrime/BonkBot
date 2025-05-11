@@ -231,6 +231,8 @@ class Room:
         await self.wait_for_connection()
         while True:
             for player in self.players:
+                if player is None:
+                    continue
                 num_player_moves = len(player.moves)
                 start_index = num_player_moves - 1
                 end_index = max(0, num_player_moves - 1000)
@@ -376,7 +378,9 @@ class Room:
         async def on_connection(connection: DataConnection) -> None:
             self._peer_ready = True
             self._connections.append(connection)
-            for player in self._room_data.players:
+            for player in self.players:
+                if player is None:
+                    continue
                 if player.peer_id == connection.peer:
                     player.data_connection = connection
                     break
@@ -393,7 +397,9 @@ class Room:
         def get_player() -> Player:
             nonlocal player
             if player is None:
-                for iplayer in self._room_data.players:
+                for iplayer in self.players:
+                    if iplayer is None:
+                        continue
                     if iplayer.peer_id == connection.peer:
                         player = iplayer
                         break
@@ -430,11 +436,17 @@ class Room:
         await self._connect_event.wait()
 
     def _set_game_settings(self, game_settings: dict) -> None:
-        self._map = BonkMap.decode_from_database(game_settings['map'])
+        encoded_map = game_settings['map']
+        if isinstance(encoded_map, str):
+            self._map = BonkMap.decode_from_database(encoded_map)
+        else:
+            self._map = BonkMap.from_json(encoded_map)
         self._room_data.rounds = game_settings['wl']
         self._room_data.team_lock = game_settings['tl']
         self._room_data.mode = Mode.from_mode_code(game_settings['mo'])
         for player in self.players:
+            if player is None:
+                continue
             if player.id >= len(game_settings['bal']):
                 player.balance = 0
                 continue
@@ -533,6 +545,8 @@ class Room:
             self._total_players += 1
             bal = [0] * self._total_players
             for player in self.players:
+                if player is None:
+                    continue
                 bal[player.id] = player.balance
             await self._socket.emit(
                 SocketEvents.Outgoing.INFORM_IN_LOBBY,
@@ -610,6 +624,8 @@ class Room:
         @self.socket.on(SocketEvents.Incoming.READY_RESET)
         async def on_ready_reset() -> None:
             for player in self.players:
+                if player is None:
+                    continue
                 player.ready = False
             await self.bot.dispatch('on_ready_reset', self)
 
@@ -636,6 +652,8 @@ class Room:
         async def on_game_end() -> None:
             await self.bot.dispatch('on_game_end', self)
             for player in self.players:
+                if player is None:
+                    continue
                 player.moves.clear()
 
         @self.socket.on(SocketEvents.Incoming.GAME_START)
@@ -754,7 +772,7 @@ class Room:
         @self.socket.on(SocketEvents.Incoming.STATUS)
         async def on_error(error: str) -> None:
             if error != RATE_LIMIT_PONG:
-                await self.bot.dispatch('on_error', self.bot, ApiError(ErrorType.RATE_LIMITED))
+                await self.bot.dispatch('on_error', self.bot, ApiError(ErrorType.from_string(error)))
 
             if error in CRITICAL_API_ERRORS:
                 await self.disconnect()
@@ -775,16 +793,21 @@ class Room:
             await self._bot.dispatch('on_xp_gain', self, new_xp)
 
         @self.socket.on(SocketEvents.Incoming.INITIAL_STATE)
-        async def on_initial_state(admin: list, frame: int, game_settings: str, inputs: List[Dict],
-                                   random: List[int], encoded_state: str, state_id: int) -> None:
+        async def on_initial_state(data: dict) -> None:
+            encoded_state = data['state']
+            state_id = data['stateID']
+            game_settings = data['gs']
+            random = data['random']
+            inputs = data['inputs']
+            frame = data['fc']
             self._set_game_settings(game_settings)
             for input_data in inputs:
-                player = self.get_player_by_id(input_data['playerId'])
+                player = self.get_player_by_id(input_data['p'])
                 inputs = Inputs()
                 inputs.flags = input_data['i']
                 player.prev_inputs.append((input_data['f'], inputs))
             pair = StaticPair(PSON_KEYS)
-            buffer = ByteBuffer().from_base64(encoded_state, case_encoded=True)
+            buffer = ByteBuffer().from_base64(encoded_state, case_encoded=True, lz_encoded=True)
             initial_state = pair.decode(buffer)
             del initial_state['ms']
             del initial_state['mm']
@@ -832,6 +855,8 @@ class Room:
             await self.bot.dispatch('on_error', ApiError(ErrorType.NOT_HOST))
             return
         for player in self.players:
+            if player is None:
+                continue
             player.ready = False
         await self.socket.emit(SocketEvents.Outgoing.RESET_READY)
 

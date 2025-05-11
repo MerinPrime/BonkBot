@@ -569,7 +569,7 @@ class BonkMap:
             body.force_zone.push_arrows = body_data['fz']['a']
             body.force_zone.center_force = body_data['fz']['cf']
             body.shape.body_type = BodyType.from_name(body_data['s']['type'])
-            body.shape.name = body_data['s']['name']
+            body.shape.name = body_data['s']['n']
             body.shape.friction_players = body_data['s']['fricp']
             body.shape.linear_damping = body_data['s']['ld']
             body.shape.angular_damping = body_data['s']['ad']
