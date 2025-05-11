@@ -662,10 +662,6 @@ class Room:
             pair = StaticPair(PSON_KEYS)
             buffer = ByteBuffer().from_base64(encoded_state, case_encoded=True)
             initial_state = pair.decode(buffer)
-            del initial_state['ms']
-            del initial_state['mm']
-            del initial_state['capZones']
-            del initial_state['physics']
             await self.bot.dispatch('on_game_start', self, unix_time, initial_state)
 
         @self.socket.on(SocketEvents.Incoming.PLAYER_TEAM_CHANGE)
@@ -809,10 +805,6 @@ class Room:
             pair = StaticPair(PSON_KEYS)
             buffer = ByteBuffer().from_base64(encoded_state, case_encoded=True, lz_encoded=True)
             initial_state = pair.decode(buffer)
-            del initial_state['ms']
-            del initial_state['mm']
-            del initial_state['capZones']
-            del initial_state['physics']
             await self._bot.dispatch('on_initial_state', self, frame, random, initial_state, state_id)
 
         @self.socket.on(SocketEvents.Incoming.ROOM_ID_OBTAIN)
