@@ -318,7 +318,7 @@ class Room:
             'version': PROTOCOL_VERSION,
             'peerID': self._peer_id,
             'bypass': bypass,
-            'avatar': self._bot.active_avatar.to_json()
+            'avatar': self._bot.active_avatar.to_json(),
         }
         if self.bot.is_guest:
             data['guestName'] = self.bot.name
@@ -331,7 +331,7 @@ class Room:
         )
         self._total_players = 1
         await self._socket.emit(SocketEvents.Outgoing.JOIN_ROOM, data)
-    
+
     async def _make_timesync(self) -> None:
         self.timesyncer = TimeSyncer(
             interval=10,

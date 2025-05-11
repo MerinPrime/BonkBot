@@ -1,5 +1,4 @@
 import asyncio
-import json
 import re
 from typing import List, Optional, Union
 
@@ -19,10 +18,12 @@ from ..utils.api import validate_username
 from ..utils.xp import xp_to_level
 from .api import (
     PROTOCOL_VERSION,
+    auto_join_api,
     get_friends_api,
     get_own_maps_api,
+    get_room_address_api,
     get_rooms_api,
-    login_legacy_api, get_room_address_api, auto_join_api,
+    login_legacy_api,
 )
 from .bot_data import BotData
 from .bot_event_handler import BotEventHandler
@@ -216,22 +217,22 @@ class BonkBot(BotEventHandler):
         response = await self.aiohttp_session.post(
             url=get_room_address_api,
             data={
-                "id": room_id,
-            }
+                'id': room_id,
+            },
         )
         response.raise_for_status()
         room_data = await response.json()
-        
+
         if room_data['r'] == 'fail':
             await self.dispatch('on_error', self, ApiError(ErrorType.from_string(room_data['e'])))
             return
-        
+
         server = Server.from_name(room_data['server'])
         room = Room(bot=self, room_params=RoomJoinParams(
             room_id=room_id,
             password=password,
             bypass=bypass,
-            name=room_data['roomname']
+            name=room_data['roomname'],
         ), server=server)
         return room
 
@@ -243,11 +244,11 @@ class BonkBot(BotEventHandler):
         response = await self.aiohttp_session.post(url=auto_join_api, data={'joinID': room_id})
         response.raise_for_status()
         room_data = await response.json()
-        
+
         if room_data['r'] == 'failed':
             await self.dispatch('on_error', self, ApiError(ErrorType.ROOM_NOT_FOUND))
             return
-        
+
         server = Server.from_name(room_data['server'])
         room = Room(bot=self, room_params=RoomJoinParams(
             room_id=room_data['address'],

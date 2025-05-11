@@ -16,25 +16,25 @@ if TYPE_CHECKING:
 class BotEventHandler:
     _event_emitter: EventEmitter
     _events: dict
-    
+
     def __init__(self) -> None:
         self._event_emitter = EventEmitter()
         self._events = {}
-        
+
         for name, method in inspect.getmembers(BotEventHandler, predicate=inspect.isfunction):
             if name.startswith('on_'):
                 self._events[name] = method
-        
+
         for name, method in inspect.getmembers(self, predicate=inspect.ismethod):
             if name.startswith('on_') and name in self._events:
                 self.event(method)
 
     def event(self, function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
         if not asyncio.iscoroutinefunction(function):
-            raise TypeError("Handler '{function.__name__}' must be async (use 'async def')")
+            raise TypeError(f"Handler '{function.__name__}' must be async (use 'async def')")
 
         event_name = function.__name__
-        
+
         if event_name not in self._events:
             raise AttributeError(f'No event named {event_name} found')
 
