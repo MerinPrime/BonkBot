@@ -34,7 +34,7 @@ class BonkBot(BotEventHandler):
     _data: Union['BotData', None]
     _aiohttp_session: Union[aiohttp.ClientSession, None]
     _is_logged: bool
-    _event_loop: asyncio.AbstractEventLoop
+    _event_loop: Optional[asyncio.AbstractEventLoop]
     _rooms: List['Room']
     server: Server
 
@@ -213,7 +213,7 @@ class BonkBot(BotEventHandler):
         ), server=server)
         return room
 
-    async def join_room(self, room_id: int, password: Optional[str] = None, bypass: Optional[str] = None) -> 'Room':
+    async def join_room(self, room_id: int, password: Optional[str] = None, bypass: Optional[str] = None) -> Optional['Room']:
         response = await self.aiohttp_session.post(
             url=get_room_address_api,
             data={
@@ -236,7 +236,7 @@ class BonkBot(BotEventHandler):
         ), server=server)
         return room
 
-    async def join_room_via_link(self, link: str, password: str = '') -> 'Room':
+    async def join_room_via_link(self, link: str, password: str = '') -> Optional['Room']:
         regex = r'/(\d{6})([a-zA-Z0-9]{5})?$'
         match = re.search(regex, link)
         room_id = match.group(1)

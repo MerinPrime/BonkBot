@@ -100,11 +100,12 @@ class Room:
         self._connections = []
         self._bot_player = None
         self.sequence = 0
-        self._p2p_revert_task.cancel()
-        try:
-            await self._p2p_revert_task
-        except asyncio.CancelledError:
-            pass
+        if self._p2p_revert_task:
+            self._p2p_revert_task.cancel()
+            try:
+                await self._p2p_revert_task
+            except asyncio.CancelledError:
+                pass
         self._p2p_revert_task = None
         self._connect_event.clear()
         self._bot.remove_room(self)
@@ -660,9 +661,9 @@ class Room:
         async def on_game_start(unix_time: int, encoded_state: str, game_settings: dict) -> None:
             self._set_game_settings(game_settings)
             pair = StaticPair(PSON_KEYS)
-            buffer = ByteBuffer().from_base64(encoded_state, case_encoded=True)
+            buffer = ByteBuffer().from_base64(encoded_state, lz_encoded=True, case_encoded=True)
             initial_state = pair.decode(buffer)
-            await self.bot.dispatch('on_game_start', self, unix_time, initial_state)
+            await self.bot.dispatch('on_game_start', self, unix_time, initial_state, game_settings)
 
         @self.socket.on(SocketEvents.Incoming.PLAYER_TEAM_CHANGE)
         async def on_player_team_change(player_id: int, team: int) -> None:

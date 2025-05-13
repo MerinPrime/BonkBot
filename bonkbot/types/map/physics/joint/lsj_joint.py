@@ -1,11 +1,13 @@
 from dataclasses import dataclass
 from typing import Tuple
 
+from .joint import Joint
+
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IJoint.ts
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IJointProperties.ts
 @dataclass
-class LSJJoint:
+class LSJJoint(Joint):
     position: Tuple[float, float] = (0, 0)
     force: float = 0
     length: float = 0

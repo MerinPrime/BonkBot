@@ -1,11 +1,13 @@
 from dataclasses import dataclass
 from typing import Tuple
 
+from .joint import Joint
+
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IJoint.ts
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IJointProperties.ts
 @dataclass
-class RevoluteJoint:
+class RevoluteJoint(Joint):
     from_angle: float = 0
     to_angle: float = 0
     turn_force: float = 0
