@@ -16,6 +16,7 @@ auto_join_api = 'https://bonk2.io/scripts/autojoin.php'
 
 class SocketEvents:
     class Incoming(enum.IntEnum):
+        TIMESYNC = 23
         PING_DATA = 1
         ROOM_CREATE = 2
         ROOM_JOIN = 3
@@ -58,6 +59,7 @@ class SocketEvents:
         ROOM_PASS_CHANGE = 59
 
     class Outgoing(enum.IntEnum):
+        TIMESYNC = 18
         PING_DATA = 1
         MOVE = 4
         BAN = 9

@@ -5,6 +5,8 @@ from typing import Dict, Optional
 import socketio
 from pymitter import EventEmitter
 
+from .api import SocketEvents
+
 
 class TimeSyncer:
     def __init__(self, interval: float, timeout: float, delay: float, repeat: int, socket: socketio.AsyncClient):
@@ -18,10 +20,11 @@ class TimeSyncer:
         self._in_progress = 0
         self.sync_id = 0
         self._ids_time = {}
-        self.socket.on(23, self.on_result)
         self.event_emitter = EventEmitter()
         self._lock = asyncio.Lock()
         self._task = None
+        
+        self.socket.on(SocketEvents.Incoming.TIMESYNC, self.on_result)
 
     async def stop(self) -> None:
         if self._task:
@@ -56,7 +59,7 @@ class TimeSyncer:
             await self.event_emitter.emit_async('sync', 'start')
             for _ in range(repeat):
                 self._ids_time[self.sync_id] = self.now()
-                await self.socket.emit(18, {'jsonrpc': '2.0', 'id': self.sync_id, 'method': 'timesync'})
+                await self.socket.emit(SocketEvents.Outgoing.TIMESYNC, {'jsonrpc': '2.0', 'id': self.sync_id, 'method': 'timesync'})
                 await asyncio.sleep(delay)
                 self.sync_id += 1
 
