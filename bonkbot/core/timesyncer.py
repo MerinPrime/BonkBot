@@ -23,7 +23,7 @@ class TimeSyncer:
         self.event_emitter = EventEmitter()
         self._lock = asyncio.Lock()
         self._task = None
-        
+
         self.socket.on(SocketEvents.Incoming.TIMESYNC, self.on_result)
 
     async def stop(self) -> None:

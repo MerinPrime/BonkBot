@@ -6,7 +6,9 @@ import aiohttp
 
 from ..types import Server
 from ..types.avatar.avatar import Avatar
-from ..types.errors import ApiError, ErrorType
+from ..types.errors.api_error import ApiError
+from ..types.errors.error_type import ErrorType
+from ..types.errors.not_logged_error import BotNotLoggedInError
 from ..types.friend import Friend
 from ..types.map import BonkMap
 from ..types.mode import Mode
@@ -83,62 +85,68 @@ class BonkBot(BotEventHandler):
         return self._aiohttp_session
 
     @property
+    def data(self) -> 'BotData':
+        if self._data is None:
+            raise BotNotLoggedInError()
+        return self._data # TODO: Maybe better return a copy?
+
+    @property
     def name(self) -> str:
-        return self._data.name
+        return self.data.name
 
     @property
     def xp(self) -> int:
-        return self._data.xp
+        return self.data.xp
 
     @property
     def level(self) -> float:
-        return xp_to_level(self._data.xp)
+        return xp_to_level(self.data.xp)
 
     @property
     def id(self) -> int:
-        return self._data.id
+        return self.data.id
 
     @property
     def is_guest(self) -> int:
-        return self._data.is_guest
+        return self.data.is_guest
 
     @property
     def active_avatar_id(self) -> int:
-        return self._data.active_avatar
+        return self.data.active_avatar
 
     @active_avatar_id.setter
     def active_avatar_id(self, new_active_avatar_id: int) -> None:
-        self._data.active_avatar = new_active_avatar_id
+        self.data.active_avatar = new_active_avatar_id
 
     @property
     def active_avatar(self) -> Avatar:
-        return self._data.avatar
+        return self.data.avatar
 
     @active_avatar.setter
     def active_avatar(self, new_avatar: Avatar) -> None:
-        self._data.avatar = new_avatar
+        self.data.avatar = new_avatar
 
     def get_avatar(self, index: int) -> Avatar:
-        return self._data.avatars[index]
+        return self.data.avatars[index]
 
     def set_avatar(self, index: int) -> Avatar:
-        return self._data.avatars[index]
+        return self.data.avatars[index]
 
     @property
     def friends(self) -> List[Friend]:
-        return self._data.friends
+        return self.data.friends
 
     @property
     def legacy_friends(self) -> List[Friend]:
-        return self._data.legacy_friends
+        return self.data.legacy_friends
 
     @property
     def settings(self) -> Settings:
-        return self._data.settings
+        return self.data.settings
 
     @property
     def token(self) -> str:
-        return self._data.token
+        return self.data.token
 
     async def _start(self, data: BotData) -> None:
         self._data = data
@@ -149,20 +157,7 @@ class BonkBot(BotEventHandler):
         if self._is_logged:
             raise ValueError('BonkBot already logged in')
         validate_username(name)
-        data = BotData(
-            name=name,
-            token='',
-            id=0,
-            is_guest=True,
-            xp=0,
-            avatar=Avatar(),
-            active_avatar=0,
-            avatars=[Avatar() for _ in range(5)],
-            friends=[],
-            legacy_friends=[],
-            settings=Settings(),
-        )
-        await self._start(data)
+        await self._start(BotData(name=name))
 
     async def login_with_password(self, name: str, password: str, *, remember: bool = False) -> Union[str, None]:
         if self._is_logged:
@@ -264,7 +259,7 @@ class BonkBot(BotEventHandler):
             data={
                 'version': PROTOCOL_VERSION,
                 'gl': 'y',
-                'token': self._data.token,
+                'token': self.data.token,
             },
         )
         response.raise_for_status()
@@ -279,7 +274,7 @@ class BonkBot(BotEventHandler):
             data={
                 'version': PROTOCOL_VERSION,
                 'gl': 'n',
-                'token': self._data.token,
+                'token': self.data.token,
             },
         )
         response.raise_for_status()
@@ -301,10 +296,10 @@ class BonkBot(BotEventHandler):
         await asyncio.gather(*[room.wait_for_connection() for room in self.rooms])
 
     def update_xp(self, new_xp: int) -> None:
-        self._data.xp = new_xp
+        self.data.xp = new_xp
 
     def update_token(self, new_token: str) -> None:
-        self._data.token = new_token
+        self.data.token = new_token
 
     async def fetch_friends(self) -> List['Friend']:
         async with self.aiohttp_session.post(
