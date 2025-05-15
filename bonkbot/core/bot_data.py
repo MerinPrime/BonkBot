@@ -26,24 +26,36 @@ class BotData:
         data = BotData(
             name = json_data['username'],
             token = json_data['token'],
-            id= json_data['id'],
-            is_guest = False,
+            id = json_data['id'],
             xp = json_data['xp'],
-            avatar = Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar'], uri_encoded=True)),
             active_avatar = json_data['activeAvatarNumber'],
-            avatars = [
-                Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar1'], uri_encoded=True)),
-                Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar2'], uri_encoded=True)),
-                Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar3'], uri_encoded=True)),
-                Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar4'], uri_encoded=True)),
-                Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar5'], uri_encoded=True)),
-            ],
-            friends = [Friend(
-                name=friend['name'],
-                dbid=friend['id'],
-                room_id=friend['roomid'],
-            ) for friend in json_data['friends']],
-            legacy_friends = [Friend(name=friend, dbid=None, room_id=None) for friend in json_data['legacyFriends'].split('#')],
-            settings = Settings.from_buffer(ByteBuffer().from_base64(json_data['controls'], uri_encoded=False)) if json_data['controls'] else Settings(),
+            is_guest = False,
+            avatar = Avatar(),
+            avatars = [Avatar() for _ in range(5)],
+            settings = Settings()
         )
+        
+        if 'avatar' in json_data:
+            data.avatar = Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar'], uri_encoded=True))
+        
+        for i in range(5):
+            key = f'avatar{i+1}'
+            if key in json_data:
+                data.avatars[i] = Avatar.from_buffer(ByteBuffer().from_base64(json_data[key], uri_encoded=True))
+        
+        if 'friends' in json_data:
+            for friend_data in json_data['friends']:
+                data.friends.append(Friend(
+                    name=friend_data['name'],
+                    dbid=friend_data['id'],
+                    room_id=friend_data['roomid'],
+                ))
+        
+        if 'legacyFriends' in json_data:
+            for friend_name in json_data['legacyFriends'].split('#'):
+                data.legacy_friends.append(Friend(name=friend_name, dbid=None, room_id=None))
+        
+        if 'controls' in json_data:
+            data.settings = Settings.from_buffer(ByteBuffer().from_base64(json_data['controls'], uri_encoded=False))
+        
         return data
