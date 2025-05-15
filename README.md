@@ -17,7 +17,7 @@ Python 3.8+
 * **Current Status (Beta):** The core framework providing connection, event handling, and basic game interactions is implemented.
 * **Pending Features:** Some features, such as specific methods like `fetch_friends`, are not yet implemented, but are planned for future releases.
 
-Report any issues or suggestions new features on the [GitHub Issues page](https://github.com/MerinPrime/BonkBot/issues).
+Report any issues or suggest new features on the [GitHub Issues page](https://github.com/MerinPrime/BonkBot/issues).
 
 ## 🚀 Installation
 ### Using PyPI
