@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 '''
 This example implements a MirrorBot.
 The bot copies inputs of players like mirror.
+Modes like VTOL and Arrows can cause an "unmirror".
 '''
 
 class MirrorBot(BonkBot):
