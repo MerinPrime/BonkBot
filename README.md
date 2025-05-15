@@ -11,7 +11,7 @@ Inspired by [bonk_bot](https://github.com/Zuzunito/bonk_bot)
 
 ## 🐍 Supported Python Versions
 
-Python 3.8+
+Requires Python 3.8 or newer.
 
 ## 🛣️ Status & Roadmap
 * **Current Status (Beta):** The core framework providing connection, event handling, and basic game interactions is implemented.
@@ -20,7 +20,7 @@ Python 3.8+
 Report any issues or suggest new features on the [GitHub Issues page](https://github.com/MerinPrime/BonkBot/issues).
 
 ## 🚀 Installation
-### Using PyPI
+### Using PyPI ( Recommended )
 PyPI distribution is planned for the future.
 ### From github
 ```bash
