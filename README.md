@@ -1,28 +1,39 @@
 # BonkBot
+**A user-friendly and performant Python framework for creating Bonk.io bots.**  
 Inspired by [bonk_bot](https://github.com/Zuzunito/bonk_bot)  
-User-friendly async python framework for writing bots in bonk.io.  
-Supported python versions: 3.8+
 
-## Features
-- `async`/`await` based API for concurrent connection and request management.
-- Support for different bonk.io servers.
-- Flexible event handling system using decorators (`@bot.event`) or class inheritance (`BonkBot`).
-- Enhanced network performance.
-- Support for peer connections and time synchronization.
+## ✨ Features
+* **Async Architecture:** Built on `asyncio` for high-performance, concurrent connection management and responsive event handling.
+* **Simplified API:** Write bots easily using intuitive event decorators (`@bot.event`) or class-based inheritance.
+* **Optimized Network:** Enhanced network layer designed for stability and speed.
+* **Advanced Networking:** Support for peer connections and precise time synchronization.
+* **User-Friendly:** Designed with developer experience in mind, abstracting away low-level network complexities.
 
-## Installing
+## 🐍 Supported Python Versions
+
+Python 3.8+
+
+## 🛣️ Status & Roadmap
+* **Current Status (Beta):** The core framework providing connection, event handling, and basic game interactions is implemented.
+* **Pending Features:** Some features, such as specific methods like `fetch_friends`, are not yet implemented, but are planned for future releases.
+
+Report any issues or suggestions new features on the [GitHub Issues page](https://github.com/MerinPrime/BonkBot/issues).
+
+## 🚀 Installation
 ### Using PyPI
-Package is currently unavailable on PyPI.
+PyPI distribution is planned for the future.
 ### From github
 ```bash
-pip install https://github.com/MerinPrime/BonkBot.git
+pip install git+https://github.com/MerinPrime/BonkBot.git
 ```
 
-## Bot examples
-- [Rooms Watcher ( Decorators )](examples/rooms_watcher.py)
-- [Rooms Watcher ( Class based )](examples/oop_rooms_watcher.py)
-- [XP Farm](examples/xp_farm.py)
-- [MirrorBot](examples/mirror_bot.py)
+## 📚 Examples
+* [Rooms Watcher (Decorators)](examples/rooms_watcher.py)
+* [Rooms Watcher (Class based)](examples/oop_rooms_watcher.py)
+* [XP Farm](examples/xp_farm.py)
+* [Mirror Bot](examples/mirror_bot.py)
 
-## Documentation
-In the future i want to write docstrings but idk what i should to write in them
+## 📄 Documentation
+Documentation is currently planned.  
+Docstrings will be added to cover all public APIs.  
+Your contributions and suggestions for documentation are welcome via [GitHub Issues page](https://github.com/MerinPrime/BonkBot/issues).
