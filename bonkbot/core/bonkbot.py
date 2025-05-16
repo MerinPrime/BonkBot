@@ -45,7 +45,7 @@ class BonkBot(BotEventHandler):
         self._data = None
         self._is_logged = False
         self._event_loop = event_loop if event_loop is not None else asyncio.get_event_loop()
-        self._aiohttp_session = None
+        self._aiohttp_session = aiohttp.ClientSession(loop=self.event_loop)
         self._rooms = []
         self.server = Server.WARSAW
 
@@ -149,9 +149,13 @@ class BonkBot(BotEventHandler):
     async def _start(self, data: BotData) -> None:
         self._data = data
         self._is_logged = True
-        self._aiohttp_session = aiohttp.ClientSession(loop=self.event_loop)
         await self.dispatch('on_ready', self)
 
+    # region Sugar
+    async def wait_for_connections(self):
+        await asyncio.gather(*[room.wait_for_connection() for room in self._rooms])
+    # endregion
+    
     async def login_as_guest(self, name: str) -> None:
         if self._is_logged:
             raise ValueError('BonkBot already logged in')
@@ -327,5 +331,5 @@ class BonkBot(BotEventHandler):
             data = await resp.json()
 
         return [BonkMap.decode_from_database(bonk_map['leveldata']) for bonk_map in data['maps']]
-
+    
     # TODO: Get favs, b2, b1, map delete

@@ -4,12 +4,13 @@ import dataclasses
 import random
 import string
 import time
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union, Callable, Coroutine, Any
 
 import socketio
 from peerjs_py import Peer, PeerOptions
 from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
 from peerjs_py.dataconnection.DataConnection import DataConnection
+from pycparser.c_ast import Continue
 
 from ..core.player import Player
 from ..pson import ByteBuffer, StaticPair
@@ -56,7 +57,6 @@ class Room:
     _peer_id: str
     _is_connected: bool
     _bot_player: 'Player'
-    _connect_event: asyncio.Event
     _map: BonkMap
     _connection: List['DataConnection']
     _p2p_revert_task: asyncio.Task
@@ -70,8 +70,7 @@ class Room:
         self._server = server
         self._total_players = 0
         self._action = RoomAction.CREATE if isinstance(room_params, RoomCreateParams) else RoomAction.JOIN
-        self._socket = socketio.AsyncClient(ssl_verify=False)
-        self._bind_listeners()
+        self._socket = None
         self._peer_ready = False
         self._time_offset = None
         self._synced = False
@@ -79,8 +78,8 @@ class Room:
         self._is_connected = False
         self._bot_player = None
         self._p2p_revert_task = None
+        self._running: bool = False
         self._connections = []
-        self._connect_event = asyncio.Event()
         self._map = BonkMap.decode_from_database('ILAcJAhBFBjBzCIDCAbAcgBwEYA1IDOAWgMrAAeAJgFYCiwytlAjEQGLoAMsAtm50gCmAdwbBIbACoBDAOrNh2AOIBVeAFlcATXIBJZAAtURJak4BpaMAASJAExsCW2eQPTRkACJFdITwDMANRB6RhZ2Ll5+JCgAdhjgX08PGKsYa0gE8WB0LLz8goKrCGZA7B4AVgNsWUCAa10OAHstfFR-AGoAeh7envAbLoA3Pr7O0d7waWxMOyzM4DYALxBhKjp4FSVXSiUiId4BQuO8roAWfOQugYTPLsl1JcfnlZO394-Pk7TgaFpMv4QegQZDCNh1LKeYAAeWKXwKMH+vyQgUksCUbAAzNg6pAiHlhJ4IfDCioAcCQGwVJjIAZKHYLkggA')
         self.sequence = 0
         self._bot.add_room(self)
@@ -88,7 +87,7 @@ class Room:
     async def disconnect(self) -> None:
         if self.timesyncer:
             await self.timesyncer.stop()
-        if self._p2p_revert_task:
+        if self._p2p_revert_task and not self._p2p_revert_task.done():
             self._p2p_revert_task.cancel()
             try:
                 await self._p2p_revert_task
@@ -98,6 +97,10 @@ class Room:
             await self._socket.disconnect()
         if self.peer_ready:
             await self._peer.destroy()
+        if self._running:
+            self._unbind_sugar()
+        self._socket = None
+        self._running = False
         self._room_data = None
         self._total_players = 0
         self._peer_ready = False
@@ -109,7 +112,6 @@ class Room:
         self._bot_player = None
         self.sequence = 0
         self._p2p_revert_task = None
-        self._connect_event.clear()
         self._bot.remove_room(self)
 
     @property
@@ -214,6 +216,10 @@ class Room:
     def is_host(self) -> bool:
         return self.bot_player.is_host
 
+    @property
+    def is_running(self) -> bool:
+        return self._running
+
     def get_player_by_id(self, player_id: int) -> 'Player':
         return self._room_data.player_by_id(player_id)
 
@@ -221,6 +227,9 @@ class Room:
         if self.is_connected:
             await self._bot.dispatch('on_error', self.bot, RoomAlreadyConnected(self))
             return
+        self._socket = socketio.AsyncClient(ssl_verify=False)
+        self.__bind_listeners()
+        self._bind_sugar()
         async def init_socket() -> None:
             await self._socket.connect(bonk_socket_api.format(self._server.name), transports=['websocket'])
             await self._make_timesync()
@@ -228,6 +237,7 @@ class Room:
             init_socket(),
             self._make_peer(),
         )
+        self._running = True
         self._p2p_revert_task = asyncio.create_task(self._handle_p2p_revert())
 
     async def _handle_p2p_revert(self) -> None:
@@ -350,7 +360,7 @@ class Room:
         async def on_sync(state: str) -> None:
             if state == 'end' and not self._synced:
                 self._synced = True
-                if self.peer_ready:
+                if self._peer_ready:
                     await self._init_connection()
 
         @self.timesyncer.event_emitter.on('change')
@@ -379,7 +389,6 @@ class Room:
 
         @self._peer.on('connection')
         async def on_connection(connection: DataConnection) -> None:
-            self._peer_ready = True
             self._connections.append(connection)
             for player in self.players:
                 if player is None:
@@ -435,9 +444,6 @@ class Room:
         player.data_connection = await self._peer.connect(player.peer_id)
         await self._process_new_connection(player.data_connection)
 
-    async def wait_for_connection(self) -> None:
-        await self._connect_event.wait()
-
     def _set_game_settings(self, game_settings: dict) -> None:
         encoded_map = game_settings['map']
         if isinstance(encoded_map, str):
@@ -460,384 +466,418 @@ class Room:
             self._room_data.team_state = TeamState.DUO
         else:
             self._room_data.team_state = TeamState.ALL
+    
+    def __bind_listeners(self) -> None:
+        self.socket.on('disconnect', self.disconnect)
+        self.socket.on(SocketEvents.Incoming.PING_DATA, self.__on_ping_data)
+        self.socket.on(SocketEvents.Incoming.ROOM_CREATE, self.__on_room_create)
+        self.socket.on(SocketEvents.Incoming.ROOM_JOIN, self.__on_room_create)
+        self.socket.on(SocketEvents.Incoming.PLAYER_JOIN, self.__on_player_join)
+        self.socket.on(SocketEvents.Incoming.PLAYER_LEFT, self.__on_player_left)
+        self.socket.on(SocketEvents.Incoming.HOST_LEFT, self.__on_host_left)
+        self.socket.on(SocketEvents.Incoming.PLAYER_INPUT, self.__on_move)
+        self.socket.on(SocketEvents.Incoming.READY_CHANGE, self.__on_ready_change)
+        self.socket.on(SocketEvents.Incoming.READY_RESET, self.__on_ready_reset)
+        self.socket.on(SocketEvents.Incoming.PLAYER_MUTED, self.__on_player_mute)
+        self.socket.on(SocketEvents.Incoming.PLAYER_UNMUTED, self.__on_player_unmute)
+        self.socket.on(SocketEvents.Incoming.PLAYER_NAME_CHANGE, self.__on_player_name_change)
+        self.socket.on(SocketEvents.Incoming.GAME_END, self.__on_game_end)
+        self.socket.on(SocketEvents.Incoming.GAME_START, self.__on_game_start)
+        self.socket.on(SocketEvents.Incoming.PLAYER_TEAM_CHANGE, self.__on_player_team_change)
+        self.socket.on(SocketEvents.Incoming.TEAM_LOCK, self.__on_team_lock)
+        self.socket.on(SocketEvents.Incoming.MESSAGE, self.__on_message)
+        self.socket.on(SocketEvents.Incoming.INFORM_IN_LOBBY, self.__inform_in_lobby)
+        self.socket.on(SocketEvents.Incoming.ON_KICK, self.__on_player_kick)
+        self.socket.on(SocketEvents.Incoming.MODE_CHANGE, self.__on_mode_change)
+        self.socket.on(SocketEvents.Incoming.ROUNDS_CHANGE, self.__on_rounds_change)
+        self.socket.on(SocketEvents.Incoming.MAP_CHANGE, self.__on_map_change)
+        self.socket.on(SocketEvents.Incoming.AFK_WARN, self.__on_afk_warn)
+        self.socket.on(SocketEvents.Incoming.MAP_SUGGEST_HOST, self.__on_map_suggest_host)
+        self.socket.on(SocketEvents.Incoming.MAP_SUGGEST_CLIENT, self.__on_map_suggest_client)
+        self.socket.on(SocketEvents.Incoming.SET_BALANCE, self.__on_set_balance)
+        self.socket.on(SocketEvents.Incoming.TEAMS_TOGGLE, self.__on_teams_toggle)
+        self.socket.on(SocketEvents.Incoming.REPLAY_RECORD, self.__on_replay_record)
+        self.socket.on(SocketEvents.Incoming.HOST_CHANGE, self.__on_host_change)
+        self.socket.on(SocketEvents.Incoming.FRIEND_REQUEST, self.__on_friend_request)
+        self.socket.on(SocketEvents.Incoming.COUNTDOWN, self.__on_countdown)
+        self.socket.on(SocketEvents.Incoming.COUNTDOWN_ABORT, self.__on_countdown_abort)
+        self.socket.on(SocketEvents.Incoming.STATUS, self.__on_error)
+        self.socket.on(SocketEvents.Incoming.LEVEL_UP, self.__on_level_up)
+        self.socket.on(SocketEvents.Incoming.XP_GAIN, self.__on_xp_gain)
+        self.socket.on(SocketEvents.Incoming.INITIAL_STATE, self.__on_initial_state)
+        self.socket.on(SocketEvents.Incoming.ROOM_ID_OBTAIN, self.__on_room_id_obtain)
+        self.socket.on(SocketEvents.Incoming.PLAYER_TABBED, self.__on_player_tabbed)
+        self.socket.on(SocketEvents.Incoming.ROOM_NAME_CHANGE, self.__on_room_name_change)
+        self.socket.on(SocketEvents.Incoming.ROOM_PASS_CHANGE, self.__on_room_pass_change)
+    
+    # region Events
+    async def __on_ping_data(self, pings: Dict, player_id: int) -> None:
+        await self.socket.emit(SocketEvents.Outgoing.PING_DATA, {'id': player_id})
+        for player_id, ping in pings.items():
+            player = self.get_player_by_id(int(player_id))
+            if player is None:
+                continue
+            player.ping = ping
+        await self._bot.dispatch('on_ping_update', self)
 
-    def _bind_listeners(self) -> None:
-        @self.socket.event
-        async def disconnect() -> None:
-            await self.disconnect()
+    async def __on_room_create(self, *args) -> None:
+        await self._bot.dispatch('on_room_connection', self, RoomAction.CREATE)
 
-        @self.socket.on(SocketEvents.Incoming.PING_DATA)
-        async def on_ping_data(pings: Dict, player_id: int) -> None:
-            await self.socket.emit(SocketEvents.Outgoing.PING_DATA, {'id': player_id})
-            for player_id, ping in pings.items():
-                self.get_player_by_id(int(player_id)).ping = ping
-            await self._bot.dispatch('on_ping_update', self)
-
-        @self.socket.on(SocketEvents.Incoming.ROOM_CREATE)
-        async def on_room_create(*args) -> None:
-            await self._bot.dispatch('on_room_connection', self, RoomAction.CREATE)
-
-        @self.socket.on(SocketEvents.Incoming.ROOM_JOIN)
-        async def on_room_join(bot_id: int, host_id: int, players: List, timestamp: int, team_lock: bool,
-                               join_id: int, join_bypass: str, *args) -> None:
-            self._room_data.join_id = f'{join_id:06}'
-            self._room_data.join_bypass = join_bypass
-            self._room_data.team_lock = team_lock
-            self._total_players = len(players)
-            for i, player_data in enumerate(players):
-                if player_data is None:
-                    self._room_data.players.append(Player(
-                        bot=self.bot,
-                        room=self,
-                        id=i,
-                        team=Team.SPECTATOR,
-                        avatar=Avatar(),
-                        peer_id='',
-                        name='Unknown',
-                        is_guest=True,
-                        level=0,
-                    ))
-                    continue
-                player = Player(
-                    bot=self._bot,
+    async def __on_room_join(self, bot_id: int, host_id: int, players: List, timestamp: int, team_lock: bool,
+                           join_id: int, join_bypass: str, *args) -> None:
+        self._room_data.join_id = f'{join_id:06}'
+        self._room_data.join_bypass = join_bypass
+        self._room_data.team_lock = team_lock
+        self._total_players = len(players)
+        for i, player_data in enumerate(players):
+            if player_data is None:
+                self._room_data.players.append(Player(
+                    bot=self.bot,
                     room=self,
                     id=i,
-                    team=Team.from_number(player_data['team']),
-                    avatar=Avatar.from_json(player_data['avatar']),
-                    peer_id=player_data['peerID'],
-                    name=player_data['userName'],
-                    is_guest=player_data['guest'],
-                    ready=player_data['ready'],
-                    tabbed=player_data['tabbed'],
-                    level=player_data['level'],
-                    joined_with_bypass=None,
-                )
-                if i == bot_id:
-                    self._bot_player = player
-                else:
-                    self._bot.event_loop.create_task(self._init_player_peer(player))
-                self._room_data.players.append(player)
-            self._bot_player = self._room_data.player_by_id(bot_id)
-            self._room_data.host = self._room_data.player_by_id(host_id)
-            self._is_connected = True
-            self._connect_event.set()
-            await self._bot.dispatch('on_room_connection', self, RoomAction.JOIN)
-
-        @self.socket.on(SocketEvents.Incoming.PLAYER_JOIN)
-        async def on_player_join(player_id: int, peer_id: str, username: str, is_guest: bool, level: int,
-                                 joined_with_bypass: int, avatar: Dict) -> None:
-            connection = None
-            for data_connection in self._connections:
-                if data_connection.peer == peer_id:
-                    connection = data_connection
-                    break
+                    team=Team.SPECTATOR,
+                    avatar=Avatar(),
+                    peer_id='',
+                    name='Unknown',
+                    is_guest=True,
+                    level=0,
+                ))
+                continue
             player = Player(
                 bot=self._bot,
                 room=self,
-                data_connection=connection,
-                id=player_id,
-                team=Team.FFA if self.team_state == TeamState.FFA and not self.team_lock else Team.SPECTATOR,
-                avatar=Avatar.from_json(avatar),
-                peer_id=peer_id,
-                name=username,
-                is_guest=is_guest,
-                level=level,
-                joined_with_bypass=joined_with_bypass,
+                id=i,
+                team=Team.from_number(player_data['team']),
+                avatar=Avatar.from_json(player_data['avatar']),
+                peer_id=player_data['peerID'],
+                name=player_data['userName'],
+                is_guest=player_data['guest'],
+                ready=player_data['ready'],
+                tabbed=player_data['tabbed'],
+                level=player_data['level'],
+                joined_with_bypass=None,
             )
+            if i == bot_id:
+                self._bot_player = player
+            else:
+                self._bot.event_loop.create_task(self._init_player_peer(player))
             self._room_data.players.append(player)
-            self._total_players += 1
-            bal = [0] * self._total_players
-            for player in self.players:
-                if player is None:
-                    continue
-                bal[player.id] = player.balance
-            await self._socket.emit(
-                SocketEvents.Outgoing.INFORM_IN_LOBBY,
-                {
-                    'sid': player_id,
-                    'gs': {
-                        'map': self._map.to_json(),
-                        'gt': 2,
-                        'wl': self.rounds,
-                        'q': False,
-                        'tl': self.team_lock,
-                        'tea': self.team_state != TeamState.FFA,
-                        'ga': self.mode.engine,
-                        'mo': self.mode.mode,
-                        'bal': bal,
-                    },
-                })
-            await self._bot.dispatch('on_player_join', self, player)
+        self._bot_player = self._room_data.player_by_id(bot_id)
+        self._room_data.host = self._room_data.player_by_id(host_id)
+        self._is_connected = True
+        await self._bot.dispatch('on_room_connection', self, RoomAction.JOIN)
 
-        @self.socket.on(SocketEvents.Incoming.PLAYER_LEFT)
-        async def on_player_left(player_id: int, data: Dict) -> None:
-            player = self.get_player_by_id(player_id)
-            player.left = True
-            if player.data_connection and player.data_connection.open:
-                await player.data_connection.close()
-            await self.bot.dispatch('on_player_left', self, player)
-
-        @self.socket.on(SocketEvents.Incoming.HOST_LEFT)
-        async def on_host_left(old_host_id: int, new_host_id: int, data: Dict) -> None:
-            old_host = self.get_player_by_id(old_host_id)
-            if new_host_id == -1:
-                await self.bot.dispatch('on_host_left', self, old_host)
-                await self.disconnect()
-                return
-            new_host = self.get_player_by_id(new_host_id)
-            old_host.left = True
-            if old_host.data_connection and old_host.data_connection.open:
-                await old_host.data_connection.close()
-            self._room_data.host = new_host
-            await self.bot.dispatch('on_host_left', self, old_host)
-
-        @self.socket.on(SocketEvents.Incoming.PLAYER_INPUT)
-        async def on_move(player_id: int, data: Dict) -> None:
-            player = self.get_player_by_id(player_id)
+    async def __on_player_join(self, player_id: int, peer_id: str, username: str, is_guest: bool, level: int,
+                               joined_with_bypass: int, avatar: Dict) -> None:
+        connection = None
+        for data_connection in self._connections:
+            if data_connection.peer == peer_id:
+                connection = data_connection
+                break
+        player = Player(
+            bot=self._bot,
+            room=self,
+            data_connection=connection,
+            id=player_id,
+            team=Team.FFA if self.team_state == TeamState.FFA and not self.team_lock else Team.SPECTATOR,
+            avatar=Avatar.from_json(avatar),
+            peer_id=peer_id,
+            name=username,
+            is_guest=is_guest,
+            level=level,
+            joined_with_bypass=joined_with_bypass,
+        )
+        self._room_data.players.append(player)
+        self._total_players += 1
+        bal = [0] * self._total_players
+        for player in self.players:
             if player is None:
-                return
-            if player.moves.get(data['c']) is not None:
-                move = player.moves[data['c']]
-                move.by_socket = True
-                if move.reverted:
-                    move.unreverted = True
-                    asyncio.create_task(self.bot.dispatch('on_player_move', self, player, copy.deepcopy(move)))
-                elif move.peer_ignored:
-                    asyncio.create_task(self.bot.dispatch('on_player_move', self, player, copy.deepcopy(move)))
-            else:
-                move = PlayerMove()
-                move.time = time.time()
-                move.frame = data['f']
-                move.inputs.flags = data['i']
-                move.sequence = data['c']
-                move.by_peer = False
-                move.peer_ignored = False
-                move.by_socket = True
-                move.reverted = False
-                move.unreverted = False
-                player.moves[move.sequence] = move
+                continue
+            bal[player.id] = player.balance
+        await self._socket.emit(
+            SocketEvents.Outgoing.INFORM_IN_LOBBY,
+            {
+                'sid': player_id,
+                'gs': {
+                    'map': self._map.to_json(),
+                    'gt': 2,
+                    'wl': self.rounds,
+                    'q': False,
+                    'tl': self.team_lock,
+                    'tea': self.team_state != TeamState.FFA,
+                    'ga': self.mode.engine,
+                    'mo': self.mode.mode,
+                    'bal': bal,
+                },
+            })
+        await self._bot.dispatch('on_player_join', self, player)
+
+    async def __on_player_left(self, player_id: int, data: Dict) -> None:
+        player = self.get_player_by_id(player_id)
+        player.left = True
+        if player.data_connection and player.data_connection.open:
+            await player.data_connection.close()
+        await self.bot.dispatch('on_player_left', self, player)
+
+    async def __on_host_left(self, old_host_id: int, new_host_id: int, data: Dict) -> None:
+        old_host = self.get_player_by_id(old_host_id)
+        if new_host_id == -1:
+            await self.bot.dispatch('on_host_left', self, old_host)
+            await self.disconnect()
+            return
+        new_host = self.get_player_by_id(new_host_id)
+        old_host.left = True
+        if old_host.data_connection and old_host.data_connection.open:
+            await old_host.data_connection.close()
+        self._room_data.host = new_host
+        await self.bot.dispatch('on_host_left', self, old_host)
+
+    async def __on_move(self, player_id: int, data: Dict) -> None:
+        player = self.get_player_by_id(player_id)
+        if player is None:
+            return
+        if player.moves.get(data['c']) is not None:
+            move = player.moves[data['c']]
+            move.by_socket = True
+            if move.reverted:
+                move.unreverted = True
                 asyncio.create_task(self.bot.dispatch('on_player_move', self, player, copy.deepcopy(move)))
+            elif move.peer_ignored:
+                asyncio.create_task(self.bot.dispatch('on_player_move', self, player, copy.deepcopy(move)))
+        else:
+            move = PlayerMove()
+            move.time = time.time()
+            move.frame = data['f']
+            move.inputs.flags = data['i']
+            move.sequence = data['c']
+            move.by_peer = False
+            move.peer_ignored = False
+            move.by_socket = True
+            move.reverted = False
+            move.unreverted = False
+            player.moves[move.sequence] = move
+            asyncio.create_task(self.bot.dispatch('on_player_move', self, player, copy.deepcopy(move)))
 
-        @self.socket.on(SocketEvents.Incoming.READY_CHANGE)
-        async def on_ready_change(player_id: int, state: bool) -> None:
-            player = self.get_player_by_id(player_id)
-            player.ready = state
-            await self.bot.dispatch('on_ready_change', self, player)
+    async def __on_ready_change(self, player_id: int, state: bool) -> None:
+        player = self.get_player_by_id(player_id)
+        player.ready = state
+        await self.bot.dispatch('on_ready_change', self, player)
 
-        @self.socket.on(SocketEvents.Incoming.READY_RESET)
-        async def on_ready_reset() -> None:
-            for player in self.players:
-                if player is None:
-                    continue
-                player.ready = False
-            await self.bot.dispatch('on_ready_reset', self)
+    async def __on_ready_reset(self, ) -> None:
+        for player in self.players:
+            if player is None:
+                continue
+            player.ready = False
+        await self.bot.dispatch('on_ready_reset', self)
 
-        @self.socket.on(SocketEvents.Incoming.PLAYER_MUTED)
-        async def on_player_mute(player_id: int, data: dict) -> None:
-            player = self.get_player_by_id(player_id)
-            player.muted = True
-            await self.bot.dispatch('on_player_mute', self, player)
+    async def __on_player_mute(self, player_id: int, data: dict) -> None:
+        player = self.get_player_by_id(player_id)
+        player.muted = True
+        await self.bot.dispatch('on_player_mute', self, player)
 
-        @self.socket.on(SocketEvents.Incoming.PLAYER_UNMUTED)
-        async def on_player_unmute(player_id: int, data: dict) -> None:
-            player = self.get_player_by_id(player_id)
-            player.muted = False
-            await self.bot.dispatch('on_player_unmute', self, player)
+    async def __on_player_unmute(self, player_id: int, data: dict) -> None:
+        player = self.get_player_by_id(player_id)
+        player.muted = False
+        await self.bot.dispatch('on_player_unmute', self, player)
 
-        @self.socket.on(SocketEvents.Incoming.PLAYER_NAME_CHANGE)
-        async def on_player_name_change(player_id: int, new_name: str) -> None:
-            player = self.get_player_by_id(player_id)
-            old_name = player.name
-            player.name = new_name
-            await self.bot.dispatch('on_player_name_change', self, player, old_name)
+    async def __on_player_name_change(self, player_id: int, new_name: str) -> None:
+        player = self.get_player_by_id(player_id)
+        old_name = player.name
+        player.name = new_name
+        await self.bot.dispatch('on_player_name_change', self, player, old_name)
 
-        @self.socket.on(SocketEvents.Incoming.GAME_END)
-        async def on_game_end() -> None:
-            await self.bot.dispatch('on_game_end', self)
-            for player in self.players:
-                if player is None:
-                    continue
-                player.moves.clear()
+    async def __on_game_end(self, ) -> None:
+        await self.bot.dispatch('on_game_end', self)
+        for player in self.players:
+            if player is None:
+                continue
+            player.moves.clear()
 
-        @self.socket.on(SocketEvents.Incoming.GAME_START)
-        async def on_game_start(unix_time: int, encoded_state: str, game_settings: dict) -> None:
-            self._set_game_settings(game_settings)
-            pair = StaticPair(PSON_KEYS)
-            buffer = ByteBuffer().from_base64(encoded_state, lz_encoded=True, case_encoded=True)
-            initial_state = pair.decode(buffer)
-            await self.bot.dispatch('on_game_start', self, unix_time, initial_state, game_settings)
+    async def __on_game_start(self, unix_time: int, encoded_state: str, game_settings: dict) -> None:
+        self._set_game_settings(game_settings)
+        pair = StaticPair(PSON_KEYS)
+        buffer = ByteBuffer().from_base64(encoded_state, lz_encoded=True, case_encoded=True)
+        initial_state = pair.decode(buffer)
+        await self.bot.dispatch('on_game_start', self, unix_time, initial_state, game_settings)
 
-        @self.socket.on(SocketEvents.Incoming.PLAYER_TEAM_CHANGE)
-        async def on_player_team_change(player_id: int, team: int) -> None:
-            player = self.get_player_by_id(player_id)
-            player.team = Team.from_number(team)
-            await self.bot.dispatch('on_player_team_change', self, player)
+    async def __on_player_team_change(self, player_id: int, team: int) -> None:
+        player = self.get_player_by_id(player_id)
+        player.team = Team.from_number(team)
+        await self.bot.dispatch('on_player_team_change', self, player)
 
-        @self.socket.on(SocketEvents.Incoming.TEAM_LOCK)
-        async def on_team_lock(state: bool) -> None:
-            self._room_data.team_lock = state
-            await self.bot.dispatch('on_team_lock', self)
+    async def __on_team_lock(self, state: bool) -> None:
+        self._room_data.team_lock = state
+        await self.bot.dispatch('on_team_lock', self)
 
-        @self.socket.on(SocketEvents.Incoming.MESSAGE)
-        async def on_message(player_id: int, message: str) -> None:
-            player = self.get_player_by_id(player_id)
-            await self.bot.dispatch('on_message', self, player, message)
+    async def __on_message(self, player_id: int, message: str) -> None:
+        player = self.get_player_by_id(player_id)
+        await self.bot.dispatch('on_message', self, player, message)
 
-        @self.socket.on(SocketEvents.Incoming.INFORM_IN_LOBBY)
-        async def inform_in_lobby(game_settings: dict) -> None:
-            self._set_game_settings(game_settings)
+    async def __inform_in_lobby(self, game_settings: dict) -> None:
+        self._set_game_settings(game_settings)
 
-        @self.socket.on(SocketEvents.Incoming.ON_KICK)
-        async def on_player_kick(player_id: int, is_ban: bool) -> None:
-            player = self.get_player_by_id(player_id)
-            if is_ban:
-                await self.bot.dispatch('on_ban', self, player)
+    async def __on_player_kick(self, player_id: int, is_ban: bool) -> None:
+        player = self.get_player_by_id(player_id)
+        if is_ban:
+            await self.bot.dispatch('on_ban', self, player)
+        else:
+            await self.bot.dispatch('on_kick', self, player)
+        if player.is_bot:
+            await self.disconnect()
+
+    async def __on_mode_change(self, engine: str, mode: str) -> None:
+        self._room_data.mode = Mode.from_mode_code(mode)
+        await self.bot.dispatch('on_mode_change', self)
+
+    async def __on_rounds_change(self, rounds: int) -> None:
+        self._room_data.rounds = rounds
+        await self.bot.dispatch('on_rounds_change', self)
+
+    async def __on_map_change(self, encoded_map: str) -> None:
+        self._map = BonkMap.decode_from_database(encoded_map)
+        await self.bot.dispatch('on_map_change', self)
+
+    async def __on_afk_warn(self, ) -> None:
+        await self.bot.dispatch('on_afk_warn', self)
+
+    async def __on_map_suggest_host(self, encoded_map: str, player_id: int) -> None:
+        player = self.get_player_by_id(player_id)
+        bonk_map = BonkMap.decode_from_database(encoded_map)
+        await self.bot.dispatch('on_map_suggest_host', self, player, bonk_map)
+
+    async def __on_map_suggest_client(self, name: str, author: str, player_id: int) -> None:
+        player = self.get_player_by_id(player_id)
+        await self.bot.dispatch('on_map_suggest_client', self, player, name, author)
+
+    async def __on_set_balance(self, player_id: int, balance: int) -> None:
+        player = self.get_player_by_id(player_id)
+        player.balance = balance
+        await self.bot.dispatch('on_set_balance', self, player)
+
+    async def __on_teams_toggle(self, state: bool) -> None:
+        if state and self.mode == Mode.FOOTBALL:
+            self._room_data.team_state = TeamState.DUO
+        elif state:
+            self._room_data.team_state = TeamState.ALL
+        else:
+            self._room_data.team_state = TeamState.FFA
+        await self.bot.dispatch('on_teams_toggle', self)
+
+    async def __on_replay_record(self, player_id: int) -> None:
+        player = self.get_player_by_id(player_id)
+        await self.bot.dispatch('on_replay_record', self, player)
+
+    async def __on_host_change(self, data: dict) -> None:
+        old_host = self.get_player_by_id(data['oldHost'])
+        new_host = self.get_player_by_id(data['newHost'])
+        self._room_data.host = new_host
+        await self.bot.dispatch('on_host_change', self, old_host)
+
+    async def __on_friend_request(self, player_id: int) -> None:
+        player = self.get_player_by_id(player_id)
+        await self.bot.dispatch('on_friend_request', self, player)
+
+    async def __on_countdown(self, number: int) -> None:
+        await self.bot.dispatch('on_countdown', self, number)
+
+    async def __on_countdown_abort(self, ) -> None:
+        await self.bot.dispatch('on_countdown_abort', self)
+
+    async def __on_error(self, error: str) -> None:
+        if error != RATE_LIMIT_PONG:
+            await self.bot.dispatch('on_error', self.bot, ApiError(ErrorType.from_string(error)))
+
+        if error in CRITICAL_API_ERRORS:
+            await self.disconnect()
+
+    async def __on_level_up(self, data: dict) -> None:
+        player = self.get_player_by_id(data['sid'])
+        player.level = data['lv']
+        await self.bot.dispatch('on_level_up', self, player)
+
+    async def __on_xp_gain(self, data: dict) -> None:
+        new_xp = data['newXP']
+        self._bot.update_xp(new_xp)
+        if 'newToken' in data:
+            self._bot.update_token(data['newToken'])
+
+        await self._bot.dispatch('on_xp_gain', self, new_xp)
+
+    async def __on_initial_state(self, data: dict) -> None:
+        encoded_state = data['state']
+        state_id = data['stateID']
+        game_settings = data['gs']
+        random = data['random']
+        inputs = data['inputs']
+        frame = data['fc']
+        self._set_game_settings(game_settings)
+        for input_data in inputs:
+            player = self.get_player_by_id(input_data['p'])
+            inputs = Inputs()
+            inputs.flags = input_data['i']
+            player.prev_inputs.append((input_data['f'], inputs))
+        pair = StaticPair(PSON_KEYS)
+        buffer = ByteBuffer().from_base64(encoded_state, case_encoded=True, lz_encoded=True)
+        initial_state = pair.decode(buffer)
+        await self._bot.dispatch('on_initial_state', self, frame, random, initial_state, state_id)
+
+    async def __on_room_id_obtain(self, join_id: int, join_bypass: str) -> None:
+        self._room_data.join_id = f'{join_id:06}'
+        self._room_data.join_bypass = join_bypass
+        self._is_connected = True
+        await self._bot.dispatch('on_room_id_obtain', self)
+
+    async def __on_player_tabbed(self, player_id: int, state: bool) -> None:
+        print(player_id)
+        player = self.get_player_by_id(player_id)
+        if player is None:
+            return
+        player.tabbed = state
+        await self._bot.dispatch('on_player_tabbed', self, player)
+
+    async def __on_room_name_change(self, new_room_name: str) -> None:
+        self._room_data.name = new_room_name
+        await self._bot.dispatch('on_room_name_change', self)
+
+    async def __on_room_pass_change(self, state: bool) -> None:
+        if not self.bot_player.is_host:
+            if state:
+                self._room_data.password = ''
             else:
-                await self.bot.dispatch('on_kick', self, player)
-            if player.is_bot:
-                await self.disconnect()
+                self._room_data.password = None
+        await self._bot.dispatch('on_room_pass_change', self)
+    # endregion
 
-        @self.socket.on(SocketEvents.Incoming.MODE_CHANGE)
-        async def on_mode_change(engine: str, mode: str) -> None:
-            self._room_data.mode = Mode.from_mode_code(mode)
-            await self.bot.dispatch('on_mode_change', self)
+    # region Sugar
+    def _bind_sugar(self):
+        self._connect_event = asyncio.Event()
+        self._any_player = asyncio.Future()
+        self._bot.on('on_room_id_obtain', self._sugar_on_room_id_obtain)
+        self._bot.on('on_player_join', self._sugar_on_player_join)
 
-        @self.socket.on(SocketEvents.Incoming.ROUNDS_CHANGE)
-        async def on_rounds_change(rounds: int) -> None:
-            self._room_data.rounds = rounds
-            await self.bot.dispatch('on_rounds_change', self)
+    def _unbind_sugar(self):
+        self._bot.off('on_room_id_obtain', self._sugar_on_room_id_obtain)
+        self._bot.off('on_player_join', self._sugar_on_player_join)
+        self._connect_event = None
+        self._any_player = None
+    
+    async def wait_for_connection(self):
+        await self._connect_event.wait()
 
-        @self.socket.on(SocketEvents.Incoming.MAP_CHANGE)
-        async def on_map_change(encoded_map: str) -> None:
-            self._map = BonkMap.decode_from_database(encoded_map)
-            await self.bot.dispatch('on_map_change', self)
+    async def any_player(self) -> 'Player':
+        return await self._any_player
+    
+    async def _sugar_on_room_id_obtain(self, room: 'Room'):
+        if room != self:
+            return
+        self._connect_event.set()
 
-        @self.socket.on(SocketEvents.Incoming.AFK_WARN)
-        async def on_afk_warn() -> None:
-            await self.bot.dispatch('on_afk_warn', self)
-
-        @self.socket.on(SocketEvents.Incoming.MAP_SUGGEST_HOST)
-        async def on_map_suggest_host(encoded_map: str, player_id: int) -> None:
-            player = self.get_player_by_id(player_id)
-            bonk_map = BonkMap.decode_from_database(encoded_map)
-            await self.bot.dispatch('on_map_suggest_host', self, player, bonk_map)
-
-        @self.socket.on(SocketEvents.Incoming.MAP_SUGGEST_CLIENT)
-        async def on_map_suggest_client(name: str, author: str, player_id: int) -> None:
-            player = self.get_player_by_id(player_id)
-            await self.bot.dispatch('on_map_suggest_client', self, player, name, author)
-
-        @self.socket.on(SocketEvents.Incoming.SET_BALANCE)
-        async def on_set_balance(player_id: int, balance: int) -> None:
-            player = self.get_player_by_id(player_id)
-            player.balance = balance
-            await self.bot.dispatch('on_set_balance', self, player)
-
-        @self.socket.on(SocketEvents.Incoming.TEAMS_TOGGLE)
-        async def on_teams_toggle(state: bool) -> None:
-            if state and self.mode == Mode.FOOTBALL:
-                self._room_data.team_state = TeamState.DUO
-            elif state:
-                self._room_data.team_state = TeamState.ALL
-            else:
-                self._room_data.team_state = TeamState.FFA
-            await self.bot.dispatch('on_teams_toggle', self)
-
-        @self.socket.on(SocketEvents.Incoming.REPLAY_RECORD)
-        async def on_replay_record(player_id: int) -> None:
-            player = self.get_player_by_id(player_id)
-            await self.bot.dispatch('on_replay_record', self, player)
-
-        @self.socket.on(SocketEvents.Incoming.HOST_CHANGE)
-        async def on_host_change(data: dict) -> None:
-            old_host = self.get_player_by_id(data['oldHost'])
-            new_host = self.get_player_by_id(data['newHost'])
-            self._room_data.host = new_host
-            await self.bot.dispatch('on_host_change', self, old_host)
-
-        @self.socket.on(SocketEvents.Incoming.FRIEND_REQUEST)
-        async def on_friend_request(player_id: int) -> None:
-            player = self.get_player_by_id(player_id)
-            await self.bot.dispatch('on_friend_request', self, player)
-
-        @self.socket.on(SocketEvents.Incoming.COUNTDOWN)
-        async def on_countdown(number: int) -> None:
-            await self.bot.dispatch('on_countdown', self, number)
-
-        @self.socket.on(SocketEvents.Incoming.COUNTDOWN_ABORT)
-        async def on_countdown_abort() -> None:
-            await self.bot.dispatch('on_countdown_abort', self)
-
-        @self.socket.on(SocketEvents.Incoming.STATUS)
-        async def on_error(error: str) -> None:
-            if error != RATE_LIMIT_PONG:
-                await self.bot.dispatch('on_error', self.bot, ApiError(ErrorType.from_string(error)))
-
-            if error in CRITICAL_API_ERRORS:
-                await self.disconnect()
-
-        @self.socket.on(SocketEvents.Incoming.LEVEL_UP)
-        async def on_level_up(data: dict) -> None:
-            player = self.get_player_by_id(data['sid'])
-            player.level = data['lv']
-            await self.bot.dispatch('on_level_up', self, player)
-
-        @self.socket.on(SocketEvents.Incoming.XP_GAIN)
-        async def on_xp_gain(data: dict) -> None:
-            new_xp = data['newXP']
-            self._bot.update_xp(new_xp)
-            if 'newToken' in data:
-                self._bot.update_token(data['newToken'])
-
-            await self._bot.dispatch('on_xp_gain', self, new_xp)
-
-        @self.socket.on(SocketEvents.Incoming.INITIAL_STATE)
-        async def on_initial_state(data: dict) -> None:
-            encoded_state = data['state']
-            state_id = data['stateID']
-            game_settings = data['gs']
-            random = data['random']
-            inputs = data['inputs']
-            frame = data['fc']
-            self._set_game_settings(game_settings)
-            for input_data in inputs:
-                player = self.get_player_by_id(input_data['p'])
-                inputs = Inputs()
-                inputs.flags = input_data['i']
-                player.prev_inputs.append((input_data['f'], inputs))
-            pair = StaticPair(PSON_KEYS)
-            buffer = ByteBuffer().from_base64(encoded_state, case_encoded=True, lz_encoded=True)
-            initial_state = pair.decode(buffer)
-            await self._bot.dispatch('on_initial_state', self, frame, random, initial_state, state_id)
-
-        @self.socket.on(SocketEvents.Incoming.ROOM_ID_OBTAIN)
-        async def on_room_id_obtain(join_id: int, join_bypass: str) -> None:
-            self._room_data.join_id = f'{join_id:06}'
-            self._room_data.join_bypass = join_bypass
-            self._is_connected = True
-            self._connect_event.set()
-            await self._bot.dispatch('on_room_id_obtain', self)
-
-        @self.socket.on(SocketEvents.Incoming.PLAYER_TABBED)
-        async def on_player_tabbed(player_id: int, state: bool) -> None:
-            player = self.get_player_by_id(player_id)
-            player.tabbed = state
-            await self._bot.dispatch('on_player_tabbed', self, player)
-
-        @self.socket.on(SocketEvents.Incoming.ROOM_NAME_CHANGE)
-        async def on_room_name_change(new_room_name: str) -> None:
-            self._room_data.name = new_room_name
-            await self._bot.dispatch('on_room_name_change', self)
-
-        @self.socket.on(SocketEvents.Incoming.ROOM_PASS_CHANGE)
-        async def on_room_pass_change(state: bool) -> None:
-            if not self.bot_player.is_host:
-                if state:
-                    self._room_data.password = ''
-                else:
-                    self._room_data.password = None
-            await self._bot.dispatch('on_room_pass_change', self)
-
+    async def _sugar_on_player_join(self, room: 'Room', player: 'Player'):
+        if room != self:
+            return
+        self._any_player.set_result(player)
+    # endregion
+    
     async def send_message(self, message: str) -> None:
         await self.socket.emit(SocketEvents.Outgoing.SEND_MESSAGE, {'message': message})
 

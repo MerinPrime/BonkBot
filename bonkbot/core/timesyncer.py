@@ -27,7 +27,7 @@ class TimeSyncer:
         self.socket.on(SocketEvents.Incoming.TIMESYNC, self.on_result)
 
     async def stop(self) -> None:
-        if self._task:
+        if self._task and not self._task.done():
             self._task.cancel()
             try:
                 await self._task

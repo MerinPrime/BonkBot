@@ -14,31 +14,33 @@ if TYPE_CHECKING:
 
 
 class BotEventHandler:
-    _event_emitter: EventEmitter
-    _events: dict
+    __event_emitter: EventEmitter
+    __events: dict
 
     def __init__(self) -> None:
-        self._event_emitter = EventEmitter()
-        self._events = {}
+        self.__event_emitter = EventEmitter()
+        self.__events = {}
 
         for name, method in inspect.getmembers(BotEventHandler, predicate=inspect.isfunction):
             if name.startswith('on_'):
-                self._events[name] = method
+                self.__events[name] = method
 
         for name, method in inspect.getmembers(self, predicate=inspect.ismethod):
-            if name.startswith('on_') and name in self._events:
+            if name.startswith('on_') and name in self.__events:
                 self.event(method)
 
     def event(self, function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
+        self.on(function.__name__, function)
+        return function
+
+    def on(self, event_name: str, function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
         if not asyncio.iscoroutinefunction(function):
             raise TypeError(f"Handler '{function.__name__}' must be async (use 'async def')")
-
-        event_name = function.__name__
-
-        if event_name not in self._events:
+        
+        if event_name not in self.__events:
             raise AttributeError(f'No event named {event_name} found')
 
-        func_sig = inspect.signature(self._events[event_name])
+        func_sig = inspect.signature(self.__events[event_name])
         handler_sig = inspect.signature(function)
 
         handler_params = len(list(handler_sig.parameters.values()))
@@ -49,11 +51,17 @@ class BotEventHandler:
                 f'Handler expected to get {handler_params} arguments, but got {func_params}',
             )
 
-        self._event_emitter.off(event_name, self._events[event_name])
-        self._event_emitter.on(event_name, function)
+        self.__event_emitter.off(event_name, self.__events[event_name])
+        self.__event_emitter.on(event_name, function)
 
+    def unbind(self, function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
+        self.__event_emitter.off(function.__name__, function)
+
+    def off(self, event_name: str, function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
+        self.__event_emitter.off(event_name, function)
+    
     async def dispatch(self, event: str, *args, **kwargs) -> None:
-        await self._event_emitter.emit_async(event, *args, **kwargs)
+        await self.__event_emitter.emit_async(event, *args, **kwargs)
 
     async def on_ready(self, bot: 'BonkBot') -> None:
         pass
