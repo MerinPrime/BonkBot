@@ -45,19 +45,17 @@ class BonkBot(BotEventHandler):
         self._data = None
         self._is_logged = False
         self._event_loop = event_loop if event_loop is not None else asyncio.get_event_loop()
-        self._aiohttp_session = aiohttp.ClientSession(loop=self.event_loop)
+        self._aiohttp_session = None
         self._rooms = []
         self.server = Server.WARSAW
 
     async def logout(self) -> None:
-        await self.dispatch('on_logout', self)
         self._is_logged = False
-        if not self.aiohttp_session.closed:
-            await self.aiohttp_session.close()
-        for room in self._rooms:
+        await self.dispatch('on_logout', self)
+        for room in list(self._rooms):
             await room.disconnect()
+        await self._aiohttp_session.close()
         self._data = None
-        self._event_loop = None
         self._aiohttp_session = None
         self._rooms = []
         self.server = Server.WARSAW
@@ -151,6 +149,7 @@ class BonkBot(BotEventHandler):
     async def _start(self, data: BotData) -> None:
         self._data = data
         self._is_logged = True
+        self._aiohttp_session = aiohttp.ClientSession(loop=self.event_loop)
         await self.dispatch('on_ready', self)
 
     async def login_as_guest(self, name: str) -> None:

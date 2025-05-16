@@ -35,15 +35,13 @@ class TimeSyncer:
                 pass
 
     async def _sync_task(self) -> None:
-        try:
-            await self.sync(repeat=3, delay=0.1)
-            while True:
-                await asyncio.sleep(self.interval)
-                await self.sync()
-        except asyncio.CancelledError:
-            pass
+        await self.sync(repeat=3, delay=0.1)
+        while True:
+            await asyncio.sleep(self.interval)
+            await self.sync()
 
     async def start(self) -> None:
+        await self.stop()
         self._task = asyncio.create_task(self._sync_task())
 
     def now(self) -> float:
