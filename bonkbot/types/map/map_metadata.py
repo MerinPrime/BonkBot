@@ -7,8 +7,8 @@ from ..mode import Mode
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMapMetadata.ts
 @dataclass
 class MapMetadata:
-    name: str = 'noauthor'
-    author: str = 'noname'
+    name: str = 'noname'
+    author: str = 'noauthor'
     database_version: int = 2
     database_id: int = -1
     original_author: str = ''
