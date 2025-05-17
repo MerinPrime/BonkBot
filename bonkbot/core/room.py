@@ -243,8 +243,6 @@ class Room:
         await self.wait_for_connection()
         while True:
             for player in self.players:
-                if player is None:
-                    continue
                 num_player_moves = len(player.moves)
                 start_index = num_player_moves - 1
                 end_index = max(0, num_player_moves - 1000)
@@ -390,8 +388,6 @@ class Room:
         async def on_connection(connection: DataConnection) -> None:
             self._connections.append(connection)
             for player in self.players:
-                if player is None:
-                    continue
                 if player.peer_id == connection.peer:
                     player.data_connection = connection
                     break
@@ -409,8 +405,6 @@ class Room:
             nonlocal player
             if player is None:
                 for iplayer in self.players:
-                    if iplayer is None:
-                        continue
                     if iplayer.peer_id == connection.peer:
                         player = iplayer
                         break
@@ -419,8 +413,6 @@ class Room:
         @connection.on('data')
         def on_data(data: Dict) -> None:
             player = get_player()
-            if player is None:
-                return
             if player.moves.get(data['c']) is not None:
                 player.moves[data['c']].by_peer = True
             elif player.peer_ban_until > time.time():
@@ -453,8 +445,6 @@ class Room:
         self._room_data.team_lock = game_settings['tl']
         self._room_data.mode = Mode.from_mode_code(game_settings['mo'])
         for player in self.players:
-            if player is None:
-                continue
             if player.id >= len(game_settings['bal']):
                 player.balance = 0
                 continue
@@ -540,6 +530,7 @@ class Room:
                     name='Unknown',
                     is_guest=True,
                     level=0,
+                    is_left=True
                 ))
                 continue
             player = Player(
@@ -590,8 +581,6 @@ class Room:
         self._total_players += 1
         bal = [0] * self._total_players
         for player in self.players:
-            if player is None:
-                continue
             bal[player.id] = player.balance
         await self._socket.emit(
             SocketEvents.Outgoing.INFORM_IN_LOBBY,
@@ -613,19 +602,19 @@ class Room:
 
     async def __on_player_left(self, player_id: int, data: Dict) -> None:
         player = self.get_player_by_id(player_id)
-        player.left = True
+        player.is_left = True
         if player.data_connection and player.data_connection.open:
             await player.data_connection.close()
         await self.bot.dispatch('on_player_left', self, player)
 
     async def __on_host_left(self, old_host_id: int, new_host_id: int, data: Dict) -> None:
         old_host = self.get_player_by_id(old_host_id)
+        old_host.is_left = True
         if new_host_id == -1:
             await self.bot.dispatch('on_host_left', self, old_host)
             await self.disconnect()
             return
         new_host = self.get_player_by_id(new_host_id)
-        old_host.left = True
         if old_host.data_connection and old_host.data_connection.open:
             await old_host.data_connection.close()
         self._room_data.host = new_host
@@ -633,8 +622,6 @@ class Room:
 
     async def __on_move(self, player_id: int, data: Dict) -> None:
         player = self.get_player_by_id(player_id)
-        if player is None:
-            return
         if player.moves.get(data['c']) is not None:
             move = player.moves[data['c']]
             move.by_socket = True
@@ -664,8 +651,6 @@ class Room:
 
     async def __on_ready_reset(self) -> None:
         for player in self.players:
-            if player is None:
-                continue
             player.ready = False
         await self.bot.dispatch('on_ready_reset', self)
 
@@ -688,8 +673,6 @@ class Room:
     async def __on_game_end(self) -> None:
         await self.bot.dispatch('on_game_end', self)
         for player in self.players:
-            if player is None:
-                continue
             player.moves.clear()
             player.prev_inputs.clear()
 
@@ -828,10 +811,7 @@ class Room:
         await self._bot.dispatch('on_room_id_obtain', self)
 
     async def __on_player_tabbed(self, player_id: int, state: bool) -> None:
-        print(player_id)
         player = self.get_player_by_id(player_id)
-        if player is None:
-            return
         player.tabbed = state
         await self._bot.dispatch('on_player_tabbed', self, player)
 
@@ -890,8 +870,6 @@ class Room:
             await self.bot.dispatch('on_error', ApiError(ErrorType.NOT_HOST))
             return
         for player in self.players:
-            if player is None:
-                continue
             player.ready = False
         await self.socket.emit(SocketEvents.Outgoing.RESET_READY)
 

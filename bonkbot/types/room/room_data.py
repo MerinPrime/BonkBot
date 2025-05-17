@@ -23,8 +23,6 @@ class RoomData:
 
     def player_by_id(self, player_id: int) -> 'Player':
         for player in self.players:
-            if player is None:
-                continue
             if player.id == player_id:
                 return player
         return None

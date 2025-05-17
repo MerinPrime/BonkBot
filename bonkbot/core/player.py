@@ -39,6 +39,7 @@ class Player:
     tabbed: bool = True
     muted: bool = False
     is_friend: bool = False
+    is_left: bool = False
 
     @property
     def is_bot(self) -> bool:
