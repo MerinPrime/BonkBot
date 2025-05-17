@@ -152,10 +152,10 @@ class BonkBot(BotEventHandler):
         await self.dispatch('on_ready', self)
 
     # region Sugar
-    async def wait_for_connections(self):
+    async def wait_for_connections(self) -> None:
         await asyncio.gather(*[room.wait_for_connection() for room in self._rooms])
     # endregion
-    
+
     async def login_as_guest(self, name: str) -> None:
         if self._is_logged:
             raise ValueError('BonkBot already logged in')
@@ -331,5 +331,5 @@ class BonkBot(BotEventHandler):
             data = await resp.json()
 
         return [BonkMap.decode_from_database(bonk_map['leveldata']) for bonk_map in data['maps']]
-    
+
     # TODO: Get favs, b2, b1, map delete

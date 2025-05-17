@@ -52,7 +52,7 @@ class BotData:
             for friend_name in json_data['legacyFriends'].split('#'):
                 data.legacy_friends.append(Friend(name=friend_name, dbid=None, room_id=None))
 
-        if 'controls' in json_data and json_data['controls'] != False:
+        if json_data.get('controls'):
             data.settings = Settings.from_buffer(ByteBuffer().from_base64(json_data['controls'], uri_encoded=False))
 
         return data

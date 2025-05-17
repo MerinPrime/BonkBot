@@ -36,7 +36,7 @@ class BotEventHandler:
     def on(self, event_name: str, function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
         if not asyncio.iscoroutinefunction(function):
             raise TypeError(f"Handler '{function.__name__}' must be async (use 'async def')")
-        
+
         if event_name not in self.__events:
             raise AttributeError(f'No event named {event_name} found')
 
@@ -59,7 +59,7 @@ class BotEventHandler:
 
     def off(self, event_name: str, function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
         self.__event_emitter.off(event_name, function)
-    
+
     async def dispatch(self, event: str, *args, **kwargs) -> None:
         await self.__event_emitter.emit_async(event, *args, **kwargs)
 

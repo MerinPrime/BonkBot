@@ -4,13 +4,12 @@ import dataclasses
 import random
 import string
 import time
-from typing import TYPE_CHECKING, Dict, List, Optional, Union, Callable, Coroutine, Any
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import socketio
 from peerjs_py import Peer, PeerOptions
 from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
 from peerjs_py.dataconnection.DataConnection import DataConnection
-from pycparser.c_ast import Continue
 
 from ..core.player import Player
 from ..pson import ByteBuffer, StaticPair
@@ -466,7 +465,7 @@ class Room:
             self._room_data.team_state = TeamState.DUO
         else:
             self._room_data.team_state = TeamState.ALL
-    
+
     def __bind_listeners(self) -> None:
         self.socket.on('disconnect', self.disconnect)
         self.socket.on(SocketEvents.Incoming.PING_DATA, self.__on_ping_data)
@@ -509,7 +508,7 @@ class Room:
         self.socket.on(SocketEvents.Incoming.PLAYER_TABBED, self.__on_player_tabbed)
         self.socket.on(SocketEvents.Incoming.ROOM_NAME_CHANGE, self.__on_room_name_change)
         self.socket.on(SocketEvents.Incoming.ROOM_PASS_CHANGE, self.__on_room_pass_change)
-    
+
     # region Events
     async def __on_ping_data(self, pings: Dict, player_id: int) -> None:
         await self.socket.emit(SocketEvents.Outgoing.PING_DATA, {'id': player_id})
@@ -663,7 +662,7 @@ class Room:
         player.ready = state
         await self.bot.dispatch('on_ready_change', self, player)
 
-    async def __on_ready_reset(self, ) -> None:
+    async def __on_ready_reset(self) -> None:
         for player in self.players:
             if player is None:
                 continue
@@ -686,12 +685,13 @@ class Room:
         player.name = new_name
         await self.bot.dispatch('on_player_name_change', self, player, old_name)
 
-    async def __on_game_end(self, ) -> None:
+    async def __on_game_end(self) -> None:
         await self.bot.dispatch('on_game_end', self)
         for player in self.players:
             if player is None:
                 continue
             player.moves.clear()
+            player.prev_inputs.clear()
 
     async def __on_game_start(self, unix_time: int, encoded_state: str, game_settings: dict) -> None:
         self._set_game_settings(game_settings)
@@ -737,7 +737,7 @@ class Room:
         self._map = BonkMap.decode_from_database(encoded_map)
         await self.bot.dispatch('on_map_change', self)
 
-    async def __on_afk_warn(self, ) -> None:
+    async def __on_afk_warn(self) -> None:
         await self.bot.dispatch('on_afk_warn', self)
 
     async def __on_map_suggest_host(self, encoded_map: str, player_id: int) -> None:
@@ -780,7 +780,7 @@ class Room:
     async def __on_countdown(self, number: int) -> None:
         await self.bot.dispatch('on_countdown', self, number)
 
-    async def __on_countdown_abort(self, ) -> None:
+    async def __on_countdown_abort(self) -> None:
         await self.bot.dispatch('on_countdown_abort', self)
 
     async def __on_error(self, error: str) -> None:
@@ -849,35 +849,35 @@ class Room:
     # endregion
 
     # region Sugar
-    def _bind_sugar(self):
+    def _bind_sugar(self) -> None:
         self._connect_event = asyncio.Event()
         self._any_player = asyncio.Future()
         self._bot.on('on_room_id_obtain', self._sugar_on_room_id_obtain)
         self._bot.on('on_player_join', self._sugar_on_player_join)
 
-    def _unbind_sugar(self):
+    def _unbind_sugar(self) -> None:
         self._bot.off('on_room_id_obtain', self._sugar_on_room_id_obtain)
         self._bot.off('on_player_join', self._sugar_on_player_join)
         self._connect_event = None
         self._any_player = None
-    
-    async def wait_for_connection(self):
+
+    async def wait_for_connection(self) -> None:
         await self._connect_event.wait()
 
     async def any_player(self) -> 'Player':
         return await self._any_player
-    
-    async def _sugar_on_room_id_obtain(self, room: 'Room'):
+
+    async def _sugar_on_room_id_obtain(self, room: 'Room') -> None:
         if room != self:
             return
         self._connect_event.set()
 
-    async def _sugar_on_player_join(self, room: 'Room', player: 'Player'):
+    async def _sugar_on_player_join(self, room: 'Room', player: 'Player') -> None:
         if room != self:
             return
         self._any_player.set_result(player)
     # endregion
-    
+
     async def send_message(self, message: str) -> None:
         await self.socket.emit(SocketEvents.Outgoing.SEND_MESSAGE, {'message': message})
 
