@@ -253,15 +253,15 @@ class Room:
                     if move is None:
                         continue
                     time_since_move = time.time() - move.time
-                    if time_since_move > 2000:
+                    if time_since_move > 2:
                         break
-                    if time_since_move > 800 and move.by_peer and not move.by_socket and not move.peer_ignored and not move.reverted:
+                    if time_since_move > 0.8 and move.by_peer and not move.by_socket and not move.peer_ignored and not move.reverted:
                         move.reverted = True
                         player.peer_reverts += 1
                         if player.peer_reverts >= 4:
                             player.peer_reverts = 0
                             player.peer_ban_level += 1
-                            player.peer_ban_until = time.time() + 15000 * (2 ** player.peer_ban_level)
+                            player.peer_ban_until = time.time() + 15 * (2 ** player.peer_ban_level)
                         asyncio.create_task(self.bot.dispatch('on_move_revert', self, player, move))
             await asyncio.sleep(0.1)
 
