@@ -470,7 +470,7 @@ class Room:
         self.socket.on('disconnect', self.disconnect)
         self.socket.on(SocketEvents.Incoming.PING_DATA, self.__on_ping_data)
         self.socket.on(SocketEvents.Incoming.ROOM_CREATE, self.__on_room_create)
-        self.socket.on(SocketEvents.Incoming.ROOM_JOIN, self.__on_room_create)
+        self.socket.on(SocketEvents.Incoming.ROOM_JOIN, self.__on_room_join)
         self.socket.on(SocketEvents.Incoming.PLAYER_JOIN, self.__on_player_join)
         self.socket.on(SocketEvents.Incoming.PLAYER_LEFT, self.__on_player_left)
         self.socket.on(SocketEvents.Incoming.HOST_LEFT, self.__on_host_left)
