@@ -121,15 +121,15 @@ class BonkBot(BotEventHandler):
         return self.data.avatar
 
     @active_avatar.setter
-    def active_avatar(self, new_avatar: Avatar) -> None:
+    def active_avatar(self, new_avatar: 'Avatar') -> None:
         self.data.avatar = new_avatar
 
-    def get_avatar(self, index: int) -> Avatar:
+    def get_avatar(self, index: int) -> 'Avatar':
         return self.data.avatars[index]
 
-    def set_avatar(self, index: int) -> Avatar:
-        return self.data.avatars[index]
-
+    def set_avatar(self, index: int, avatar: 'Avatar') -> None:
+        self.data.avatars[index] = avatar
+    
     @property
     def friends(self) -> List[Friend]:
         return self.data.friends
