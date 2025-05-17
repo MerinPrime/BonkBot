@@ -79,7 +79,7 @@ class SocketEvents:
         GIVE_HOST = 34
         FRIEND_REQUEST = 35
         XP_GAIN = 38
-        TABBED = 44
+        SET_TABBED = 44
         CHANGE_ROOM_NAME = 52
         CHANGE_ROOM_PASS = 53
 

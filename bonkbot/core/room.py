@@ -941,7 +941,7 @@ class Room:
 
     async def set_tabbed(self, state: bool) -> None:
         self.bot_player.tabbed = state
-        await self.socket.emit(SocketEvents.Outgoing.CHANGE_ROOM_PASS, {'out': state})
+        await self.socket.emit(SocketEvents.Outgoing.SET_TABBED, {'out': state})
 
     async def change_password(self, new_password: str) -> None:
         if not self.is_host:
