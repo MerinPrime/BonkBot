@@ -1,7 +1,6 @@
 import asyncio
 
 from bonkbot.core.bot import BonkApi
-from bonkbot.core.bot.bot import BonkBot
 from bonkbot.types import Mode
 
 '''
