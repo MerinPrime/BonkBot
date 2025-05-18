@@ -1,7 +1,7 @@
 import asyncio
 from typing import TYPE_CHECKING
 
-from bonkbot.core.bonkbot import BonkBot
+from bonkbot.core.bot.bot import BonkBot
 
 if TYPE_CHECKING:
     from bonkbot.core import Room

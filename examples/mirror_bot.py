@@ -1,7 +1,7 @@
 import asyncio
 from typing import TYPE_CHECKING
 
-from bonkbot.core.bonkbot import BonkBot
+from bonkbot.core.bot.bot import BonkBot
 from bonkbot.types import Inputs
 
 if TYPE_CHECKING:
@@ -31,7 +31,7 @@ class MirrorBot(BonkBot):
 
     async def on_player_join(self, room: 'Room', player: 'Player') -> None:
         if room.bot_player.is_host:
-            await asyncio.sleep(5)
+            await asyncio.sleep(2)
             await player.give_host()
 
     async def on_host_left(self, room: 'Room', player: 'Player') -> None:

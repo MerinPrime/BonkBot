@@ -1,6 +1,7 @@
 import asyncio
 
-from bonkbot.core.bonkbot import BonkBot
+from bonkbot.core.bot import BonkApi
+from bonkbot.core.bot.bot import BonkBot
 from bonkbot.types import Mode
 
 '''
@@ -8,15 +9,14 @@ This example implements a room watcher.
 The bot monitors all active rooms and logs only available VTOL rooms.
 '''
 
-bot = BonkBot()
+bonk_api = BonkApi()
 
-@bot.event
-async def on_ready(bot: 'BonkBot') -> None:
+async def main() -> None:
     print('Rooms watcher started')
 
     previous_rooms = set()
     while True:
-        current_rooms = await bot.fetch_rooms()
+        current_rooms = await bonk_api.fetch_rooms()
         current_rooms = {
             room for room in current_rooms
             if room.mode == Mode.VTOL
@@ -29,4 +29,4 @@ async def on_ready(bot: 'BonkBot') -> None:
         previous_rooms = current_rooms
         await asyncio.sleep(30)
 
-bot.event_loop.run_until_complete(bot.login_as_guest('Kalalak'))
+bonk_api.event_loop.run_until_complete(main())
