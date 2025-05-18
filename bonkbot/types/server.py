@@ -48,4 +48,4 @@ class Server(enum.Enum):
         for server in Server:
             if server.name == name:
                 return server
-        raise ValueError(f"No server with api_name '{name}' found.")
+        raise ValueError(f"No server with api name '{name}' found.")

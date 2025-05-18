@@ -11,6 +11,7 @@ from ..types.settings import Settings
 class BotData:
     name: str = ''
     token: str = ''
+    remember_token: str = ''
     id: int = 0
     is_guest: bool = True
     xp: int = 0
@@ -26,6 +27,7 @@ class BotData:
         data = BotData(
             name = json_data['username'],
             token = json_data['token'],
+            remember_token = json_data.get('remember_token'),
             id = json_data['id'],
             xp = json_data['xp'],
             active_avatar = json_data['activeAvatarNumber'],

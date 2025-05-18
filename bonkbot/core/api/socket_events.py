@@ -1,18 +1,5 @@
 import enum
 
-PROTOCOL_VERSION = 49
-MAP_VERSION = 49
-login_legacy_api = 'https://bonk2.io/scripts/login_legacy.php'
-login_auto_api = 'https://bonk2.io/scripts/login_auto.php'
-get_rooms_api = 'https://bonk2.io/scripts/getrooms.php'
-get_friends_api = 'https://bonk2.io/scripts/friends.php'
-get_server_api = 'https://bonk2.io/scripts/matchmaking_query.php'
-get_room_address_api = 'https://bonk2.io/scripts/getroomaddress.php'
-get_own_maps_api = 'https://bonk2.io/scripts/map_getown.php'
-bonk_socket_api = 'https://{}.bonk.io'
-bonk_peer_api = '{}.bonk.io'
-room_link_api = 'https://bonk.io/{}{}'
-auto_join_api = 'https://bonk2.io/scripts/autojoin.php'
 
 class SocketEvents:
     class Incoming(enum.IntEnum):
@@ -82,20 +69,3 @@ class SocketEvents:
         SET_TABBED = 44
         CHANGE_ROOM_NAME = 52
         CHANGE_ROOM_PASS = 53
-
-RATE_LIMIT_PONG = 'rate_limit_pong'
-CRITICAL_API_ERRORS = [
-    'room_not_found',
-    'room_full',
-    'banned',
-    'no_client_entry',
-    'already_in_this_room',
-    'join_rate_limited',
-    'password_wrong',
-    'invalid_params',
-    'players_xp_too_high',
-    'players_xp_too_low',
-    'guests_not_allowed',
-    'avatar_data_invalid',
-]
-PSON_KEYS = ['physics', 'shapes', 'fixtures', 'bodies', 'bro', 'joints', 'ppm', 'lights', 'spawns', 'lasers', 'capZones', 'type', 'w', 'h', 'c', 'a', 'v', 'l', 's', 'sh', 'fr', 're', 'de', 'sn', 'fc', 'fm', 'f', 'd', 'n', 'bg', 'lv', 'av', 'ld', 'ad', 'fr', 'bu', 'cf', 'rv', 'p', 'd', 'bf', 'ba', 'bb', 'aa', 'ab', 'axa', 'dr', 'em', 'mmt', 'mms', 'ms', 'ut', 'lt', 'New body', 'Box Shape', 'Circle Shape', 'Polygon Shape', 'EdgeChain Shape', 'priority', 'Light', 'Laser', 'Cap Zone', 'BG Shape', 'Background Layer', 'Rotate Joint', 'Slider Joint', 'Rod Joint', 'Gear Joint', 65535, 16777215]

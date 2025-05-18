@@ -5,7 +5,7 @@ from typing import Dict, Optional
 import socketio
 from pymitter import EventEmitter
 
-from .api import SocketEvents
+from .api.socket_events import SocketEvents
 
 
 class TimeSyncer:

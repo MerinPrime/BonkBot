@@ -5,12 +5,13 @@ from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict, List
 from pymitter import EventEmitter
 
 if TYPE_CHECKING:
+    from bonkbot.core.bot.bot import BonkBot
+
     from ..core.player import Player
     from ..core.room import Room
     from ..types.map.bonkmap import BonkMap
     from ..types.player_move import PlayerMove
     from ..types.room.room_action import RoomAction
-    from .bonkbot import BonkBot
 
 
 class BotEventHandler:
@@ -29,13 +30,15 @@ class BotEventHandler:
             if name.startswith('on_') and name in self.__events:
                 self.event(method)
 
-    def event(self, function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
-        self.on(function.__name__, function)
-        return function
+    def event(self, function: Callable[..., Coroutine[Any, Any, Any]]) -> Callable[..., Coroutine[Any, Any, Any]]:
+        return self.on(function, function)
 
-    def on(self, event_name: str, function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
+    def on(self, event: Callable[..., Coroutine[Any, Any, Any]],
+           function: Callable[..., Coroutine[Any, Any, Any]]) -> Callable[..., Coroutine[Any, Any, Any]]:
         if not asyncio.iscoroutinefunction(function):
             raise TypeError(f"Handler '{function.__name__}' must be async (use 'async def')")
+
+        event_name = event.__name__
 
         if event_name not in self.__events:
             raise AttributeError(f'No event named {event_name} found')
@@ -53,15 +56,17 @@ class BotEventHandler:
 
         self.__event_emitter.off(event_name, self.__events[event_name])
         self.__event_emitter.on(event_name, function)
+        return function
 
     def unbind(self, function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
         self.__event_emitter.off(function.__name__, function)
 
-    def off(self, event_name: str, function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
-        self.__event_emitter.off(event_name, function)
+    def off(self, event: Callable[..., Coroutine[Any, Any, Any]],
+            function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
+        self.__event_emitter.off(event.__name__, function)
 
-    async def dispatch(self, event: str, *args, **kwargs) -> None:
-        await self.__event_emitter.emit_async(event, *args, **kwargs)
+    async def dispatch(self, event: Callable[..., Coroutine[Any, Any, Any]], *args, **kwargs) -> None:
+        await self.__event_emitter.emit_async(event.__name__, *args, **kwargs)
 
     async def on_ready(self, bot: 'BonkBot') -> None:
         pass

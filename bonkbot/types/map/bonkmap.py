@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, List
 
-from ...core.api import MAP_VERSION
+from ...core.constants import MAP_VERSION
 from ...pson.bytebuffer import ByteBuffer
 from ..mode import Mode
 from .capture_zone import CaptureType, CaptureZone
@@ -38,10 +38,10 @@ class BonkMap:
     spawns: List['Spawn'] = field(default_factory=list)
     cap_zones: List['CaptureZone'] = field(default_factory=list)
     joints: List['Joint'] = field(default_factory=list)
-    
+
     # TODO: Make user-friendly
     # TODO: And maybe split to_json, from_json, decode_from_database to MapMetadata, MapProperties, MapPhysics etc.
-    
+
     def to_json(self) -> Dict:
         data = {}
         data['v'] = self.version

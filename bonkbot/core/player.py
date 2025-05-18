@@ -4,15 +4,16 @@ from typing import TYPE_CHECKING, Dict, List, Tuple, Union
 
 from ..types.errors import ApiError, ErrorType
 from ..types.team import Team
-from .api import SocketEvents
+from .api.socket_events import SocketEvents
 
 if TYPE_CHECKING:
     from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
 
+    from bonkbot.core.bot.bot import BonkBot
+
     from ..types import Inputs
     from ..types.avatar import Avatar
     from ..types.player_move import PlayerMove
-    from .bonkbot import BonkBot
     from .room import Room
 
 @dataclasses.dataclass

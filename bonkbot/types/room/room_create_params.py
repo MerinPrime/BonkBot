@@ -1,6 +1,8 @@
 from dataclasses import dataclass
 from typing import Union
 
+from bonkbot.types import Server
+
 
 @dataclass(frozen=True)
 class RoomCreateParams:
@@ -10,3 +12,4 @@ class RoomCreateParams:
     max_players: int = 6
     min_level: int = 0
     max_level: int = 999
+    server: Server = Server.WARSAW
