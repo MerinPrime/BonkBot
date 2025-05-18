@@ -5,9 +5,9 @@ from bonkbot.core.bot.bot import BonkBot
 from bonkbot.types import Inputs
 
 if TYPE_CHECKING:
-    from bonkbot.types.player_move import PlayerMove
     from bonkbot.core import Room
     from bonkbot.core.player import Player
+    from bonkbot.types.player_move import PlayerMove
 
 '''
 This example implements a MirrorBot.
