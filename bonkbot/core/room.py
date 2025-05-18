@@ -844,6 +844,8 @@ class Room:
     async def _sugar_on_player_join(self, room: 'Room', player: 'Player') -> None:
         if room != self:
             return
+        if self._any_player.done():
+            return
         self._any_player.set_result(player)
     # endregion
 
