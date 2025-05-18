@@ -547,7 +547,7 @@ class Room:
         await self._bot.dispatch(BotEventHandler.on_room_connection, self, RoomAction.JOIN)
 
     async def __on_player_join(self, player_id: int, peer_id: str, username: str, is_guest: bool, level: int,
-                               joined_with_bypass: int, avatar: Dict) -> None:
+                               joined_with_bypass: bool, avatar: Dict) -> None:
         connection = None
         for data_connection in self._connections:
             if data_connection.peer == peer_id:
