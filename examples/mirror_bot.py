@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING
 
 from bonkbot.core.bot.bot import BonkBot
 from bonkbot.types import Inputs
-from bonkbot.types.player_move import PlayerMove
 
 if TYPE_CHECKING:
+    from bonkbot.types.player_move import PlayerMove
     from bonkbot.core import Room
     from bonkbot.core.player import Player
 
