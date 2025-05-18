@@ -236,7 +236,7 @@ class Room:
                 start_index = num_player_moves - 1
                 end_index = max(0, num_player_moves - 1000)
                 for i in range(start_index, end_index, -1):
-                    move = player.moves[i]
+                    move = player.moves.get(i)
                     if move is None:
                         continue
                     time_since_move = time.time() - move.time
