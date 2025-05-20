@@ -37,7 +37,6 @@ class BonkMap:
     physics: 'MapPhysics' = field(default_factory=MapPhysics)
     spawns: List['Spawn'] = field(default_factory=list)
     cap_zones: List['CaptureZone'] = field(default_factory=list)
-    joints: List['Joint'] = field(default_factory=list)
 
     # TODO: Make user-friendly
     # TODO: And maybe split to_json, from_json, decode_from_database to MapMetadata, MapProperties, MapPhysics etc.
