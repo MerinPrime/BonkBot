@@ -197,7 +197,7 @@ class BonkBot(BotEventHandler):
         return room
 
     async def join_room(self, room_id: int, password: Optional[str] = None, bypass: Optional[str] = None) -> Optional['Room']:
-        result = await self._bonk_api.fetch_room_data(room_id)
+        result = await self._bonk_api.fetch_room_data(room_id, password, bypass)
         if isinstance(result, ErrorType):
             raise ApiError(result)
         result: RoomJoinParams
