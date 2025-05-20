@@ -164,12 +164,14 @@ class BonkApi:
             room_id=friend['roomid'],
         ) for friend in response_data['friends']]
 
-    async def fetch_own_maps(self, token: str) -> List['BonkMap']:
+    async def fetch_own_maps(self, token: str, start_from: int) -> List['BonkMap']:
+        # Api returning maps from `start_from` to `start_from + 30`
+        # Only 30 maps from `start_from` will be returned
         response = await self.aiohttp_session.post(
             url=get_own_maps_api,
             data={
                 'token': token,
-                'startingfrom': '0',
+                'startingfrom': str(start_from),
             },
         )
         response.raise_for_status()
