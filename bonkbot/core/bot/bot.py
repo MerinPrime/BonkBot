@@ -197,26 +197,26 @@ class BonkBot(BotEventHandler):
         return room
 
     async def join_room(self, room_id: int, password: Optional[str] = None, bypass: Optional[str] = None) -> Optional['Room']:
-        result = await self._bonk_api.fetch_room_data(room_id, password, bypass)
+        result = await self.api_client.fetch_room_data(room_id, password, bypass)
         if isinstance(result, ErrorType):
             raise ApiError(result)
         result: RoomJoinParams
         return Room(bot=self, room_params=result)
 
     async def join_room_via_link(self, link: str, password: str = '') -> Optional['Room']:
-        result = await self._bonk_api.fetch_room_data_via_link(link, password)
+        result = await self.api_client.fetch_room_data_via_link(link, password)
         if isinstance(result, ErrorType):
             raise ApiError(result)
         result: RoomJoinParams
         return Room(bot=self, room_params=result)
 
     async def update_server(self) -> 'Server':
-        server = await self._bonk_api.fetch_server()
+        server = await self.api_client.fetch_server()
         self.server = server
         return server
 
     async def fetch_rooms(self) -> List[RoomInfo]:
-        return await self._bonk_api.fetch_rooms()
+        return await self.api_client.fetch_rooms()
 
     async def wait_for_connection(self) -> None:
         await asyncio.gather(*[room.wait_for_connection() for room in self.rooms])
@@ -228,9 +228,9 @@ class BonkBot(BotEventHandler):
         self.data.token = new_token
 
     async def fetch_friends(self) -> List['Friend']:
-        return await self._bonk_api.fetch_friends(self.token)
+        return await self.api_client.fetch_friends(self.token)
 
-    async def fetch_own_maps(self) -> List['BonkMap']:
-        return await self._bonk_api.fetch_own_maps(self.token)
-
+    async def fetch_own_maps(self, ) -> List['BonkMap']:
+        return await self.api_client.fetch_own_maps(self.token, start_from)
+    
     # TODO: Get favs, b2, b1, map delete
