@@ -40,7 +40,7 @@ class BonkMap:
 
     # TODO: Make user-friendly
     # TODO: And maybe split to_json, from_json, decode_from_database to MapMetadata, MapProperties, MapPhysics etc.
-
+    
     def to_json(self) -> Dict:
         data = {}
         data['v'] = self.version
@@ -159,7 +159,7 @@ class BonkMap:
                 joint_data['d']['ms'] = joint.motor_speed
                 joint_data['d']['el'] = joint.enable_limit
                 joint_data['d']['em'] = joint.enable_motor
-                joint_data['d']['cc'] = joint.col_attached
+                joint_data['d']['cc'] = joint.collide_connected
                 joint_data['d']['bf'] = joint.break_force
                 joint_data['d']['dl'] = joint.draw_line
             elif isinstance(joint, DistanceJoint):
@@ -171,7 +171,7 @@ class BonkMap:
                 joint_data['d'] = {}
                 joint_data['d']['fh'] = joint.softness
                 joint_data['d']['dr'] = joint.damping
-                joint_data['d']['cc'] = joint.col_attached
+                joint_data['d']['cc'] = joint.collide_connected
                 joint_data['d']['bf'] = joint.break_force
                 joint_data['d']['dl'] = joint.draw_line
             elif isinstance(joint, LPJJoint):
@@ -187,7 +187,7 @@ class BonkMap:
                 joint_data['plen'] = joint.length
                 joint_data['pms'] = joint.speed
                 joint_data['d'] = {}
-                joint_data['d']['cc'] = joint.col_attached
+                joint_data['d']['cc'] = joint.collide_connected
                 joint_data['d']['bf'] = joint.break_force
                 joint_data['d']['dl'] = joint.draw_line
             elif isinstance(joint, LSJJoint):
@@ -199,7 +199,7 @@ class BonkMap:
                 joint_data['sf'] = joint.force
                 joint_data['slen'] = joint.length
                 joint_data['d'] = {}
-                joint_data['d']['cc'] = joint.col_attached
+                joint_data['d']['cc'] = joint.collide_connected
                 joint_data['d']['bf'] = joint.break_force
                 joint_data['d']['dl'] = joint.draw_line
             elif isinstance(joint, GearJoint):
@@ -505,7 +505,7 @@ class BonkMap:
             if joint_type_id != 5:
                 joint.shape_a_id = buffer.read_int16()
                 joint.shape_b_id = buffer.read_int16()
-                joint.col_attached = buffer.read_bool()
+                joint.collide_connected = buffer.read_bool()
                 joint.break_force = buffer.read_float64()
                 joint.draw_line = buffer.read_bool()
             bonk_map.physics.joints.append(joint)
@@ -626,7 +626,7 @@ class BonkMap:
                 joint.motor_speed = joint_data['d']['ms']
                 joint.enable_limit = joint_data['d']['el']
                 joint.enable_motor = joint_data['d']['em']
-                joint.col_attached = joint_data['d']['cc']
+                joint.collide_connected = joint_data['d']['cc']
                 joint.break_force = joint_data['d']['bf']
                 joint.draw_line = joint_data['d']['dl']
             elif joint_data['type'] == 'd':
@@ -637,7 +637,7 @@ class BonkMap:
                 joint.attach = joint_data['ab']
                 joint.softness = joint_data['d']['fh']
                 joint.damping = joint_data['d']['dr']
-                joint.col_attached = joint_data['d']['cc']
+                joint.collide_connected = joint_data['d']['cc']
                 joint.break_force = joint_data['d']['bf']
                 joint.draw_line = joint_data['d']['dl']
             elif joint_data['type'] == 'lpj':
@@ -651,7 +651,7 @@ class BonkMap:
                 joint.pu = joint_data['pu']
                 joint.length = joint_data['plen']
                 joint.speed = joint_data['pms']
-                joint.col_attached = joint_data['d']['cc']
+                joint.collide_connected = joint_data['d']['cc']
                 joint.break_force = joint_data['d']['bf']
                 joint.draw_line = joint_data['d']['dl']
             elif joint_data['type'] == 'lsj':
@@ -661,7 +661,7 @@ class BonkMap:
                 joint.position = (joint_data['sax'], joint_data['say'])
                 joint.force = joint_data['sf']
                 joint.length = joint_data['slen']
-                joint.col_attached = joint_data['d']['cc']
+                joint.collide_connected = joint_data['d']['cc']
                 joint.break_force = joint_data['d']['bf']
                 joint.draw_line = joint_data['d']['dl']
             elif joint_data['type'] == 'g':

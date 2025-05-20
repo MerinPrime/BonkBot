@@ -16,7 +16,7 @@ class RevoluteJoint(Joint):
     enable_motor: bool = False
     pivot: Tuple[float, float] = (0, 0)
     break_force: float = 0
-    col_attached: bool = False
+    collide_connected: bool = False
     draw_line: bool = True
     shape_a_id: int = -1
     shape_b_id: int = -1
