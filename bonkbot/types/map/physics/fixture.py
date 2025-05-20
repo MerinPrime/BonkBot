@@ -10,9 +10,9 @@ class Fixture:
     name: str = 'Def Fix'
     color: float = 0x4F7CAC
 
-    density: float = 0.3
-    restitution: float = 0.8
-    friction: Optional[float] = 0.3
+    density: Optional[float] = None
+    restitution: Optional[float] = None
+    friction: Optional[float] = None
 
     friction_players: Optional[bool] = None
     inner_grapple: Optional[bool] = None
