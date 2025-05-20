@@ -10,4 +10,3 @@ class PolygonShape(Shape):
     angle: float = 0
     scale: float = 1
     vertices: List[Tuple[float, float]] = field(default_factory=list)
-    position: Tuple[float, float] = (0, 0)

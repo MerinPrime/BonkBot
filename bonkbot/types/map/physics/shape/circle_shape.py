@@ -8,5 +8,4 @@ from .shape import Shape
 @dataclass
 class CircleShape(Shape):
     radius: float = 25
-    position: Tuple[float, float] = (0, 0)
     shrink: bool = False
