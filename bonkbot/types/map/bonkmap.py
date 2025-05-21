@@ -184,8 +184,8 @@ class BonkMap:
                 joint_data['pf'] = joint.force
                 joint_data['pl'] = joint.pl
                 joint_data['pu'] = joint.pu
-                joint_data['plen'] = joint.length
-                joint_data['pms'] = joint.speed
+                joint_data['plen'] = joint.path_length
+                joint_data['pms'] = joint.path_speed
                 joint_data['d'] = {}
                 joint_data['d']['cc'] = joint.collide_connected
                 joint_data['d']['bf'] = joint.break_force
@@ -196,8 +196,8 @@ class BonkMap:
                 joint_data['bb'] = joint.shape_b_id
                 joint_data['sax'] = joint.position[0]
                 joint_data['say'] = joint.position[1]
-                joint_data['sf'] = joint.force
-                joint_data['slen'] = joint.length
+                joint_data['sf'] = joint.spring_force
+                joint_data['slen'] = joint.spring_length
                 joint_data['d'] = {}
                 joint_data['d']['cc'] = joint.collide_connected
                 joint_data['d']['bf'] = joint.break_force
@@ -487,13 +487,13 @@ class BonkMap:
                 joint.force = buffer.read_float64()
                 joint.pl = buffer.read_float64()
                 joint.pu = buffer.read_float64()
-                joint.length = buffer.read_float64()
-                joint.speed = buffer.read_float64()
+                joint.path_length = buffer.read_float64()
+                joint.path_speed = buffer.read_float64()
             elif joint_type_id == 4:
                 joint = LSJJoint()
                 joint.position = (buffer.read_float64(), buffer.read_float64())
-                joint.force = buffer.read_float64()
-                joint.length = buffer.read_float64()
+                joint.spring_force = buffer.read_float64()
+                joint.spring_length = buffer.read_float64()
             elif joint_type_id == 5:
                 joint = GearJoint()
                 joint.name = buffer.read_utf()
@@ -649,8 +649,8 @@ class BonkMap:
                 joint.force = joint_data['pf']
                 joint.pl = joint_data['pl']
                 joint.pu = joint_data['pu']
-                joint.length = joint_data['plen']
-                joint.speed = joint_data['pms']
+                joint.path_length = joint_data['plen']
+                joint.path_speed = joint_data['pms']
                 joint.collide_connected = joint_data['d']['cc']
                 joint.break_force = joint_data['d']['bf']
                 joint.draw_line = joint_data['d']['dl']
@@ -659,8 +659,8 @@ class BonkMap:
                 joint.shape_a_id = joint_data['ba']
                 joint.shape_b_id = joint_data['bb']
                 joint.position = (joint_data['sax'], joint_data['say'])
-                joint.force = joint_data['sf']
-                joint.length = joint_data['slen']
+                joint.spring_force = joint_data['sf']
+                joint.spring_length = joint_data['slen']
                 joint.collide_connected = joint_data['d']['cc']
                 joint.break_force = joint_data['d']['bf']
                 joint.draw_line = joint_data['d']['dl']

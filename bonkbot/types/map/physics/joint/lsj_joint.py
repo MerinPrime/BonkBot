@@ -9,8 +9,8 @@ from .joint import Joint
 @dataclass
 class LSJJoint(Joint):
     position: Tuple[float, float] = (0, 0)
-    force: float = 0
-    length: float = 0
+    spring_force: float = 0
+    spring_length: float = 0
     break_force: float = 0
     collide_connected: bool = False
     draw_line: bool = True

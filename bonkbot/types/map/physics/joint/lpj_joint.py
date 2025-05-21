@@ -13,8 +13,8 @@ class LPJJoint(Joint):
     force: float = 0
     pl: float = 0 # Idk but its always 0
     pu: float = 0 # Idk but its always 0
-    length: float = 0
-    speed: float = 0
+    path_length: float = 0
+    path_speed: float = 0
     break_force: float = 0
     collide_connected: bool = False
     draw_line: bool = True
