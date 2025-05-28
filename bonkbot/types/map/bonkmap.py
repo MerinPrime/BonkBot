@@ -149,8 +149,8 @@ class BonkMap:
             joint_data = {}
             if isinstance(joint, RevoluteJoint):
                 joint_data['type'] = 'rv'
-                joint_data['ba'] = joint.shape_a_id
-                joint_data['bb'] = joint.shape_b_id
+                joint_data['ba'] = joint.body_a_id
+                joint_data['bb'] = joint.body_b_id
                 joint_data['aa'] = joint.pivot
                 joint_data['d'] = {}
                 joint_data['d']['la'] = joint.from_angle
@@ -164,8 +164,8 @@ class BonkMap:
                 joint_data['d']['dl'] = joint.draw_line
             elif isinstance(joint, DistanceJoint):
                 joint_data['type'] = 'd'
-                joint_data['ba'] = joint.shape_a_id
-                joint_data['bb'] = joint.shape_b_id
+                joint_data['ba'] = joint.body_a_id
+                joint_data['bb'] = joint.body_b_id
                 joint_data['aa'] = joint.pivot
                 joint_data['ab'] = joint.attach
                 joint_data['d'] = {}
@@ -176,8 +176,8 @@ class BonkMap:
                 joint_data['d']['dl'] = joint.draw_line
             elif isinstance(joint, LPJJoint):
                 joint_data['type'] = 'lpj'
-                joint_data['ba'] = joint.shape_a_id
-                joint_data['bb'] = joint.shape_b_id
+                joint_data['ba'] = joint.body_a_id
+                joint_data['bb'] = joint.body_b_id
                 joint_data['pax'] = joint.position[0]
                 joint_data['pay'] = joint.position[1]
                 joint_data['pa'] = joint.angle
@@ -192,8 +192,8 @@ class BonkMap:
                 joint_data['d']['dl'] = joint.draw_line
             elif isinstance(joint, LSJJoint):
                 joint_data['type'] = 'lsj'
-                joint_data['ba'] = joint.shape_a_id
-                joint_data['bb'] = joint.shape_b_id
+                joint_data['ba'] = joint.body_a_id
+                joint_data['bb'] = joint.body_b_id
                 joint_data['sax'] = joint.position[0]
                 joint_data['say'] = joint.position[1]
                 joint_data['sf'] = joint.spring_force
@@ -503,8 +503,8 @@ class BonkMap:
             else:
                 raise ValueError(f'Invalid joint id: {joint_type_id}')
             if joint_type_id != 5:
-                joint.shape_a_id = buffer.read_int16()
-                joint.shape_b_id = buffer.read_int16()
+                joint.body_a_id = buffer.read_int16()
+                joint.body_b_id = buffer.read_int16()
                 joint.collide_connected = buffer.read_bool()
                 joint.break_force = buffer.read_float64()
                 joint.draw_line = buffer.read_bool()
@@ -617,8 +617,8 @@ class BonkMap:
             joint = None
             if joint_data['type'] == 'rv':
                 joint = RevoluteJoint()
-                joint.shape_a_id = joint_data['ba']
-                joint.shape_b_id = joint_data['bb']
+                joint.body_a_id = joint_data['ba']
+                joint.body_b_id = joint_data['bb']
                 joint.pivot = joint_data['aa']
                 joint.from_angle = joint_data['d']['la']
                 joint.to_angle = joint_data['d']['ua']
@@ -631,8 +631,8 @@ class BonkMap:
                 joint.draw_line = joint_data['d']['dl']
             elif joint_data['type'] == 'd':
                 joint = DistanceJoint()
-                joint.shape_a_id = joint_data['ba']
-                joint.shape_b_id = joint_data['bb']
+                joint.body_a_id = joint_data['ba']
+                joint.body_b_id = joint_data['bb']
                 joint.pivot = joint_data['aa']
                 joint.attach = joint_data['ab']
                 joint.softness = joint_data['d']['fh']
@@ -642,8 +642,8 @@ class BonkMap:
                 joint.draw_line = joint_data['d']['dl']
             elif joint_data['type'] == 'lpj':
                 joint = LPJJoint()
-                joint.shape_a_id = joint_data['ba']
-                joint.shape_b_id = joint_data['bb']
+                joint.body_a_id = joint_data['ba']
+                joint.body_b_id = joint_data['bb']
                 joint.position = (joint_data['pax'], joint_data['pay'])
                 joint.angle = joint_data['pa']
                 joint.force = joint_data['pf']
@@ -656,8 +656,8 @@ class BonkMap:
                 joint.draw_line = joint_data['d']['dl']
             elif joint_data['type'] == 'lsj':
                 joint = LSJJoint()
-                joint.shape_a_id = joint_data['ba']
-                joint.shape_b_id = joint_data['bb']
+                joint.body_a_id = joint_data['ba']
+                joint.body_b_id = joint_data['bb']
                 joint.position = (joint_data['sax'], joint_data['say'])
                 joint.spring_force = joint_data['sf']
                 joint.spring_length = joint_data['slen']

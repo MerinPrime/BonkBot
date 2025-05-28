@@ -15,5 +15,5 @@ class DistanceJoint(Joint):
     break_force: float = 0
     collide_connected: bool = False
     draw_line: bool = True
-    shape_a_id: int = -1
-    shape_b_id: int = -1
+    body_a_id: int = -1
+    body_b_id: int = -1
