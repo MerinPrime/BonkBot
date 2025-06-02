@@ -1,5 +1,4 @@
-import dataclasses
-from dataclasses import field
+from dataclasses import field, dataclass
 from typing import TYPE_CHECKING, Dict, List, Tuple, Union
 
 from ..types.errors import ApiError, ErrorType
@@ -16,7 +15,7 @@ if TYPE_CHECKING:
     from ..types.player_move import PlayerMove
     from .room import Room
 
-@dataclasses.dataclass
+@dataclass
 class Player:
     bot: 'BonkBot'
     room: 'Room'
