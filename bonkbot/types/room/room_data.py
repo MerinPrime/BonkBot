@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List, Optional, Union
 
+from bonkbot.types.map import BonkMap
 from bonkbot.types.mode import Mode
 from bonkbot.types.team import TeamState
 
 if TYPE_CHECKING:
     from bonkbot.core.player import Player
-    from bonkbot.types.map import BonkMap
 
 @dataclass
 class RoomData:

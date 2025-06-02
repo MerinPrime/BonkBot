@@ -1,4 +1,4 @@
-from dataclasses import field, dataclass
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, List, Tuple, Union
 
 from ..types.errors import ApiError, ErrorType
