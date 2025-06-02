@@ -196,8 +196,5 @@ class ByteBuffer:
         self.write_varint32(len(bs))
         self.write_bytes(bs)
 
-    def flipped(self) -> None:
-        return self.bytes[::-1]
-
     def read_bool(self) -> bool:
         return self.read_uint8() == 1
