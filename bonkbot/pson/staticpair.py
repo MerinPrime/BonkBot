@@ -28,6 +28,7 @@ class StaticPair:
         buffer.set_little_endian()
         self.encode_value(value, buffer)
         buffer.set_endian(endian)
+        return buffer
 
     def encode_value(self, value: Optional[PsonValue], buffer: ByteBuffer = None) -> ByteBuffer:
         if value is None:
