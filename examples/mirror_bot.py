@@ -32,7 +32,7 @@ class MirrorBot(BonkBot):
     async def on_host_left(self, room: 'Room', player: 'Player') -> None:
         if not room.bot_player.is_host:
             return
-        if room.player_count == 1:
+        if room.players_count == 1:
             return
         await asyncio.sleep(5)
         for player in room.players:

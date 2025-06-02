@@ -52,10 +52,8 @@ class Room:
         self._bot: BonkBot = bot
         self._room_params: Union[RoomJoinParams, RoomCreateParams] = dataclasses.replace(room_params)
         self._action: RoomAction = RoomAction.CREATE if isinstance(room_params, RoomCreateParams) else RoomAction.JOIN
-        self._server: Server = room_params.server
 
         self._room_data: Optional[RoomData] = None
-        self._total_players: int = 0
         self._socket: socketio.AsyncClient = None
         self._peer_ready: bool = False
         self._time_offset: int = None
@@ -66,7 +64,6 @@ class Room:
         self._bot_player: Player = None
         self._p2p_revert_task: asyncio.Task = None
         self._connections: List[BinaryPack] = []
-        self._map: BonkMap = BonkMap.decode_from_database('ILAcJAhBFBjBzCIDCAbAcgBwEYA1IDOAWgMrAAeAJgFYCiwytlAjEQGLoAMsAtm50gCmAdwbBIbACoBDAOrNh2AOIBVeAFlcATXIBJZAAtURJak4BpaMAASJAExsCW2eQPTRkACJFdITwDMANRB6RhZ2Ll5+JCgAdhjgX08PGKsYa0gE8WB0LLz8goKrCGZA7B4AVgNsWUCAa10OAHstfFR-AGoAeh7envAbLoA3Pr7O0d7waWxMOyzM4DYALxBhKjp4FSVXSiUiId4BQuO8roAWfOQugYTPLsl1JcfnlZO394-Pk7TgaFpMv4QegQZDCNh1LKeYAAeWKXwKMH+vyQgUksCUbAAzNg6pAiHlhJ4IfDCioAcCQGwVJjIAZKHYLkggA')
         self._sequence: int = 0
 
     @property
@@ -86,12 +83,20 @@ class Room:
         return self._peer_ready
 
     @property
-    def player_count(self) -> int:
-        return len(self._room_data.players)
+    def all_players_count(self) -> int:
+        return len(self.all_players)
+
+    @property
+    def all_players(self) -> List['Player']:
+        return self._room_data.players
+
+    @property
+    def players_count(self) -> int:
+        return len(self.players)
 
     @property
     def players(self) -> List['Player']:
-        return self._room_data.players
+        return list(filter(lambda player: not player.is_left, self._room_data.players))
 
     @property
     def has_password(self) -> bool:
@@ -139,7 +144,7 @@ class Room:
 
     @property
     def server(self) -> 'Server':
-        return self._server
+        return self._room_params.server
 
     @property
     def join_id(self) -> str:
@@ -184,7 +189,7 @@ class Room:
         self.__bind_listeners()
         self._bind_sugar()
         async def init_socket() -> None:
-            await self._socket.connect(bonk_socket_api.format(self._server.name), transports=['websocket'])
+            await self._socket.connect(bonk_socket_api.format(self._room_params.server.name), transports=['websocket'])
             await self._make_timesync()
         await asyncio.gather(
             init_socket(),
@@ -209,7 +214,6 @@ class Room:
             await self._peer.destroy()
         self._unbind_sugar()
         self._room_data = None
-        self._total_players = 0
         self._socket = None
         self._peer_ready = False
         self._time_offset = None
@@ -296,8 +300,8 @@ class Room:
             name=name,
             host=self._bot_player,
             players=[self._bot_player],
+            map=BonkMap.decode_from_database('ILAcJAhBFBjBzCIDCAbAcgBwEYA1IDOAWgMrAAeAJgFYCiwytlAjEQGLoAMsAtm50gCmAdwbBIbACoBDAOrNh2AOIBVeAFlcATXIBJZAAtURJak4BpaMAASJAExsCW2eQPTRkACJFdITwDMANRB6RhZ2Ll5+JCgAdhjgX08PGKsYa0gE8WB0LLz8goKrCGZA7B4AVgNsWUCAa10OAHstfFR-AGoAeh7envAbLoA3Pr7O0d7waWxMOyzM4DYALxBhKjp4FSVXSiUiId4BQuO8roAWfOQugYTPLsl1JcfnlZO394-Pk7TgaFpMv4QegQZDCNh1LKeYAAeWKXwKMH+vyQgUksCUbAAzNg6pAiHlhJ4IfDCioAcCQGwVJjIAZKHYLkggA'),
         )
-        self._total_players = 1
         await self._socket.emit(SocketEvents.Outgoing.CREATE_ROOM, data)
 
     async def _join(self) -> None:
@@ -325,8 +329,8 @@ class Room:
             name=self._room_params.name,
             host=self._bot_player,
             players=[self._bot_player],
+            map=BonkMap.decode_from_database('ILAcJAhBFBjBzCIDCAbAcgBwEYA1IDOAWgMrAAeAJgFYCiwytlAjEQGLoAMsAtm50gCmAdwbBIbACoBDAOrNh2AOIBVeAFlcATXIBJZAAtURJak4BpaMAASJAExsCW2eQPTRkACJFdITwDMANRB6RhZ2Ll5+JCgAdhjgX08PGKsYa0gE8WB0LLz8goKrCGZA7B4AVgNsWUCAa10OAHstfFR-AGoAeh7envAbLoA3Pr7O0d7waWxMOyzM4DYALxBhKjp4FSVXSiUiId4BQuO8roAWfOQugYTPLsl1JcfnlZO394-Pk7TgaFpMv4QegQZDCNh1LKeYAAeWKXwKMH+vyQgUksCUbAAzNg6pAiHlhJ4IfDCioAcCQGwVJjIAZKHYLkggA'),
         )
-        self._total_players = 1
         await self._socket.emit(SocketEvents.Outgoing.JOIN_ROOM, data)
 
     async def _make_timesync(self) -> None:
@@ -356,7 +360,7 @@ class Room:
     async def _make_peer(self) -> None:
         peer_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10)) + '000000'
         self._peer = Peer(id=peer_id, options=PeerOptions(
-            host=bonk_peer_api.format(self._server.name),
+            host=bonk_peer_api.format(self._room_params.server.name),
             port=443,
             path='/myapp',
             secure=True,
@@ -420,29 +424,6 @@ class Room:
         player.data_connection = await self._peer.connect(player.peer_id)
         await self._process_new_connection(player.data_connection)
 
-    def _set_game_settings(self, game_settings: dict) -> None:
-        encoded_map = game_settings['map']
-        if isinstance(encoded_map, str):
-            self._map = BonkMap.decode_from_database(encoded_map)
-        elif isinstance(encoded_map, dict):
-            self._map = BonkMap.from_json(encoded_map)
-        else:
-            raise ValueError(f'Invalid map provided: {encoded_map}')
-        self._room_data.rounds = game_settings['wl']
-        self._room_data.team_lock = game_settings['tl']
-        self._room_data.mode = Mode.from_mode_code(game_settings['mo'])
-        for player in self.players:
-            if player.id >= len(game_settings['bal']):
-                player.balance = 0
-                continue
-            player.balance = game_settings['bal'][player.id]
-        if not game_settings['tea']:
-            self._room_data.team_state = TeamState.FFA
-        elif self._room_data.mode == Mode.FOOTBALL:
-            self._room_data.team_state = TeamState.DUO
-        else:
-            self._room_data.team_state = TeamState.ALL
-
     def __bind_listeners(self) -> None:
         self.socket.on('disconnect', self.disconnect)
         self.socket.on(SocketEvents.Incoming.PING_DATA, self.__on_ping_data)
@@ -504,7 +485,6 @@ class Room:
         self._room_data.join_id = f'{join_id:06}'
         self._room_data.join_bypass = join_bypass
         self._room_data.team_lock = team_lock
-        self._total_players = len(players)
         for i, player_data in enumerate(players):
             if player_data is None:
                 self._room_data.players.append(Player(
@@ -565,25 +545,11 @@ class Room:
             joined_with_bypass=joined_with_bypass,
         )
         self._room_data.players.append(player)
-        self._total_players += 1
-        bal = [0] * self._total_players
-        for player in self.players:
-            bal[player.id] = player.balance
         await self._socket.emit(
             SocketEvents.Outgoing.INFORM_IN_LOBBY,
             {
                 'sid': player_id,
-                'gs': {
-                    'map': self._map.to_json(),
-                    'gt': 2,
-                    'wl': self.rounds,
-                    'q': False,
-                    'tl': self.team_lock,
-                    'tea': self.team_state != TeamState.FFA,
-                    'ga': self.mode.engine,
-                    'mo': self.mode.mode,
-                    'bal': bal,
-                },
+                'gs': self._room_data.get_game_settings(),
             })
         await self._bot.dispatch(BotEventHandler.on_player_join, self, player)
 
@@ -665,7 +631,7 @@ class Room:
             player.prev_inputs.clear()
 
     async def __on_game_start(self, unix_time: int, encoded_state: str, game_settings: dict) -> None:
-        self._set_game_settings(game_settings)
+        self._room_data.set_game_settings(game_settings)
         pair = StaticPair(PSON_KEYS)
         buffer = ByteBuffer().from_base64(encoded_state, lz_encoded=True, case_encoded=True)
         initial_state = pair.decode(buffer)
@@ -777,11 +743,10 @@ class Room:
     async def __inform_in_game(self, data: dict) -> None:
         encoded_state = data['state']
         state_id = data['stateID']
-        game_settings = data['gs']
         random = data['random']
         inputs = data['inputs']
         frame = data['fc']
-        self._set_game_settings(game_settings)
+        self._room_data.set_game_settings(data['gs'])
         for input_data in inputs:
             player = self.get_player_by_id(input_data['p'])
             inputs = Inputs()
