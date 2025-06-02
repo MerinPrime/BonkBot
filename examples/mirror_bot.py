@@ -29,16 +29,16 @@ class MirrorBot(BonkBot):
             await asyncio.sleep(5)
             await player.give_host()
 
-    async def on_host_left(self, room: 'Room', player: 'Player') -> None:
+    async def on_host_left(self, room: 'Room', old_host: 'Player', new_host: 'Player') -> None:
         if not room.bot_player.is_host:
             return
         if room.players_count == 1:
             return
         await asyncio.sleep(5)
-        for player in room.players:
-            if player.is_bot or player.is_left:
+        for old_host in room.players:
+            if old_host.is_bot or old_host.is_left:
                 continue
-            await player.give_host()
+            await old_host.give_host()
             break
 
     async def on_player_move(self, room: 'Room', player: 'Player', move: 'PlayerMove') -> None:
