@@ -7,7 +7,7 @@ from bonkbot.types import Server
 @dataclass(frozen=True)
 class RoomJoinParams:
     room_address: Union[str, int]
+    name: Union[str, None] = None
     password: Optional[str] = None
     bypass: Optional[str] = None
-    name: Union[str, None] = None
     server: Server = Server.WARSAW
