@@ -107,7 +107,7 @@ class BotEventHandler:
     async def on_player_left(self, room: 'Room', player: 'Player') -> None:
         pass
 
-    async def on_host_left(self, room: 'Room', player: 'Player') -> None:
+    async def on_host_left(self, room: 'Room', old_host: 'Player', new_host: 'Player') -> None:
         pass
 
     async def on_ready_change(self, room: 'Room', player: 'Player') -> None:

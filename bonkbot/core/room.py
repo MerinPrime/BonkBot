@@ -601,15 +601,16 @@ class Room:
     async def __on_host_left(self, old_host_id: int, new_host_id: int, data: Dict) -> None:
         old_host = self.get_player_by_id(old_host_id)
         old_host.is_left = True
+        if old_host.data_connection and old_host.data_connection.open:
+            await old_host.data_connection.close()
         if new_host_id == -1:
-            await self.bot.dispatch(BotEventHandler.on_host_left, self, old_host)
+            self._room_data.host = None
+            await self.bot.dispatch(BotEventHandler.on_host_left, self, old_host, None)
             await self.disconnect()
             return
         new_host = self.get_player_by_id(new_host_id)
-        if old_host.data_connection and old_host.data_connection.open:
-            await old_host.data_connection.close()
         self._room_data.host = new_host
-        await self.bot.dispatch(BotEventHandler.on_host_left, self, old_host)
+        await self.bot.dispatch(BotEventHandler.on_host_left, self, old_host, new_host)
 
     async def __on_move(self, player_id: int, data: Dict) -> None:
         player = self.get_player_by_id(player_id)
