@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Dict, List
+from typing import Dict, List
 
 from ...core.constants import MAP_VERSION
 from ...pson.bytebuffer import ByteBuffer
@@ -24,9 +24,6 @@ from .physics.shape.circle_shape import CircleShape
 from .physics.shape.polygon_shape import PolygonShape
 from .spawn import Spawn
 
-if TYPE_CHECKING:
-    from .physics.joint.joint import Joint
-
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMap.ts
 @dataclass
@@ -40,7 +37,7 @@ class BonkMap:
 
     # TODO: Make user-friendly
     # TODO: And maybe split to_json, from_json, decode_from_database to MapMetadata, MapProperties, MapPhysics etc.
-    
+
     def to_json(self) -> Dict:
         data = {}
         data['v'] = self.version
@@ -517,38 +514,8 @@ class BonkMap:
     def from_json(cls, json_data: dict) -> 'BonkMap':
         bonk_map = BonkMap()
         bonk_map.version = json_data['v']
-        # region Metadata
-        bonk_map.metadata.author = json_data['m']['a']
-        bonk_map.metadata.name = json_data['m']['n']
-        bonk_map.metadata.database_version = json_data['m']['dbv']
-        bonk_map.metadata.database_id = json_data['m']['dbid']
-        bonk_map.metadata.original_author = json_data['m']['rxa']
-        bonk_map.metadata.original_name = json_data['m']['rxn']
-        bonk_map.metadata.original_database_version = json_data['m']['rxdb']
-        bonk_map.metadata.original_database_id = json_data['m']['rxid']
-        bonk_map.metadata.is_published = json_data['m']['pub']
-        bonk_map.metadata.contributors = json_data['m']['cr']
-        bonk_map.metadata.date = json_data['m']['date']
-        bonk_map.metadata.auth_id = json_data['m']['authid']
-        bonk_map.metadata.mode = Mode.from_mode_code(json_data['m']['mo'])
-        if json_data['m'].get('vd') is not None:
-            bonk_map.metadata.votes_down = json_data['m']['vd']
-        if json_data['m'].get('vu') is not None:
-            bonk_map.metadata.votes_up = json_data['m']['vu']
-        # endregion
-        # region Properties
-        bonk_map.properties.grid_size = json_data['s']['gd']
-        bonk_map.properties.players_dont_collide = json_data['s']['nc']
-        bonk_map.properties.respawn_on_death = json_data['s']['re']
-        bonk_map.properties.players_can_fly = json_data['s']['fl']
-        bonk_map.properties.complex_physics = json_data['s']['pq'] == 2
-        if json_data['s'].get('a1') is not None:
-            bonk_map.physics.a1 = json_data['s']['a1']
-        if json_data['s'].get('a2') is not None:
-            bonk_map.physics.a2 = json_data['s']['a2']
-        if json_data['s'].get('a3') is not None:
-            bonk_map.physics.a3 = json_data['s']['a3']
-        # endregion
+        bonk_map.metadata = MapMetadata.from_json(json_data['m'])
+        bonk_map.properties = MapProperties.from_json(json_data['s'])
         # region Physics
         for body_data in json_data['physics']['bodies']:
             body = Body()
