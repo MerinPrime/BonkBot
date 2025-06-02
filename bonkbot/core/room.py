@@ -480,7 +480,7 @@ class Room:
         self.socket.on(SocketEvents.Incoming.STATUS, self.__on_error)
         self.socket.on(SocketEvents.Incoming.LEVEL_UP, self.__on_level_up)
         self.socket.on(SocketEvents.Incoming.XP_GAIN, self.__on_xp_gain)
-        self.socket.on(SocketEvents.Incoming.INITIAL_STATE, self.__on_initial_state)
+        self.socket.on(SocketEvents.Incoming.INITIAL_STATE, self.__inform_in_game)
         self.socket.on(SocketEvents.Incoming.ROOM_ID_OBTAIN, self.__on_room_id_obtain)
         self.socket.on(SocketEvents.Incoming.PLAYER_TABBED, self.__on_player_tabbed)
         self.socket.on(SocketEvents.Incoming.ROOM_NAME_CHANGE, self.__on_room_name_change)
@@ -684,9 +684,6 @@ class Room:
         player = self.get_player_by_id(player_id)
         await self.bot.dispatch(BotEventHandler.on_message, self, player, message)
 
-    async def __inform_in_lobby(self, game_settings: dict) -> None:
-        self._set_game_settings(game_settings)
-
     async def __on_player_kick(self, player_id: int, is_ban: bool) -> None:
         player = self.get_player_by_id(player_id)
         if is_ban:
@@ -774,7 +771,10 @@ class Room:
 
         await self._bot.dispatch(BotEventHandler.on_xp_gain, self, new_xp)
 
-    async def __on_initial_state(self, data: dict) -> None:
+    async def __inform_in_lobby(self, game_settings: dict) -> None:
+        self._room_data.set_game_settings(game_settings)
+
+    async def __inform_in_game(self, data: dict) -> None:
         encoded_state = data['state']
         state_id = data['stateID']
         game_settings = data['gs']
@@ -790,7 +790,7 @@ class Room:
         pair = StaticPair(PSON_KEYS)
         buffer = ByteBuffer().from_base64(encoded_state, case_encoded=True, lz_encoded=True)
         initial_state = pair.decode(buffer)
-        await self._bot.dispatch(BotEventHandler.on_initial_state, self, frame, random, initial_state, state_id)
+        await self._bot.dispatch(BotEventHandler.on_inform_in_game, self, frame, random, initial_state, state_id)
 
     async def __on_room_id_obtain(self, join_id: int, join_bypass: str) -> None:
         self._room_data.join_id = f'{join_id:06}'

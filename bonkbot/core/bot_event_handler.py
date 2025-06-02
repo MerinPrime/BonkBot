@@ -182,7 +182,7 @@ class BotEventHandler:
     async def on_countdown_abort(self, room: 'Room') -> None:
         pass
 
-    async def on_initial_state(self, room: 'Room', frame: int, random: List[int], initial_state: Dict, state_id: int) -> None:
+    async def on_inform_in_game(self, room: 'Room', frame: int, random: List[int], initial_state: Dict, state_id: int) -> None:
         pass
 
     async def on_player_tabbed(self, room: 'Room', player: 'Player') -> None:
