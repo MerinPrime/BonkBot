@@ -193,3 +193,6 @@ class BotEventHandler:
 
     async def on_room_pass_change(self, room: 'Room') -> None:
         pass
+
+    async def on_friend_request(self, room: 'Room', player: 'Player') -> None:
+        pass
