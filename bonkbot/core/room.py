@@ -428,8 +428,10 @@ class Room:
         encoded_map = game_settings['map']
         if isinstance(encoded_map, str):
             self._map = BonkMap.decode_from_database(encoded_map)
-        else:
+        elif isinstance(encoded_map, dict):
             self._map = BonkMap.from_json(encoded_map)
+        else:
+            raise ValueError(f'Invalid map provided: {encoded_map}')
         self._room_data.rounds = game_settings['wl']
         self._room_data.team_lock = game_settings['tl']
         self._room_data.mode = Mode.from_mode_code(game_settings['mo'])
