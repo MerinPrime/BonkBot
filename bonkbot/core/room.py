@@ -68,7 +68,7 @@ class Room:
 
     @property
     def map(self) -> BonkMap:
-        return copy.deepcopy(self._map)
+        return copy.deepcopy(self._room_data.map)
 
     @property
     def name(self) -> str:
@@ -224,7 +224,6 @@ class Room:
         self._bot_player = None
         self._p2p_revert_task = None
         self._connections = []
-        self._map = BonkMap.decode_from_database('ILAcJAhBFBjBzCIDCAbAcgBwEYA1IDOAWgMrAAeAJgFYCiwytlAjEQGLoAMsAtm50gCmAdwbBIbACoBDAOrNh2AOIBVeAFlcATXIBJZAAtURJak4BpaMAASJAExsCW2eQPTRkACJFdITwDMANRB6RhZ2Ll5+JCgAdhjgX08PGKsYa0gE8WB0LLz8goKrCGZA7B4AVgNsWUCAa10OAHstfFR-AGoAeh7envAbLoA3Pr7O0d7waWxMOyzM4DYALxBhKjp4FSVXSiUiId4BQuO8roAWfOQugYTPLsl1JcfnlZO394-Pk7TgaFpMv4QegQZDCNh1LKeYAAeWKXwKMH+vyQgUksCUbAAzNg6pAiHlhJ4IfDCioAcCQGwVJjIAZKHYLkggA')
         self._sequence = 0
         self._bot.remove_room(self)
 
@@ -668,7 +667,7 @@ class Room:
         await self.bot.dispatch(BotEventHandler.on_rounds_change, self)
 
     async def __on_map_change(self, encoded_map: str) -> None:
-        self._map = BonkMap.decode_from_database(encoded_map)
+        self._room_data.map = BonkMap.decode_from_database(encoded_map)
         await self.bot.dispatch(BotEventHandler.on_map_change, self)
 
     async def __on_afk_warn(self) -> None:
