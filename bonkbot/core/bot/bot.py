@@ -230,7 +230,7 @@ class BonkBot(BotEventHandler):
     async def fetch_friends(self) -> List['Friend']:
         return await self.api_client.fetch_friends(self.token)
 
-    async def fetch_own_maps(self, ) -> List['BonkMap']:
+    async def fetch_own_maps(self, start_from: int) -> List['BonkMap']:
         return await self.api_client.fetch_own_maps(self.token, start_from)
-    
+
     # TODO: Get favs, b2, b1, map delete
