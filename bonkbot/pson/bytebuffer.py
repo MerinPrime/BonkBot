@@ -6,34 +6,26 @@ from urllib.parse import unquote
 from lzstring import LZString
 
 
-def zigzag_encode32(value: int) -> int:
-    return (((value | 1) << 1) ^ (value >> 31)) & 0xFFFFFFFF
-
-
-def zigzag_decode32(value: int) -> int:
-    return ((value >> 1) ^ -(value & 1)) & 0xFFFFFFFF
-
-
-def zigzag_encode64(value: int) -> int:
-    return (((value | 1) << 1) ^ (value >> 63)) & 0xFFFFFFFFFFFFFFFF
-
-
-def zigzag_decode64(value: int) -> int:
-    return ((value >> 1) ^ -(value & 1)) & 0xFFFFFFFFFFFFFFFF
-
-
 class ByteBuffer:
-    bytes: bytearray
-    offset: int
-    size: int
-
+    __slots__ = ('bytes', 'offset', 'size', 'endian')
+    
     def __init__(self, bytes: Optional[bytearray] = None) -> None:
         if bytes is None:
-            self.bytes = bytearray()
+            self.bytes: bytearray = bytearray()
         else:
-            self.bytes = bytes
-        self.offset = 0
-        self.size = len(self.bytes)
+            self.bytes: bytearray = bytes
+        self.offset: int = 0
+        self.size: int = len(self.bytes)
+        self.endian: str = '>'
+
+    def set_endian(self, endian: str) -> None:
+        self.endian = endian
+
+    def set_little_endian(self) -> None:
+        self.endian = '<'
+
+    def set_big_endian(self) -> None:
+        self.endian = '>'
 
     def read_bytes(self, count: int = 1) -> bytearray:
         self.offset += count
@@ -59,28 +51,28 @@ class ByteBuffer:
         return self
 
     def read_uint8(self) -> int:
-        return struct.unpack('>B', self.read_bytes(1))[0]
+        return struct.unpack(self.endian + 'B', self.read_bytes(1))[0]
 
     def read_int8(self) -> int:
-        return struct.unpack('>b', self.read_bytes(1))[0]
+        return struct.unpack(self.endian + 'b', self.read_bytes(1))[0]
 
     def read_uint16(self) -> int:
-        return struct.unpack('>H', self.read_bytes(2))[0]
+        return struct.unpack(self.endian + 'H', self.read_bytes(2))[0]
 
     def read_int16(self) -> int:
-        return struct.unpack('>h', self.read_bytes(2))[0]
+        return struct.unpack(self.endian + 'h', self.read_bytes(2))[0]
 
     def read_uint32(self) -> int:
-        return struct.unpack('>I', self.read_bytes(4))[0]
+        return struct.unpack(self.endian + 'I', self.read_bytes(4))[0]
 
     def read_int32(self) -> int:
-        return struct.unpack('>i', self.read_bytes(4))[0]
+        return struct.unpack(self.endian + 'i', self.read_bytes(4))[0]
 
     def read_uint64(self) -> int:
-        return struct.unpack('>Q', self.read_bytes(8))[0]
+        return struct.unpack(self.endian + 'Q', self.read_bytes(8))[0]
 
     def read_int64(self) -> int:
-        return struct.unpack('>q', self.read_bytes(8))[0]
+        return struct.unpack(self.endian + 'q', self.read_bytes(8))[0]
 
     def read_varint32(self) -> int:
         value = 0
@@ -105,10 +97,10 @@ class ByteBuffer:
         return value
 
     def read_float32(self) -> float:
-        return struct.unpack('>f', self.read_bytes(4))[0]
+        return struct.unpack(self.endian + 'f', self.read_bytes(4))[0]
 
     def read_float64(self) -> float:
-        return struct.unpack('>d', self.read_bytes(8))[0]
+        return struct.unpack(self.endian + 'd', self.read_bytes(8))[0]
 
     def read_str(self) -> str:
         length = self.read_uint8()
@@ -135,31 +127,31 @@ class ByteBuffer:
         self.offset += len(_bytes)
 
     def write_uint8(self, value: int) -> None:
-        self.write_bytes(struct.pack('>B', value))
+        self.write_bytes(struct.pack(self.endian + 'B', value))
 
     def write_bool(self, value: bool) -> None:
         self.write_uint8(int(value))
 
     def write_int8(self, value: int) -> None:
-        self.write_bytes(struct.pack('>b', value))
+        self.write_bytes(struct.pack(self.endian + 'b', value))
 
     def write_uint16(self, value: int) -> None:
-        self.write_bytes(struct.pack('>H', value))
+        self.write_bytes(struct.pack(self.endian + 'H', value))
 
     def write_int16(self, value: int) -> None:
-        self.write_bytes(struct.pack('>h', value))
+        self.write_bytes(struct.pack(self.endian + 'h', value))
 
     def write_uint32(self, value: int) -> None:
-        self.write_bytes(struct.pack('>I', value))
+        self.write_bytes(struct.pack(self.endian + 'I', value))
 
     def write_int32(self, value: int) -> None:
-        self.write_bytes(struct.pack('>i', value))
+        self.write_bytes(struct.pack(self.endian + 'i', value))
 
     def write_uint64(self, value: int) -> None:
-        self.write_bytes(struct.pack('>Q', value))
+        self.write_bytes(struct.pack(self.endian + 'Q', value))
 
     def write_int64(self, value: int) -> None:
-        self.write_bytes(struct.pack('>q', value))
+        self.write_bytes(struct.pack(self.endian + 'q', value))
 
     def write_varint32(self, value: int) -> None:
         _bytes = []
@@ -184,10 +176,10 @@ class ByteBuffer:
         self.write_bytes(_bytes)
 
     def write_float32(self, value: float) -> None:
-        self.write_bytes(struct.pack('>f', value))
+        self.write_bytes(struct.pack(self.endian + 'f', value))
 
     def write_float64(self, value: float) -> None:
-        self.write_bytes(struct.pack('>d', value))
+        self.write_bytes(struct.pack(self.endian + 'd', value))
 
     def write_str(self, value: str) -> None:
         bs = value.encode('utf-8')

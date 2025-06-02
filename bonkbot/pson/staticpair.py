@@ -1,12 +1,8 @@
 from typing import List, Optional, Union
 
-from .bytebuffer import (
-    ByteBuffer,
-    zigzag_decode32,
-    zigzag_encode32,
-    zigzag_encode64,
-)
+from .bytebuffer import ByteBuffer
 from .t import PsonValue, T
+from .utils import zigzag_decode32, zigzag_encode32, zigzag_encode64, zigzag_decode64
 
 
 class StaticPair:
@@ -28,6 +24,12 @@ class StaticPair:
         if buffer is None:
             buffer = ByteBuffer()
 
+        endian = buffer.endian
+        buffer.set_little_endian()
+        self.encode_value(value, buffer)
+        buffer.set_endian(endian)
+
+    def encode_value(self, value: Optional[PsonValue], buffer: ByteBuffer = None) -> ByteBuffer:
         if value is None:
             buffer.write_uint8(T.NULL)
         elif type(value) is str:
@@ -98,8 +100,14 @@ class StaticPair:
             buffer = ByteBuffer(_bytes)
         else:
             buffer = _bytes
+        
+        endian = buffer.endian
+        buffer.set_little_endian()
+        data = self.decode_value(buffer)
+        buffer.set_endian(endian)
+        return data
 
-
+    def decode_value(self, buffer: ByteBuffer) -> PsonValue:
         code = buffer.read_uint8()
         if code <= T.MAX:
             return zigzag_decode32(code)
@@ -128,8 +136,10 @@ class StaticPair:
             for _ in range(buffer.read_varint32()):
                 arr.append(self.decode(buffer))
             return arr
-        if code == T.INTEGER or code == T.LONG:
+        if code == T.INTEGER:
             return zigzag_decode32(buffer.read_varint32())
+        if code == T.LONG:
+            return zigzag_decode64(buffer.read_varint64())
         if code == T.FLOAT:
             return buffer.read_float32()
         if code == T.DOUBLE:
