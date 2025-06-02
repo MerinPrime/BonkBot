@@ -688,6 +688,7 @@ class BonkMap:
                 shape.angle = shape_data['a']
                 shape.scale = shape_data['s']
                 shape.vertices = [(x, y) for x, y in shape_data['v']]
+            shape.position = (shape_data['c'][0], shape_data['c'][1])
             bonk_map.physics.shapes.append(shape)
         bonk_map.physics.bro = json_data['physics']['bro']
         bonk_map.physics.ppm = json_data['physics']['ppm']
