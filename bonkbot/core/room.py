@@ -86,10 +86,6 @@ class Room:
         return self._peer_ready
 
     @property
-    def id(self) -> int:
-        return self._room_data.id
-
-    @property
     def player_count(self) -> int:
         return len(self._room_data.players)
 

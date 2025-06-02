@@ -11,7 +11,6 @@ if TYPE_CHECKING:
 class RoomData:
     name: str
     host: 'Player'
-    id: int = 0
     mode: 'Mode' = Mode.CLASSIC
     players: List['Player'] = field(default_factory=list)
     password: Union[str, None] = None
