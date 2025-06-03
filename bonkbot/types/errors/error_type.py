@@ -10,7 +10,8 @@ class ErrorType(enum.Enum):
     ROOM_NOT_FOUND = 'roomnotfound'
     HOST_CHANGE_RATE_LIMITED = 'host change rate limited'
     NEW_HOST_NOT_PRESENT = 'new_host_not_present'
-
+    AVATAR_DATA_INVALID = 'avatar_data_invalid'
+    
     @staticmethod
     def from_string(code: str) -> 'ErrorType':
         for error_type in ErrorType:
