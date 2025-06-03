@@ -35,12 +35,18 @@ class BotData:
         )
 
         if 'avatar' in json_data:
-            data.avatar = Avatar.from_buffer(ByteBuffer().from_base64(json_data['avatar'], uri_encoded=True))
+            avatar_buffer = ByteBuffer()
+            avatar_buffer.from_base64(json_data['avatar'], uri_encoded=True)
+            avatar_buffer.set_big_endian()
+            data.avatar = Avatar.from_buffer(avatar_buffer)
 
         for i in range(5):
             key = f'avatar{i+1}'
             if key in json_data:
-                data.avatars[i] = Avatar.from_buffer(ByteBuffer().from_base64(json_data[key], uri_encoded=True))
+                avatar_buffer = ByteBuffer()
+                avatar_buffer.from_base64(json_data[key], uri_encoded=True)
+                avatar_buffer.set_big_endian()
+                data.avatars[i] = Avatar.from_buffer(avatar_buffer)
 
         if 'friends' in json_data:
             for friend_data in json_data['friends']:
