@@ -16,8 +16,8 @@ from ..pson import ByteBuffer, StaticPair
 from ..types import Inputs
 from ..types.avatar import Avatar
 from ..types.errors import ApiError, ErrorType
-from ..types.errors.room_already_connected import RoomAlreadyRunning
-from ..types.errors.room_not_connected import RoomNotRunning
+from ..types.errors.room_already_connected import RoomAlreadyConnected
+from ..types.errors.room_not_connected import RoomNotConnected
 from ..types.map.bonkmap import BonkMap
 from ..types.mode import Mode
 from ..types.player_move import PlayerMove
@@ -181,7 +181,7 @@ class Room:
 
     async def connect(self) -> None:
         if self._running:
-            await self._bot.dispatch(BotEventHandler.on_error, self.bot, RoomAlreadyRunning(self))
+            await self._bot.dispatch(BotEventHandler.on_error, self.bot, RoomAlreadyConnected(self))
             return
         self._running = True
         self._bot.add_room(self)
@@ -199,7 +199,7 @@ class Room:
 
     async def disconnect(self) -> None:
         if not self._running:
-            raise RoomNotRunning(self)
+            raise RoomNotConnected(self)
         if self.timesyncer:
             await self.timesyncer.stop()
         if self._p2p_revert_task and not self._p2p_revert_task.done():
