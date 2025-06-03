@@ -7,17 +7,20 @@ from lzstring import LZString
 
 
 class ByteBuffer:
-    __slots__ = ('bytes', 'endian', 'offset', 'size')
+    __slots__ = ('bytes', 'endian', 'offset')
 
-    def __init__(self, bytes: Optional[bytearray] = None) -> None:
-        if bytes is None:
+    def __init__(self, _bytes: Optional[bytearray] = None) -> None:
+        if _bytes is None:
             self.bytes: bytearray = bytearray()
         else:
-            self.bytes: bytearray = bytes
+            self.bytes: bytearray = _bytes
         self.offset: int = 0
-        self.size: int = len(self.bytes)
         self.endian: str = '>'
-
+    
+    @property
+    def size(self) -> int:
+        return len(self.bytes)
+    
     def set_endian(self, endian: str) -> None:
         self.endian = endian
 
@@ -118,11 +121,7 @@ class ByteBuffer:
         empty = self.size - self.offset
         if empty < len(_bytes):
             needed = len(_bytes) - empty
-            alloc = self.size + needed
-            alloc = alloc // 16
-            alloc = (alloc + 1) * 16
-            self.bytes.extend(b'\x00' * (alloc - needed))
-            self.size = len(self.bytes)
+            self.bytes.extend(b'\x00' * needed)
         self.bytes[self.offset:self.offset+len(_bytes)] = _bytes
         self.offset += len(_bytes)
 
