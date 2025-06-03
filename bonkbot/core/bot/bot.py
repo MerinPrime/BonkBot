@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, List, Optional, Union
 
 import aiohttp
 
-from bonkbot.core.bot.bonk_api import BonkApi
+from bonkbot.core.bot.bonk_api import BonkAPI
 from bonkbot.core.bot_data import BotData
 from bonkbot.core.bot_event_handler import BotEventHandler
 from bonkbot.core.room import Room
@@ -33,7 +33,7 @@ class BonkBot(BotEventHandler):
         if aiohttp_session is None:
             aiohttp_session = aiohttp.ClientSession(loop=event_loop)
         self._event_loop: asyncio.AbstractEventLoop = event_loop
-        self._bonk_api: BonkApi = BonkApi(event_loop, aiohttp_session)
+        self._bonk_api: BonkAPI = BonkAPI(event_loop, aiohttp_session)
         self._data: Optional[BotData] = None
         self._is_logged: bool = False
         self._rooms: List[Room] = []
@@ -148,7 +148,7 @@ class BonkBot(BotEventHandler):
         return self._bonk_api.aiohttp_session
 
     @property
-    def api_client(self) -> 'BonkApi':
+    def api_client(self) -> 'BonkAPI':
         return self._bonk_api
     # endregion
 

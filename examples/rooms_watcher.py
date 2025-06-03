@@ -1,6 +1,6 @@
 import asyncio
 
-from bonkbot.core.bot import BonkApi
+from bonkbot.core.bot import BonkAPI
 from bonkbot.types import Mode
 
 '''
@@ -8,7 +8,7 @@ This example implements a room watcher.
 The bot monitors all active rooms and logs only available VTOL rooms.
 '''
 
-bonk_api = BonkApi()
+bonk_api = BonkAPI()
 
 async def main() -> None:
     print('Rooms watcher started')

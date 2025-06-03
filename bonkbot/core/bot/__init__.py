@@ -1,2 +1,2 @@
-from .bonk_api import BonkApi
+from .bonk_api import BonkAPI
 from .bot import BonkBot

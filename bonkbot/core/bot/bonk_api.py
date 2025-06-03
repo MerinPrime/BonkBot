@@ -22,7 +22,7 @@ from ..bot_data import BotData
 from ..constants import PROTOCOL_VERSION
 
 
-class BonkApi:
+class BonkAPI:
     def __init__(self, event_loop: Optional[asyncio.AbstractEventLoop] = None,
                  aiohttp_session: Optional[aiohttp.ClientSession] = None) -> None:
         if event_loop is None:
