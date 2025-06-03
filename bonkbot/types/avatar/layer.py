@@ -13,8 +13,8 @@ class Layer:
     angle: int = 0
     x: int = 0
     y: int = 0
-    flip_x: int = 0
-    flip_y: int = 0
+    flip_x: bool = 0
+    flip_y: bool = 0
     color: int = 0
 
     @staticmethod
