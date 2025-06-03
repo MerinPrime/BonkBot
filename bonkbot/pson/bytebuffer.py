@@ -7,8 +7,8 @@ from lzstring import LZString
 
 
 class ByteBuffer:
-    __slots__ = ('bytes', 'offset', 'size', 'endian')
-    
+    __slots__ = ('bytes', 'endian', 'offset', 'size')
+
     def __init__(self, bytes: Optional[bytearray] = None) -> None:
         if bytes is None:
             self.bytes: bytearray = bytearray()

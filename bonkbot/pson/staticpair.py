@@ -2,7 +2,7 @@ from typing import List, Optional, Union
 
 from .bytebuffer import ByteBuffer
 from .t import PsonValue, T
-from .utils import zigzag_decode32, zigzag_encode32, zigzag_encode64, zigzag_decode64
+from .utils import zigzag_decode32, zigzag_decode64, zigzag_encode32, zigzag_encode64
 
 
 class StaticPair:
@@ -101,7 +101,7 @@ class StaticPair:
             buffer = ByteBuffer(_bytes)
         else:
             buffer = _bytes
-        
+
         endian = buffer.endian
         buffer.set_little_endian()
         data = self.decode_value(buffer)
