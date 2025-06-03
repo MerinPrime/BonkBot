@@ -5,7 +5,8 @@ from bonkbot.types import Mode
 
 '''
 This example implements a room watcher.
-The bot monitors all active rooms and logs only available VTOL rooms.
+It monitors all active rooms and logs only available VTOL rooms.
+I use BonkAPI instead of BonkBot because we need only an API without the need for room joining.
 '''
 
 bonk_api = BonkAPI()
