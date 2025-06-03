@@ -57,7 +57,7 @@ class Layer:
             'angle': self.angle,
             'x': self.x,
             'y': self.y,
-            'flip_x': self.flip_x,
-            'flip_y': self.flip_y,
+            'flipX': self.flip_x,
+            'flipY': self.flip_y,
             'color': self.color,
         }
