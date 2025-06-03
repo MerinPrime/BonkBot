@@ -7,8 +7,8 @@ if TYPE_CHECKING:
     from bonkbot.core import Room
 
 '''
-This example implements a xp farm.
-For each account starting bot and farming xp.
+This example implements an XP farm.
+For each account it starts a bot to farm XP.
 '''
 
 accounts = [
