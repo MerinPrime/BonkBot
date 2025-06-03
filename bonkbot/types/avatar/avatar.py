@@ -1,18 +1,27 @@
-from dataclasses import dataclass, field
-from typing import Dict, List
+import copy
+from typing import TYPE_CHECKING, Dict, List, Optional
 
-from ...pson.bytebuffer import ByteBuffer
+import attrs
+
 from .layer import Layer
+
+if TYPE_CHECKING:
+    from ...pson.bytebuffer import ByteBuffer
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/avatar/Avatar.ts
-@dataclass
+@attrs.define(slots=True, auto_attribs=True)
 class Avatar:
-    layers: List[Layer] = field(default_factory=list)
-    base_color: int = 0x448aff
+    layers: List[Optional['Layer']] = attrs.field(factory=list, on_setattr=lambda x, y, value: copy.deepcopy(value))
+    base_color: int = attrs.field(default=0x448aff, validator=attrs.validators.and_(
+        # Must be int in range [0, 16777215]
+        attrs.validators.instance_of(int),
+        attrs.validators.le(0xFFFFFF),
+        attrs.validators.ge(0x000000),
+    ))
 
     @staticmethod
-    def from_buffer(buffer: ByteBuffer) -> 'Avatar':
+    def from_buffer(buffer: 'ByteBuffer') -> 'Avatar':
         avatar = Avatar()
         if buffer.size == 0:
             return avatar
@@ -40,11 +49,13 @@ class Avatar:
     def from_json(data: Dict) -> 'Avatar':
         avatar = Avatar()
         avatar.base_color = data['bc']
-        avatar.layers = [Layer.from_json(layer) for layer in data['layers']]
+        avatar.layers = [Layer.from_json(layer) if layer is not None else None
+                         for layer in data['layers']]
         return avatar
 
     def to_json(self) -> Dict:
         return {
             'bc': self.base_color,
-            'layers': [layer.to_json() for layer in self.layers],
+            'layers': [layer.to_json() if layer is not None else None
+                       for layer in self.layers],
         }
