@@ -181,8 +181,16 @@ class BonkBot(BotEventHandler):
             raise ApiError(result)
         await self.__start(result)
 
-    def create_room(self, name: str = '', password: str = '', *, unlisted: bool = False,
+    def create_room(self, name = '', password: str = '', *, unlisted: bool = False,
                     max_players: int = 6, min_level: int = 0, max_level: int = 999, server: 'Server' = None) -> 'Room':
+        if name is None:
+            name = f"{self.name}'s game"
+        if not (1 <= max_players <= 8):
+            raise ValueError('Max players must be between 1 and 8')
+        if not (0 <= min_level <= max_level):
+            raise ValueError('Min level must be between 0 and max_level')
+        if not (0 <= max_level <= 999):
+            raise ValueError('Max level must be between 0 and 999')
         if server is None:
             server = self.server
         room = Room(bot=self, room_params=RoomCreateParams(
