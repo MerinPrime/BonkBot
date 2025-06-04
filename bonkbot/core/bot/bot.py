@@ -152,7 +152,7 @@ class BonkBot(BotEventHandler):
         return self._bonk_api
     # endregion
 
-    async def _start(self, data: BotData) -> None:
+    async def __start(self, data: BotData) -> None:
         self._data = data
         self._is_logged = True
         await self.dispatch(BotEventHandler.on_ready, self)
@@ -161,7 +161,7 @@ class BonkBot(BotEventHandler):
         if self._is_logged:
             raise ValueError('BonkBot already logged in')
         validate_username(name)
-        await self._start(BotData(name=name))
+        await self.__start(BotData(name=name))
 
     async def login_with_password(self, name: str, password: str, *, remember: bool = False) -> Union[str, None]:
         if self._is_logged:
@@ -169,7 +169,7 @@ class BonkBot(BotEventHandler):
         result = await self.api_client.fetch_data_with_password(name, password, remember=remember)
         if isinstance(result, ErrorType):
             raise ApiError(result)
-        await self._start(result)
+        await self.__start(result)
         result: BotData
         return result.remember_token
 
@@ -179,7 +179,7 @@ class BonkBot(BotEventHandler):
         result = await self.api_client.fetch_data_with_token(remember_token)
         if isinstance(result, ErrorType):
             raise ApiError(result)
-        await self._start(result)
+        await self.__start(result)
 
     def create_room(self, name: str = '', password: str = '', *, unlisted: bool = False,
                     max_players: int = 6, min_level: int = 0, max_level: int = 999, server: 'Server' = None) -> 'Room':
