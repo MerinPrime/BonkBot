@@ -257,9 +257,6 @@ class Room:
             await self._join()
 
     async def _create(self) -> None:
-        name = self._room_params.name
-        if name is None:
-            name = f"{self._bot.name}'s game"
         data = {
             'peerID': self._peer_id,
             'roomName': self._room_params.name,
