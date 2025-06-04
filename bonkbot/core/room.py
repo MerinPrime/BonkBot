@@ -1,6 +1,5 @@
 import asyncio
 import copy
-import dataclasses
 import random
 import string
 import time
@@ -50,7 +49,7 @@ if TYPE_CHECKING:
 class Room:
     def __init__(self, bot: 'BonkBot', room_params: Union['RoomJoinParams', 'RoomCreateParams']) -> None:
         self._bot: BonkBot = bot
-        self._room_params: Union[RoomJoinParams, RoomCreateParams] = dataclasses.replace(room_params)
+        self._room_params: Union[RoomJoinParams, RoomCreateParams] = room_params
         self._action: RoomAction = RoomAction.CREATE if isinstance(room_params, RoomCreateParams) else RoomAction.JOIN
 
         self._room_data: Optional[RoomData] = None
@@ -263,7 +262,7 @@ class Room:
             name = f"{self._bot.name}'s game"
         data = {
             'peerID': self._peer_id,
-            'roomName': name,
+            'roomName': self._room_params.name,
             'maxPlayers': self._room_params.max_players,
             'password': self._room_params.password,
             'id': self._bot.id,

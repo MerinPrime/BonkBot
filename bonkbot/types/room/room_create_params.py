@@ -1,15 +1,16 @@
-from dataclasses import dataclass
-from typing import Union
+from typing import Optional
+
+import attrs
 
 from bonkbot.types import Server
 
 
-@dataclass(frozen=True)
+@attrs.define(slots=True, auto_attribs=True, frozen=True)
 class RoomCreateParams:
-    name: Union[str, None] = None
-    password: str = ''
-    unlisted: bool = False
-    max_players: int = 6
-    min_level: int = 0
-    max_level: int = 999
-    server: Server = Server.WARSAW
+    name: Optional[str]
+    password: str
+    unlisted: bool
+    max_players: int
+    min_level: int
+    max_level: int
+    server: 'Server'
