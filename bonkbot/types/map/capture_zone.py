@@ -1,6 +1,5 @@
 import enum
 from dataclasses import dataclass
-from typing import Optional
 
 
 class CaptureType(enum.IntEnum):
@@ -23,4 +22,4 @@ class CaptureZone:
     name: str = 'Cap Zone'
     shape_id: int = -1
     seconds: float = 10
-    type: Optional['CaptureType'] = CaptureType.NORMAL
+    type: 'CaptureType' = CaptureType.NORMAL
