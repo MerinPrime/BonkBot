@@ -1,10 +1,10 @@
 import asyncio
 from typing import TYPE_CHECKING
 
-from bonkbot.core.bot.bot import BonkBot
+from bonkbot.core.bot import BonkBot
 
 if TYPE_CHECKING:
-    from bonkbot.core import Room
+    from bonkbot.core.room import Room
 
 '''
 This example implements an XP farm.
