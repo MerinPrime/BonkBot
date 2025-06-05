@@ -5,7 +5,7 @@ from bonkbot.core.bot import BonkBot
 from bonkbot.types import Inputs
 
 if TYPE_CHECKING:
-    from bonkbot.core.room import Room, Player
+    from bonkbot.core.room import Player, Room
     from bonkbot.types import PlayerMove
 
 '''
