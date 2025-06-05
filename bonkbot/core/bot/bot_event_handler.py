@@ -1,17 +1,16 @@
 import asyncio
 import inspect
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, Dict, List
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, List
 
 from pymitter import EventEmitter
 
 if TYPE_CHECKING:
-    from bonkbot.core.bot.bot import BonkBot
-
-    from ..core.player import Player
-    from ..core.room import Room
-    from ..types.map.bonkmap import BonkMap
-    from ..types.player_move import PlayerMove
-    from ..types.room.room_action import RoomAction
+    from ...types.map.bonkmap import BonkMap
+    from ...types.player_move import PlayerMove
+    from ...types.room.room_action import RoomAction
+    from ..room.player import Player
+    from ..room.room import Room
+    from .bot import BonkBot
 
 
 class BotEventHandler:
@@ -182,7 +181,7 @@ class BotEventHandler:
     async def on_countdown_abort(self, room: 'Room') -> None:
         pass
 
-    async def on_inform_in_game(self, room: 'Room', frame: int, random: List[int], initial_state: Dict, state_id: int) -> None:
+    async def on_inform_in_game(self, room: 'Room', frame: int, random: List[int], initial_state: dict, state_id: int) -> None:
         pass
 
     async def on_player_tabbed(self, room: 'Room', player: 'Player') -> None:

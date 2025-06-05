@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ...core.room import Room
+    from ...core.room.room import Room
 
 
 class RoomAlreadyConnected(Exception):

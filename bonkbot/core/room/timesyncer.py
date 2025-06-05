@@ -1,30 +1,34 @@
 import asyncio
 import time
-from typing import Dict, Optional
+from asyncio import Lock, Task
+from typing import TYPE_CHECKING, Dict, Optional
 
-import socketio
 from pymitter import EventEmitter
 
-from .api.socket_events import SocketEvents
+from ..api.socket_events import SocketEvents
+
+if TYPE_CHECKING:
+    from socketio import AsyncClient
 
 
 class TimeSyncer:
-    def __init__(self, interval: float, timeout: float, delay: float, repeat: int, socket: socketio.AsyncClient):
-        self.interval = interval
-        self.timeout = timeout
-        self.delay = delay
-        self.repeat = repeat
-        self.socket = socket
-        self.offset = 0
-        self._time_sum = 0
-        self._in_progress = 0
-        self.sync_id = 0
-        self._ids_time = {}
-        self.event_emitter = EventEmitter()
-        self._lock = asyncio.Lock()
-        self._task = None
+    def __init__(self, interval: float, timeout: float, delay: float, repeat: int, socket: 'AsyncClient'):
+        self.interval: float = interval
+        self.timeout: float = timeout
+        self.delay: float = delay
+        self.repeat: int = repeat
+        self.socket: AsyncClient = socket
 
-        self.socket.on(SocketEvents.Incoming.TIMESYNC, self.on_result)
+        self.offset: int = 0
+        self.sync_id: int = 0
+        self.event_emitter: EventEmitter = EventEmitter()
+        self._lock: Lock = Lock()
+        self._task: Task = None
+        self._time_sum: int = 0
+        self._in_progress: int = 0
+        self._ids_time: Dict[int, float] = {}
+
+        self.socket.on(SocketEvents.Incoming.TIME_SYNC, self.on_result)
 
     async def stop(self) -> None:
         if self._task and not self._task.done():
@@ -57,11 +61,11 @@ class TimeSyncer:
             await self.event_emitter.emit_async('sync', 'start')
             for _ in range(repeat):
                 self._ids_time[self.sync_id] = self.now()
-                await self.socket.emit(SocketEvents.Outgoing.TIMESYNC, {'jsonrpc': '2.0', 'id': self.sync_id, 'method': 'timesync'})
+                await self.socket.emit(SocketEvents.Outgoing.TIME_SYNC, {'jsonrpc': '2.0', 'id': self.sync_id, 'method': 'timesync'})
                 await asyncio.sleep(delay)
                 self.sync_id += 1
 
-    async def on_result(self, data: Dict) -> None:
+    async def on_result(self, data: dict) -> None:
         self._in_progress -= 1
         t0 = self._ids_time[data['id']]
         t1 = self.now()

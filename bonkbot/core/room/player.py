@@ -1,18 +1,17 @@
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Dict, List, Tuple, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 
-from ..types.errors import ApiError, ErrorType
-from ..types.team import Team
-from .api.socket_events import SocketEvents
+from ...types.errors import ApiError, ErrorType
+from ...types.team import Team
+from ..api.socket_events import SocketEvents
 
 if TYPE_CHECKING:
     from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
 
-    from bonkbot.core.bot.bot import BonkBot
-
-    from ..types import Inputs
-    from ..types.avatar import Avatar
-    from ..types.player_move import PlayerMove
+    from ...types.avatar import Avatar
+    from ...types.input import Inputs
+    from ...types.player_move import PlayerMove
+    from ..bot.bot import BonkBot
     from .room import Room
 
 @dataclass
@@ -25,11 +24,11 @@ class Player:
     name: str
     is_guest: bool
     level: int
-    data_connection: Union['BinaryPack', None] = None
+    data_connection: Optional['BinaryPack'] = None
     peer_id: str = ''
     balance: int = 0
     ping: int = 105
-    joined_with_bypass: Union[bool, None] = None
+    joined_with_bypass: Optional[bool] = None
     moves: Dict[int, 'PlayerMove'] = field(default_factory=dict)
     prev_inputs: List[Tuple[int, 'Inputs']] = field(default_factory=list)
     peer_ban_until: float = 0

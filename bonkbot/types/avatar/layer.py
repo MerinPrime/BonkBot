@@ -1,8 +1,9 @@
-from typing import Dict, Union
+from typing import TYPE_CHECKING, Optional
 
 import attrs
 
-from ...pson.bytebuffer import ByteBuffer
+if TYPE_CHECKING:
+    from ...pson.bytebuffer import ByteBuffer
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/avatar/Layer.ts
@@ -49,7 +50,7 @@ class Layer:
     ))
 
     @staticmethod
-    def from_buffer(buffer: ByteBuffer) -> Union['Layer', None]:
+    def from_buffer(buffer: 'ByteBuffer') -> Optional['Layer']:
         if buffer.read_uint8() != 10:
             return None
         if buffer.read_uint8() == 7:
@@ -70,7 +71,7 @@ class Layer:
         return layer
 
     @staticmethod
-    def from_json(data: Dict) -> 'Layer':
+    def from_json(data: dict) -> 'Layer':
         layer = Layer(
             id = data['id'],
             scale = data['scale'],
@@ -83,7 +84,7 @@ class Layer:
         )
         return layer
 
-    def to_json(self) -> Dict:
+    def to_json(self) -> dict:
         return {
             'id': self.id,
             'scale': self.scale,

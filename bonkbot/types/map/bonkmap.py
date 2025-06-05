@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import List
 
 from ...core.constants import MAP_VERSION
 from ...pson.bytebuffer import ByteBuffer
@@ -38,11 +38,22 @@ class BonkMap:
     # TODO: Make user-friendly
     # TODO: And maybe split to_json, from_json, decode_from_database to MapMetadata, MapProperties, MapPhysics etc.
 
-    def to_json(self) -> Dict:
-        data = {}
-        data['v'] = self.version
+    def to_json(self) -> dict:
+        data = {
+            'v': self.version,
+            'm': {},
+            's': {},
+            'physics': {
+                'bodies': [],
+                'fixtures': [],
+                'joints': [],
+                'shapes': [],
+                'bro': [],
+            },
+            'spawns': [],
+            'capZones': [],
+        }
         # region Metadata
-        data['m'] = {}
         data['m']['a'] = self.metadata.author
         data['m']['n'] = self.metadata.name
         data['m']['dbv'] = self.metadata.database_version
@@ -62,7 +73,6 @@ class BonkMap:
             data['m']['vu'] = self.metadata.votes_up
         # endregion
         # region Properties
-        data['s'] = {}
         data['s']['gd'] = self.properties.grid_size
         data['s']['nc'] = self.properties.players_dont_collide
         data['s']['re'] = self.properties.respawn_on_death
@@ -76,8 +86,6 @@ class BonkMap:
             data['s']['a3'] = self.properties.a3
         # endregion
         # region Physics
-        data['physics'] = {}
-        data['physics']['bodies'] = []
         for body in self.physics.bodies:
             body_data = {}
             if body.name is not None:
@@ -119,7 +127,6 @@ class BonkMap:
             body_data['s']['f_p'] = (body.shape.collide_mask & CollideFlag.PLAYERS) != 0
             body_data['s']['f_c'] = body.shape.collide_group
             data['physics']['bodies'].append(body_data)
-        data['physics']['fixtures'] = []
         for fixture in self.physics.fixtures:
             fixture_data = {}
             fixture_data['d'] = fixture.death
@@ -141,7 +148,6 @@ class BonkMap:
             if fixture.zp is not None:
                 fixture_data['zp'] = fixture.zp
             data['physics']['fixtures'].append(fixture_data)
-        data['physics']['joints'] = []
         for joint in self.physics.joints:
             joint_data = {}
             if isinstance(joint, RevoluteJoint):
@@ -206,7 +212,6 @@ class BonkMap:
                 joint_data['jb'] = joint.joint_b_id
                 joint_data['r'] = joint.ratio
             data['physics']['joints'].append(joint_data)
-        data['physics']['shapes'] = []
         for shape in self.physics.shapes:
             shape_data = {}
             if isinstance(shape, BoxShape):
@@ -230,7 +235,6 @@ class BonkMap:
         data['physics']['ppm'] = self.physics.ppm
         # endregion
         # region Spawns
-        data['spawns'] = []
         for spawn in self.spawns:
             spawn_data = {}
             spawn_data['f'] = spawn.ffa
@@ -249,7 +253,6 @@ class BonkMap:
             data['spawns'].append(spawn_data)
         # endregion
         # region Capture zones
-        data['capZones'] = []
         for capture_zone in self.cap_zones:
             capture_zone_data = {}
             capture_zone_data['i'] = capture_zone.shape_id

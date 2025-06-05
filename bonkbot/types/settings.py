@@ -1,6 +1,8 @@
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
-from ..pson.bytebuffer import ByteBuffer
+if TYPE_CHECKING:
+    from ..pson.bytebuffer import ByteBuffer
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/CustomControls.ts
@@ -31,7 +33,7 @@ class Settings:
     quality: int = 3
 
     @staticmethod
-    def from_buffer(buffer: ByteBuffer) -> 'Settings':
+    def from_buffer(buffer: 'ByteBuffer') -> 'Settings':
         settings = Settings()
         if buffer.size == 0:
             return settings

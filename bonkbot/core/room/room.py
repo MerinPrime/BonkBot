@@ -3,47 +3,48 @@ import copy
 import random
 import string
 import time
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from asyncio import Event, Future, Task
+from typing import TYPE_CHECKING, List, Optional, Union
 
-import socketio
 from peerjs_py import Peer, PeerOptions
-from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
 from peerjs_py.dataconnection.DataConnection import DataConnection
+from socketio import AsyncClient
 
-from ..core.player import Player
-from ..pson import ByteBuffer, StaticPair
-from ..types import Inputs
-from ..types.avatar import Avatar
-from ..types.errors import ApiError, ErrorType
-from ..types.errors.room_already_connected import RoomAlreadyConnected
-from ..types.errors.room_not_connected import RoomNotConnected
-from ..types.map.bonkmap import BonkMap
-from ..types.mode import Mode
-from ..types.player_move import PlayerMove
-from ..types.room.room_action import RoomAction
-from ..types.room.room_create_params import RoomCreateParams
-from ..types.room.room_data import RoomData
-from ..types.team import Team, TeamState
-from .api.endpoints import (
+from ...pson import ByteBuffer, StaticPair
+from ...types.avatar import Avatar
+from ...types.errors import ApiError, ErrorType
+from ...types.errors.room_already_connected import RoomAlreadyConnected
+from ...types.errors.room_not_connected import RoomNotConnected
+from ...types.input import Inputs
+from ...types.map.bonkmap import BonkMap
+from ...types.mode import Mode
+from ...types.player_move import PlayerMove
+from ...types.room.room_action import RoomAction
+from ...types.room.room_create_params import RoomCreateParams
+from ...types.room.room_data import RoomData
+from ...types.team import Team, TeamState
+from ..api.endpoints import (
     bonk_peer_api,
     bonk_socket_api,
     room_link_api,
 )
-from .api.socket_events import SocketEvents
-from .bot_event_handler import BotEventHandler
-from .constants import (
+from ..api.socket_events import SocketEvents
+from ..bot.bot_event_handler import BotEventHandler
+from ..constants import (
     CRITICAL_API_ERRORS,
     PROTOCOL_VERSION,
     PSON_KEYS,
     RATE_LIMIT_PONG,
 )
+from .player import Player
 from .timesyncer import TimeSyncer
 
 if TYPE_CHECKING:
-    from bonkbot.core.bot.bot import BonkBot
+    from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
 
-    from ..types.room.room_join_params import RoomJoinParams
-    from ..types.server import Server
+    from ...types.room.room_join_params import RoomJoinParams
+    from ...types.server import Server
+    from ..bot.bot import BonkBot
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/network/NetworkEngine.ts
 class Room:
@@ -53,7 +54,7 @@ class Room:
         self._action: RoomAction = RoomAction.CREATE if isinstance(room_params, RoomCreateParams) else RoomAction.JOIN
 
         self._room_data: Optional[RoomData] = None
-        self._socket: socketio.AsyncClient = None
+        self._socket: AsyncClient = None
         self._peer_ready: bool = False
         self._time_offset: int = None
         self._synced: bool = False
@@ -61,12 +62,12 @@ class Room:
         self._is_connected: bool = False
         self._running: bool = False
         self._bot_player: Player = None
-        self._p2p_revert_task: asyncio.Task = None
+        self._p2p_revert_task: Task = None
         self._connections: List[BinaryPack] = []
         self._sequence: int = 0
 
     @property
-    def map(self) -> BonkMap:
+    def map(self) -> 'BonkMap':
         return copy.deepcopy(self._room_data.map)
 
     @property
@@ -106,15 +107,15 @@ class Room:
         return self._room_data.mode
 
     @property
-    def min_level(self) -> Union[int, None]:
+    def min_level(self) -> Optional[int]:
         return self._room_params.min_level
 
     @property
-    def max_level(self) -> Union[int, None]:
+    def max_level(self) -> Optional[int]:
         return self._room_params.max_level
 
     @property
-    def password(self) -> Union[str, None]:
+    def password(self) -> Optional[str]:
         return self._room_data.password
 
     @property
@@ -134,11 +135,11 @@ class Room:
         return self._room_data.team_lock
 
     @property
-    def is_unlisted(self) -> Union[bool, None]:
+    def is_unlisted(self) -> Optional[bool]:
         return self._room_params.unlisted
 
     @property
-    def socket(self) -> socketio.AsyncClient:
+    def socket(self) -> 'AsyncClient':
         return self._socket
 
     @property
@@ -184,7 +185,7 @@ class Room:
             return
         self._running = True
         self._bot.add_room(self)
-        self._socket = socketio.AsyncClient(ssl_verify=False)
+        self._socket = AsyncClient(ssl_verify=False)
         self.__bind_listeners()
         self._bind_sugar()
         async def init_socket() -> None:
@@ -383,7 +384,7 @@ class Room:
 
         await self._peer.start()
 
-    async def _process_new_connection(self, connection: BinaryPack) -> None:
+    async def _process_new_connection(self, connection: 'BinaryPack') -> None:
         player = None
         def get_player() -> Player:
             nonlocal player
@@ -395,7 +396,7 @@ class Room:
             return player
 
         @connection.on('data')
-        def on_data(data: Dict) -> None:
+        def on_data(data: dict) -> None:
             player = get_player()
             if player.moves.get(data['c']) is not None:
                 player.moves[data['c']].by_peer = True
@@ -427,11 +428,11 @@ class Room:
         self.socket.on(SocketEvents.Incoming.PLAYER_JOIN, self.__on_player_join)
         self.socket.on(SocketEvents.Incoming.PLAYER_LEFT, self.__on_player_left)
         self.socket.on(SocketEvents.Incoming.HOST_LEFT, self.__on_host_left)
-        self.socket.on(SocketEvents.Incoming.PLAYER_INPUT, self.__on_move)
+        self.socket.on(SocketEvents.Incoming.PLAYER_MOVE, self.__on_move)
         self.socket.on(SocketEvents.Incoming.READY_CHANGE, self.__on_ready_change)
         self.socket.on(SocketEvents.Incoming.READY_RESET, self.__on_ready_reset)
-        self.socket.on(SocketEvents.Incoming.PLAYER_MUTED, self.__on_player_mute)
-        self.socket.on(SocketEvents.Incoming.PLAYER_UNMUTED, self.__on_player_unmute)
+        self.socket.on(SocketEvents.Incoming.PLAYER_MUTE, self.__on_player_mute)
+        self.socket.on(SocketEvents.Incoming.PLAYER_UNMUTE, self.__on_player_unmute)
         self.socket.on(SocketEvents.Incoming.PLAYER_NAME_CHANGE, self.__on_player_name_change)
         self.socket.on(SocketEvents.Incoming.GAME_END, self.__on_game_end)
         self.socket.on(SocketEvents.Incoming.GAME_START, self.__on_game_start)
@@ -439,7 +440,7 @@ class Room:
         self.socket.on(SocketEvents.Incoming.TEAM_LOCK, self.__on_team_lock)
         self.socket.on(SocketEvents.Incoming.MESSAGE, self.__on_message)
         self.socket.on(SocketEvents.Incoming.INFORM_IN_LOBBY, self.__inform_in_lobby)
-        self.socket.on(SocketEvents.Incoming.ON_KICK, self.__on_player_kick)
+        self.socket.on(SocketEvents.Incoming.KICK, self.__on_player_kick)
         self.socket.on(SocketEvents.Incoming.MODE_CHANGE, self.__on_mode_change)
         self.socket.on(SocketEvents.Incoming.ROUNDS_CHANGE, self.__on_rounds_change)
         self.socket.on(SocketEvents.Incoming.MAP_CHANGE, self.__on_map_change)
@@ -456,14 +457,14 @@ class Room:
         self.socket.on(SocketEvents.Incoming.STATUS, self.__on_error)
         self.socket.on(SocketEvents.Incoming.LEVEL_UP, self.__on_level_up)
         self.socket.on(SocketEvents.Incoming.XP_GAIN, self.__on_xp_gain)
-        self.socket.on(SocketEvents.Incoming.INITIAL_STATE, self.__inform_in_game)
+        self.socket.on(SocketEvents.Incoming.INFORM_IN_GAME, self.__inform_in_game)
         self.socket.on(SocketEvents.Incoming.ROOM_ID_OBTAIN, self.__on_room_id_obtain)
         self.socket.on(SocketEvents.Incoming.PLAYER_TABBED, self.__on_player_tabbed)
         self.socket.on(SocketEvents.Incoming.ROOM_NAME_CHANGE, self.__on_room_name_change)
         self.socket.on(SocketEvents.Incoming.ROOM_PASS_CHANGE, self.__on_room_pass_change)
 
     # region Events
-    async def __on_ping_data(self, pings: Dict, player_id: int) -> None:
+    async def __on_ping_data(self, pings: dict, player_id: int) -> None:
         await self.socket.emit(SocketEvents.Outgoing.PING_DATA, {'id': player_id})
         for player_id, ping in pings.items():
             player = self.get_player_by_id(int(player_id))
@@ -475,7 +476,7 @@ class Room:
     async def __on_room_create(self, *args) -> None:
         await self._bot.dispatch(BotEventHandler.on_room_connection, self, RoomAction.CREATE)
 
-    async def __on_room_join(self, bot_id: int, host_id: int, players: List, timestamp: int, team_lock: bool,
+    async def __on_room_join(self, bot_id: int, host_id: int, players: list, timestamp: int, team_lock: bool,
                            join_id: int, join_bypass: str, *args) -> None:
         self._room_data.join_id = f'{join_id:06}'
         self._room_data.join_bypass = join_bypass
@@ -520,7 +521,7 @@ class Room:
         await self._bot.dispatch(BotEventHandler.on_room_connection, self, RoomAction.JOIN)
 
     async def __on_player_join(self, player_id: int, peer_id: str, username: str, is_guest: bool, level: int,
-                               joined_with_bypass: bool, avatar: Dict) -> None:
+                               joined_with_bypass: bool, avatar: dict) -> None:
         connection = None
         for data_connection in self._connections:
             if data_connection.peer == peer_id:
@@ -548,14 +549,14 @@ class Room:
             })
         await self._bot.dispatch(BotEventHandler.on_player_join, self, player)
 
-    async def __on_player_left(self, player_id: int, data: Dict) -> None:
+    async def __on_player_left(self, player_id: int, data: dict) -> None:
         player = self.get_player_by_id(player_id)
         player.is_left = True
         if player.data_connection and player.data_connection.open:
             await player.data_connection.close()
         await self.bot.dispatch(BotEventHandler.on_player_left, self, player)
 
-    async def __on_host_left(self, old_host_id: int, new_host_id: int, data: Dict) -> None:
+    async def __on_host_left(self, old_host_id: int, new_host_id: int, data: dict) -> None:
         old_host = self.get_player_by_id(old_host_id)
         old_host.is_left = True
         if old_host.data_connection and old_host.data_connection.open:
@@ -569,7 +570,7 @@ class Room:
         self._room_data.host = new_host
         await self.bot.dispatch(BotEventHandler.on_host_left, self, old_host, new_host)
 
-    async def __on_move(self, player_id: int, data: Dict) -> None:
+    async def __on_move(self, player_id: int, data: dict) -> None:
         player = self.get_player_by_id(player_id)
         if player.moves.get(data['c']) is not None:
             move = player.moves[data['c']]
@@ -778,8 +779,8 @@ class Room:
 
     # region Sugar
     def _bind_sugar(self) -> None:
-        self._connect_event = asyncio.Event()
-        self._any_player = asyncio.Future()
+        self._connect_event = Event()
+        self._any_player = Future()
         self._bot.on(BotEventHandler.on_room_id_obtain, self._sugar_on_room_id_obtain)
         self._bot.on(BotEventHandler.on_player_join, self._sugar_on_player_join)
 
@@ -844,11 +845,11 @@ class Room:
             return
         await self.socket.emit(SocketEvents.Outgoing.SET_TEAM_LOCK, {'teamLock': state})
 
-    async def set_map(self, bonk_map: BonkMap) -> None:
+    async def set_map(self, bonk_map: 'BonkMap') -> None:
         # TODO: Implement
         ...
 
-    async def request_map(self, bonk_map: BonkMap) -> None:
+    async def request_map(self, bonk_map: 'BonkMap') -> None:
         # TODO: Implement
         ...
 
@@ -889,7 +890,7 @@ class Room:
         """Get 100 xp. Limit 18000 in day, 2000 in 20 minutes"""
         await self.socket.emit(SocketEvents.Outgoing.XP_GAIN)
 
-    async def move(self, frame: int, inputs: Inputs, sequence: Optional[int] = None) -> None:
+    async def move(self, frame: int, inputs: 'Inputs', sequence: Optional[int] = None) -> None:
         if sequence is None:
             sequence = self._sequence
             self._sequence += 1

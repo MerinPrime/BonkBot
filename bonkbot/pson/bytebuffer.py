@@ -16,11 +16,11 @@ class ByteBuffer:
             self.bytes: bytearray = _bytes
         self.offset: int = 0
         self.endian: str = '>'
-    
+
     @property
     def size(self) -> int:
         return len(self.bytes)
-    
+
     def set_endian(self, endian: str) -> None:
         self.endian = endian
 

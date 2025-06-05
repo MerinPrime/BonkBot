@@ -1,8 +1,9 @@
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 import attrs
 
-from bonkbot.types import Server
+if TYPE_CHECKING:
+    from ..server import Server
 
 
 @attrs.define(slots=True, auto_attribs=True, frozen=True)

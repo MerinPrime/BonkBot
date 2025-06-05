@@ -20,7 +20,7 @@ class StaticPair:
             self.next_idx = len(keys)
             self.ihash_dict = {v: k for k, v in self.hash_dict.items()}
 
-    def encode(self, value: Optional[PsonValue], buffer: ByteBuffer = None) -> ByteBuffer:
+    def encode(self, value: Optional['PsonValue'], buffer: 'ByteBuffer' = None) -> 'ByteBuffer':
         if buffer is None:
             buffer = ByteBuffer()
 
@@ -30,7 +30,7 @@ class StaticPair:
         buffer.set_endian(endian)
         return buffer
 
-    def encode_value(self, value: Optional[PsonValue], buffer: ByteBuffer = None) -> ByteBuffer:
+    def encode_value(self, value: Optional['PsonValue'], buffer: 'ByteBuffer' = None) -> 'ByteBuffer':
         if value is None:
             buffer.write_uint8(T.NULL)
         elif type(value) is str:
@@ -96,7 +96,7 @@ class StaticPair:
 
         return buffer
 
-    def decode(self, _bytes: Union[bytearray, ByteBuffer]) -> PsonValue:
+    def decode(self, _bytes: Union[bytearray, 'ByteBuffer']) -> 'PsonValue':
         if type(_bytes) is bytearray:
             buffer = ByteBuffer(_bytes)
         else:
@@ -108,7 +108,7 @@ class StaticPair:
         buffer.set_endian(endian)
         return data
 
-    def decode_value(self, buffer: ByteBuffer) -> PsonValue:
+    def decode_value(self, buffer: 'ByteBuffer') -> 'PsonValue':
         code = buffer.read_uint8()
         if code <= T.MAX:
             return zigzag_decode32(code)

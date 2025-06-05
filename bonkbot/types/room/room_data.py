@@ -1,18 +1,18 @@
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional
 
-from bonkbot.types.map import BonkMap
-from bonkbot.types.mode import Mode
-from bonkbot.types.team import TeamState
+from ...types.map import BonkMap
+from ...types.mode import Mode
+from ...types.team import TeamState
 
 if TYPE_CHECKING:
-    from bonkbot.core.player import Player
+    from ...core.room.player import Player
 
 @dataclass
 class RoomData:
     name: str
     password: Optional[str] = None
-    join_id: Union[str, None] = None
+    join_id: Optional[str] = None
     join_bypass: str = ''
     host: Optional['Player'] = None
     players: List['Player'] = field(default_factory=list)

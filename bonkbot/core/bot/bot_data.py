@@ -1,26 +1,26 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
 
-from ..pson.bytebuffer import ByteBuffer
-from ..types.avatar.avatar import Avatar
-from ..types.friend import Friend
-from ..types.settings import Settings
+from ...pson.bytebuffer import ByteBuffer
+from ...types.avatar.avatar import Avatar
+from ...types.friend import Friend
+from ...types.settings import Settings
 
 
 @dataclass
 class BotData:
-    name: str = ''
-    token: str = ''
-    remember_token: str = ''
-    id: int = 0
+    name: str
+    token: Optional[str] = None
+    remember_token: Optional[str] = None
     is_guest: bool = True
+    id: int = 0
     xp: int = 0
     active_avatar: int = 0
-    avatar: Avatar = field(default_factory=Avatar)
-    avatars: List[Avatar] = field(default_factory=lambda: [Avatar() for _ in range(5)])
-    friends: List[Friend] = field(default_factory=list)
-    legacy_friends: List[Friend] = field(default_factory=list)
-    settings: Settings = field(default_factory=Settings)
+    avatar: 'Avatar' = field(default_factory=Avatar)
+    avatars: List['Avatar'] = field(default_factory=lambda: [Avatar() for _ in range(5)])
+    friends: List['Friend'] = field(default_factory=list)
+    legacy_friends: List['Friend'] = field(default_factory=list)
+    settings: Optional['Settings'] = None
 
     @staticmethod
     def from_login_response(json_data: dict) -> 'BotData':
@@ -28,10 +28,10 @@ class BotData:
             name = json_data['username'],
             token = json_data['token'],
             remember_token = json_data.get('remember_token'),
+            is_guest = False,
             id = json_data['id'],
             xp = json_data['xp'],
             active_avatar = json_data['activeAvatarNumber'],
-            is_guest = False,
         )
 
         if 'avatar' in json_data:
@@ -61,6 +61,9 @@ class BotData:
                 data.legacy_friends.append(Friend(name=friend_name, dbid=None, room_id=None))
 
         if json_data.get('controls'):
-            data.settings = Settings.from_buffer(ByteBuffer().from_base64(json_data['controls'], uri_encoded=False))
+            settings_buffer = ByteBuffer()
+            settings_buffer.from_base64(json_data['controls'])
+            settings_buffer.set_big_endian()
+            data.settings = Settings.from_buffer(settings_buffer)
 
         return data

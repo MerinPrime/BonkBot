@@ -1,5 +1,5 @@
 import copy
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 import attrs
 
@@ -46,14 +46,14 @@ class Avatar:
         return avatar
 
     @staticmethod
-    def from_json(data: Dict) -> 'Avatar':
+    def from_json(data: dict) -> 'Avatar':
         avatar = Avatar()
         avatar.base_color = data['bc']
         avatar.layers = [Layer.from_json(layer) if layer is not None else None
                          for layer in data['layers']]
         return avatar
 
-    def to_json(self) -> Dict:
+    def to_json(self) -> dict:
         return {
             'bc': self.base_color,
             'layers': [layer.to_json() if layer is not None else None

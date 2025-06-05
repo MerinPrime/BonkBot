@@ -1,15 +1,15 @@
 import asyncio
 import re
+from asyncio import AbstractEventLoop
 from typing import List, Optional, Union
 
-import aiohttp
-
-from bonkbot.types.map import BonkMap
-from bonkbot.types.room.room_join_params import RoomJoinParams
+from aiohttp import ClientSession
 
 from ...types import Friend, Mode, Server
 from ...types.errors.error_type import ErrorType
+from ...types.map import BonkMap
 from ...types.room import RoomInfo
+from ...types.room.room_join_params import RoomJoinParams
 from ..api.endpoints import (
     auto_join_api,
     get_friends_api,
@@ -18,33 +18,33 @@ from ..api.endpoints import (
     get_rooms_api,
     login_legacy_api,
 )
-from ..bot_data import BotData
 from ..constants import PROTOCOL_VERSION
+from .bot_data import BotData
 
 
 class BonkAPI:
-    def __init__(self, event_loop: Optional[asyncio.AbstractEventLoop] = None,
-                 aiohttp_session: Optional[aiohttp.ClientSession] = None) -> None:
+    def __init__(self, event_loop: Optional['AbstractEventLoop'] = None,
+                 aiohttp_session: Optional['ClientSession'] = None) -> None:
         if event_loop is None:
             event_loop = asyncio.get_event_loop()
         if aiohttp_session is None:
-            aiohttp_session = aiohttp.ClientSession(loop=event_loop)
-        self._event_loop: asyncio.AbstractEventLoop = event_loop
-        self._aiohttp_session: aiohttp.ClientSession = aiohttp_session
+            aiohttp_session = ClientSession(loop=event_loop)
+        self._event_loop: AbstractEventLoop = event_loop
+        self._aiohttp_session: ClientSession = aiohttp_session
 
     @property
-    def event_loop(self) -> asyncio.AbstractEventLoop:
+    def event_loop(self) -> 'AbstractEventLoop':
         return self._event_loop
 
     @property
-    def aiohttp_session(self) -> aiohttp.ClientSession:
+    def aiohttp_session(self) -> 'ClientSession':
         return self._aiohttp_session
 
     async def close(self) -> None:
         await self._aiohttp_session.close()
 
-    async def fetch_data_with_password(self, name: str, password: str, *,
-                                       remember: bool = False) -> Union['ErrorType', 'BotData']:
+    async def fetch_data_with_password(self, name: str, password: str, *, remember: bool = False,
+                                       ) -> Union['ErrorType', 'BotData']:
         response = await self._aiohttp_session.post(
             login_legacy_api,
             data={
@@ -72,8 +72,8 @@ class BonkAPI:
             return ErrorType.from_string(response_data['e'])
         return BotData.from_login_response(response_data)
 
-    async def fetch_room_data(self, room_id: int,
-                              password: str = '', bypass: str = '') -> Union['ErrorType', 'RoomJoinParams']:
+    async def fetch_room_data(self, room_id: int, password: str = '', bypass: str = '',
+                              ) -> Union['ErrorType', 'RoomJoinParams']:
         response = await self.aiohttp_session.post(
             url=get_room_address_api,
             data={
@@ -92,7 +92,8 @@ class BonkAPI:
             server=Server.from_name(response_data['server']),
         )
 
-    async def fetch_room_data_via_link(self, link: str, password: str = '') -> Union['ErrorType', 'RoomJoinParams']:
+    async def fetch_room_data_via_link(self, link: str, password: str = '',
+                                       ) -> Union['ErrorType', 'RoomJoinParams']:
         regex = r'/(\d{6})([a-zA-Z0-9]{5})?$'
         match = re.search(regex, link)
         room_id = match.group(1)
@@ -110,7 +111,7 @@ class BonkAPI:
             server=Server.from_name(response_data['server']),
         )
 
-    async def fetch_server(self) -> Server:
+    async def fetch_server(self) -> 'Server':
         response = await self.aiohttp_session.post(
             get_rooms_api,
             data={

@@ -22,4 +22,4 @@ class T:
     BINARY = 0xFF
 
 
-PsonValue = Union[str, int, float, bool, list, dict]
+PsonValue = Union[str, int, float, bool, list, dict, bytearray]

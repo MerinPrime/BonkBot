@@ -6,7 +6,7 @@ from .input import Inputs
 @dataclass
 class PlayerMove:
     frame: int = 0
-    inputs: Inputs = field(default_factory=Inputs)
+    inputs: 'Inputs' = field(default_factory=Inputs)
     sequence: int = 0
     time: float = 0
     by_socket: bool = False
