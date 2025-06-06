@@ -1,11 +1,11 @@
-def zigzag_encode32(value: int) -> int:
-    return (value << 1) ^ (value >> 31) & 0xFFFFFFFF
+def zigzag_encode32(n: int) -> int:
+    return (n << 1) ^ (n >> 31)
 
-def zigzag_decode32(value: int) -> int:
-    return (value >> 1) ^ -(value & 1) & 0xFFFFFFFF
+def zigzag_decode32(n: int) -> int:
+    return (n >> 1) ^ -(n & 1)
 
-def zigzag_encode64(value: int) -> int:
-    return (value << 1) ^ (value >> 63) & 0xFFFFFFFFFFFFFFFF
+def zigzag_encode64(n: int) -> int:
+    return (n << 1) ^ (n >> 63)
 
-def zigzag_decode64(value: int) -> int:
-    return (value >> 1) ^ -(value & 1) & 0xFFFFFFFFFFFFFFFF
+def zigzag_decode64(n: int) -> int:
+    return (n >> 1) ^ -(n & 1)
