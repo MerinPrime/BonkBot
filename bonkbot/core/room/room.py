@@ -794,6 +794,15 @@ class Room:
         await self._connect_event.wait()
 
     async def any_player(self) -> 'Player':
+        if self._any_player.done():
+            result = await self._any_player
+            if result is None:
+                self._any_player = Future()
+                for player in self.players:
+                    if player.is_bot:
+                        continue
+                    self._any_player.set_result(player)
+                    break
         return await self._any_player
 
     async def _sugar_on_room_id_obtain(self, room: 'Room') -> None:
