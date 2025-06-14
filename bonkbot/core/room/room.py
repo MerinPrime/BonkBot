@@ -784,10 +784,12 @@ class Room:
         self._connect_event = Event()
         self._any_player = Future()
         self._bot.on(BotEventHandler.on_room_id_obtain, self._sugar_on_room_id_obtain)
+        self._bot.on(BotEventHandler.on_room_join, self._sugar_on_room_join)
         self._bot.on(BotEventHandler.on_player_join, self._sugar_on_player_join)
 
     def _unbind_sugar(self) -> None:
         self._bot.off(BotEventHandler.on_room_id_obtain, self._sugar_on_room_id_obtain)
+        self._bot.off(BotEventHandler.on_room_join, self._sugar_on_room_join)
         self._bot.off(BotEventHandler.on_player_join, self._sugar_on_player_join)
         self._connect_event = None
         self._any_player = None
@@ -808,6 +810,11 @@ class Room:
         return await self._any_player
 
     async def _sugar_on_room_id_obtain(self, room: 'Room') -> None:
+        if room != self:
+            return
+        self._connect_event.set()
+
+    async def _sugar_on_room_join(self, room: 'Room') -> None:
         if room != self:
             return
         self._connect_event.set()
