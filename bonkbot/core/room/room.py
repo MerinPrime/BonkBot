@@ -475,6 +475,7 @@ class Room:
 
     async def __on_room_create(self, *args) -> None:
         await self._bot.dispatch(BotEventHandler.on_room_connection, self, RoomAction.CREATE)
+        await self._bot.dispatch(BotEventHandler.on_room_create, self)
 
     async def __on_room_join(self, bot_id: int, host_id: int, players: list, timestamp: int, team_lock: bool,
                            join_id: int, join_bypass: str, *args) -> None:
@@ -519,6 +520,7 @@ class Room:
         self._room_data.host = self._room_data.player_by_id(host_id)
         self._is_connected = True
         await self._bot.dispatch(BotEventHandler.on_room_connection, self, RoomAction.JOIN)
+        await self._bot.dispatch(BotEventHandler.on_room_join, self)
 
     async def __on_player_join(self, player_id: int, peer_id: str, username: str, is_guest: bool, level: int,
                                joined_with_bypass: bool, avatar: dict) -> None:
