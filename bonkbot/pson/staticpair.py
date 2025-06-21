@@ -130,7 +130,10 @@ class StaticPair:
             for _ in range(buffer.read_varint32()):
                 key = self.decode(buffer)
                 value = self.decode(buffer)
-                obj[key] = value
+                try:
+                    obj[key] = value
+                except Exception as e:
+                    print(e)
             return obj
         if code == T.ARRAY:
             arr = []
