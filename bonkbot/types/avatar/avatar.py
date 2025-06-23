@@ -8,7 +8,6 @@ from .layer import Layer
 if TYPE_CHECKING:
     from ...pson.bytebuffer import ByteBuffer
 
-
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/avatar/Avatar.ts
 @attrs.define(slots=True, auto_attribs=True)
 class Avatar:
@@ -56,6 +55,6 @@ class Avatar:
     def to_json(self) -> dict:
         return {
             'bc': self.base_color,
-            'layers': [layer.to_json() if layer is not None else None
-                       for layer in self.layers],
+            'layers': [layer.to_json()
+                       for layer in filter(lambda x: x is not None, self.layers)],
         }
