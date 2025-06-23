@@ -58,7 +58,7 @@ async def main() -> None:
 
 
     print('--- Wait to rooms connection ---')
-    await asyncio.gather(*[bot.wait_for_connection() for bot in bots])
+    await asyncio.gather(*[bot.wait_for_connections() for bot in bots])
 
 
     print('--- Started XP farm ---')
