@@ -1,6 +1,6 @@
 import asyncio
 import inspect
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, List
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, List, Optional
 
 from pymitter import EventEmitter
 
@@ -84,7 +84,7 @@ class BotEventHandler:
 
     async def on_room_join(self, room: 'Room') -> None:
         pass
-    
+
     async def on_player_join(self, room: 'Room', player: 'Player') -> None:
         pass
 
@@ -109,10 +109,10 @@ class BotEventHandler:
     async def on_move_revert(self, room: 'Room', player: 'Player', move: 'PlayerMove') -> None:
         pass
 
-    async def on_player_left(self, room: 'Room', player: 'Player') -> None:
+    async def on_player_left(self, room: 'Room', player: 'Player', timestamp: int) -> None:
         pass
 
-    async def on_host_left(self, room: 'Room', old_host: 'Player', new_host: 'Player') -> None:
+    async def on_host_left(self, room: 'Room', old_host: 'Player', new_host: Optional['Player'], timestamp: int) -> None:
         pass
 
     async def on_ready_change(self, room: 'Room', player: 'Player') -> None:

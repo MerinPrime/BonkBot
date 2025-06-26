@@ -551,26 +551,26 @@ class Room:
             })
         await self._bot.dispatch(BotEventHandler.on_player_join, self, player)
 
-    async def __on_player_left(self, player_id: int, data: dict) -> None:
+    async def __on_player_left(self, player_id: int, timestamp: int) -> None:
         player = self.get_player_by_id(player_id)
         player.is_left = True
         if player.data_connection and player.data_connection.open:
             await player.data_connection.close()
-        await self.bot.dispatch(BotEventHandler.on_player_left, self, player)
+        await self.bot.dispatch(BotEventHandler.on_player_left, self, player, timestamp)
 
-    async def __on_host_left(self, old_host_id: int, new_host_id: int, data: dict) -> None:
+    async def __on_host_left(self, old_host_id: int, new_host_id: int, timestamp: int) -> None:
         old_host = self.get_player_by_id(old_host_id)
         old_host.is_left = True
         if old_host.data_connection and old_host.data_connection.open:
             await old_host.data_connection.close()
         if new_host_id == -1:
             self._room_data.host = None
-            await self.bot.dispatch(BotEventHandler.on_host_left, self, old_host, None)
+            await self.bot.dispatch(BotEventHandler.on_host_left, self, old_host, None, timestamp)
             await self.disconnect()
             return
         new_host = self.get_player_by_id(new_host_id)
         self._room_data.host = new_host
-        await self.bot.dispatch(BotEventHandler.on_host_left, self, old_host, new_host)
+        await self.bot.dispatch(BotEventHandler.on_host_left, self, old_host, new_host, timestamp)
 
     async def __on_move(self, player_id: int, data: dict) -> None:
         player = self.get_player_by_id(player_id)

@@ -30,7 +30,7 @@ class MirrorBot(BonkBot):
                 return
             await player.give_host()
 
-    async def on_host_left(self, room: 'Room', old_host: 'Player', new_host: 'Player') -> None:
+    async def on_host_left(self, room: 'Room', old_host: 'Player', new_host: 'Player', timestamp: int) -> None:
         if not new_host.is_bot:
             return
         if room.players_count == 1:
