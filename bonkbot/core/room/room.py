@@ -380,7 +380,7 @@ class Room:
 
         @self._peer.on('error')
         async def on_error(error: str) -> None:
-            print(error)
+            raise error
 
         await self._peer.start()
 
