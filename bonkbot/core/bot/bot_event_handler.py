@@ -110,9 +110,30 @@ class BotEventHandler:
         pass
 
     async def on_player_left(self, room: 'Room', player: 'Player', timestamp: int) -> None:
+        """Called when non-host player leaves a room.
+        
+        :param room: The Room instance.
+        :param player: The Player who left the room.
+        :param timestamp: The server-provided Unix timestamp of the event, or
+                          the game frame number if a match is in progress.
+        :return: None
+        
+        Note: If the player who left was the host, this event will NOT be
+        triggered. Instead, only the `on_host_left` event will be called.
+        """
         pass
 
     async def on_host_left(self, room: 'Room', old_host: 'Player', new_host: Optional['Player'], timestamp: int) -> None:
+        """Called when host leaves a room.
+        
+        :param room: The Room instance.
+        :param old_host: The Player who was the host and has now left.
+        :param new_host: The Player who has been promoted to the new host.
+                         This will be `None` if the room was closed.
+        :param timestamp: The server-provided Unix timestamp of the event, or
+                          the game frame number if a match is in progress.
+        :return: None
+        """
         pass
 
     async def on_ready_change(self, room: 'Room', player: 'Player') -> None:
