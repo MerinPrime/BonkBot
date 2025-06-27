@@ -114,8 +114,8 @@ class BotEventHandler:
         
         :param room: The Room instance.
         :param player: The Player who left the room.
-        :param timestamp: The server-provided Unix timestamp of the event, or
-                          the game frame number if a match is in progress.
+        :param timestamp: The number of frames that have elapsed since the game started.
+                          If the game has not started, this is the number of frames since the UNIX epoch.
         :return: None
         
         Note: If the player who left was the host, this event will NOT be
@@ -130,8 +130,8 @@ class BotEventHandler:
         :param old_host: The Player who was the host and has now left.
         :param new_host: The Player who has been promoted to the new host.
                          This will be `None` if the room was closed.
-        :param timestamp: The server-provided Unix timestamp of the event, or
-                          the game frame number if a match is in progress.
+        :param timestamp: The number of frames that have elapsed since the game started.
+                          If the game has not started, this is the number of frames since the UNIX epoch.
         :return: None
         """
         pass
