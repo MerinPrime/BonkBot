@@ -181,8 +181,7 @@ class Room:
 
     async def connect(self) -> None:
         if self._running:
-            await self._bot.dispatch(BotEventHandler.on_error, self.bot, RoomAlreadyConnected(self))
-            return
+            raise RoomAlreadyConnected(self)
         self._running = True
         self._bot.add_room(self)
         self._socket = AsyncClient(ssl_verify=False)
@@ -835,22 +834,19 @@ class Room:
 
     async def reset_all_ready(self) -> None:
         if not self.is_host:
-            await self.bot.dispatch(BotEventHandler.on_error, ApiError(ErrorType.NOT_HOST))
-            return
+            raise ApiError(ErrorType.NOT_HOST)
         for player in self.players:
             player.ready = False
         await self.socket.emit(SocketEvents.Outgoing.RESET_READY)
 
     async def set_mode(self, mode: 'Mode') -> None:
         if not self.is_host:
-            await self.bot.dispatch(BotEventHandler.on_error, ApiError(ErrorType.NOT_HOST))
-            return
+            raise ApiError(ErrorType.NOT_HOST)
         await self.socket.emit(SocketEvents.Outgoing.SET_MODE, {'ga': mode.engine, 'mo': mode.mode})
 
     async def set_rounds(self, rounds: int) -> None:
         if not self.is_host:
-            await self.bot.dispatch(BotEventHandler.on_error, ApiError(ErrorType.NOT_HOST))
-            return
+            raise ApiError(ErrorType.NOT_HOST)
         await self.socket.emit(SocketEvents.Outgoing.SET_ROUNDS, {'w': rounds})
 
     async def set_team(self, team: Team) -> None:
@@ -858,8 +854,7 @@ class Room:
 
     async def set_team_lock(self, state: bool) -> None:
         if not self.is_host:
-            await self.bot.dispatch(BotEventHandler.on_error, ApiError(ErrorType.NOT_HOST))
-            return
+            raise ApiError(ErrorType.NOT_HOST)
         await self.socket.emit(SocketEvents.Outgoing.SET_TEAM_LOCK, {'teamLock': state})
 
     async def set_map(self, bonk_map: 'BonkMap') -> None:
@@ -872,8 +867,7 @@ class Room:
 
     async def set_teams(self, state: bool) -> None:
         if not self.is_host:
-            await self.bot.dispatch(BotEventHandler.on_error, ApiError(ErrorType.NOT_HOST))
-            return
+            raise ApiError(ErrorType.NOT_HOST)
         if state and self.mode == Mode.FOOTBALL:
             self._room_data.team_state = TeamState.DUO
         elif state:
@@ -891,15 +885,13 @@ class Room:
 
     async def change_password(self, new_password: str) -> None:
         if not self.is_host:
-            await self.bot.dispatch(BotEventHandler.on_error, ApiError(ErrorType.NOT_HOST))
-            return
+            raise ApiError(ErrorType.NOT_HOST)
         self._room_data.password = new_password
         await self.socket.emit(SocketEvents.Outgoing.CHANGE_ROOM_PASS, {'newPass': new_password})
 
     async def change_name(self, new_name: str) -> None:
         if not self.is_host:
-            await self.bot.dispatch(BotEventHandler.on_error, ApiError(ErrorType.NOT_HOST))
-            return
+            raise ApiError(ErrorType.NOT_HOST)
         self._room_data.name = new_name
         await self.socket.emit(SocketEvents.Outgoing.CHANGE_ROOM_NAME, {'newName': new_name})
 

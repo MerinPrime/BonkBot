@@ -49,35 +49,29 @@ class Player:
 
     async def kick(self) -> None:
         if not self.room.bot_player.is_host:
-            await self.bot.dispatch('on_error', ApiError(ErrorType.NOT_HOST))
-            return
+            raise ApiError(ErrorType.NOT_HOST)
         await self.room.socket.emit(SocketEvents.Outgoing.BAN, {'banshortid': self.id, 'kickonly': True})
 
     async def ban(self) -> None:
         if not self.room.bot_player.is_host:
-            await self.bot.dispatch('on_error', ApiError(ErrorType.NOT_HOST))
-            return
+            raise ApiError(ErrorType.NOT_HOST)
         await self.room.socket.emit(SocketEvents.Outgoing.BAN, {'banshortid': self.id, 'kickonly': False})
 
     async def change_team(self, new_team: Team) -> None:
         if not self.room.bot_player.is_host:
-            await self.bot.dispatch('on_error', ApiError(ErrorType.NOT_HOST))
-            return
+            raise ApiError(ErrorType.NOT_HOST)
         await self.room.socket.emit(SocketEvents.Outgoing.SET_BALANCE, {'targetID': self.id, 'targetTeam': new_team})
 
     async def set_balance(self, new_balance: int) -> None:
         if not self.room.bot_player.is_host:
-            await self.bot.dispatch('on_error', ApiError(ErrorType.NOT_HOST))
-            return
+            raise ApiError(ErrorType.NOT_HOST)
         if not -100 <= new_balance <= 100:
-            await self.bot.dispatch('on_error', ApiError(ErrorType.INVALID_BALANCE))
-            return
+            raise ApiError(ErrorType.INVALID_BALANCE)
         await self.room.socket.emit(SocketEvents.Outgoing.SET_BALANCE, {'sid': self.id, 'bal': new_balance})
 
     async def give_host(self) -> None:
         if not self.room.bot_player.is_host:
-            await self.bot.dispatch('on_error', ApiError(ErrorType.NOT_HOST))
-            return
+            raise ApiError(ErrorType.NOT_HOST)
         await self.room.socket.emit(SocketEvents.Outgoing.GIVE_HOST, {'id': self.id})
 
     async def send_friend_request(self) -> None:
