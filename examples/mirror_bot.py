@@ -2,7 +2,7 @@ import asyncio
 from typing import TYPE_CHECKING
 
 from bonkbot.core.bot import BonkBot
-from bonkbot.types import Inputs
+from bonkbot.types import Inputs, Mode
 
 if TYPE_CHECKING:
     from bonkbot.core.room import Player, Room
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 '''
 This example implements a MirrorBot.
 The bot copies inputs of players like mirror.
-Modes like VTOL and Arrows can cause an "unmirror".
+VTOL, Arrows and Death Arrows can cause an "unmirror".
 '''
 
 class MirrorBot(BonkBot):
@@ -24,11 +24,12 @@ class MirrorBot(BonkBot):
         print(f'Link: {room.join_link}')
 
     async def on_player_join(self, room: 'Room', player: 'Player') -> None:
-        if room.bot_player.is_host or player.is_left:
-            await asyncio.sleep(5)
-            if player.is_left:
-                return
-            await player.give_host()
+        if not room.bot_player.is_host:
+            return
+        await asyncio.sleep(5)
+        if player.is_left:
+            return
+        await player.give_host()
 
     async def on_host_left(self, room: 'Room', old_host: 'Player', new_host: 'Player', timestamp: int) -> None:
         if not new_host.is_bot:
@@ -37,7 +38,7 @@ class MirrorBot(BonkBot):
             return
         await asyncio.sleep(5)
         for player in room.players:
-            if player.is_bot:
+            if player.is_bot or player.is_left:
                 continue
             await player.give_host()
             break
@@ -48,8 +49,12 @@ class MirrorBot(BonkBot):
         right = inputs.right
         left = inputs.left
         if right and left:
-            inputs.right = True
-            inputs.left = False
+            if room.mode in [Mode.ARROWS, Mode.DEATH_ARROWS, Mode.VTOL]:
+                inputs.right = True
+                inputs.left = True
+            else:
+                inputs.right = True
+                inputs.left = False
         elif right:
             inputs.right = False
             inputs.left = True
@@ -59,7 +64,7 @@ class MirrorBot(BonkBot):
         await room.move(frame, inputs)
 
     async def on_move_revert(self, room: 'Room', player: 'Player', move: 'PlayerMove') -> None:
-        candidates = [bot_move for bot_move in room.bot_player.moves.values() if bot_move.frame < move.frame]
+        candidates = [bot_move for bot_move in room.bot_player.moves.values() if bot_move.frame < move.frame and bot_move.valid]
         if not candidates:
             last_inputs = Inputs()
             sequence = None
