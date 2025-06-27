@@ -629,6 +629,9 @@ class Room:
             player.prev_inputs.clear()
 
     async def __on_game_start(self, unix_time: int, encoded_state: str, game_settings: dict) -> None:
+        for player in self.players:
+            player.moves.clear()
+            player.prev_inputs.clear()
         self._room_data.set_game_settings(game_settings)
         pair = StaticPair(PSON_KEYS)
         buffer = ByteBuffer().from_base64(encoded_state, lz_encoded=True, case_encoded=True)
