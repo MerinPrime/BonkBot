@@ -685,10 +685,8 @@ class Room:
         await self.bot.dispatch(BotEventHandler.on_set_balance, self, player)
 
     async def __on_teams_toggle(self, state: bool) -> None:
-        if state and self.mode == Mode.FOOTBALL:
-            self._room_data.team_state = TeamState.DUO
-        elif state:
-            self._room_data.team_state = TeamState.ALL
+        if state:
+            self._room_data.team_state = TeamState.TEAMS
         else:
             self._room_data.team_state = TeamState.FFA
         await self.bot.dispatch(BotEventHandler.on_teams_toggle, self)
@@ -868,10 +866,8 @@ class Room:
     async def set_teams(self, state: bool) -> None:
         if not self.is_host:
             raise ApiError(ErrorType.NOT_HOST)
-        if state and self.mode == Mode.FOOTBALL:
-            self._room_data.team_state = TeamState.DUO
-        elif state:
-            self._room_data.team_state = TeamState.ALL
+        if state:
+            self._room_data.team_state = TeamState.TEAMS
         else:
             self._room_data.team_state = TeamState.FFA
         await self.socket.emit(SocketEvents.Outgoing.SET_TEAM_STATE, {'t': state})

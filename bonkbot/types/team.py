@@ -19,5 +19,4 @@ class Team(enum.IntEnum):
 
 class TeamState(enum.IntEnum):
     FFA = 0
-    DUO = 1
-    ALL = 2
+    TEAMS = 1

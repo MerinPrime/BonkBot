@@ -62,10 +62,8 @@ class RoomData:
         self.team_lock = game_settings['tl']
         if not game_settings['tea']:
             self.team_state = TeamState.FFA
-        elif self.mode == Mode.FOOTBALL:
-            self.team_state = TeamState.DUO
         else:
-            self.team_state = TeamState.ALL
+            self.team_state = TeamState.TEAMS
         self.mode = Mode.from_mode_code(game_settings['mo'])
         bal = game_settings['bal']
         for player in self.players:
