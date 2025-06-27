@@ -152,6 +152,12 @@ class BotEventHandler:
         pass
 
     async def on_game_end(self, room: 'Room') -> None:
+        """
+        Called when the game ends manually, not due to a player winning.
+        
+        :param room: The Room instance.
+        :return: None
+        """
         pass
 
     async def on_game_start(self, room: 'Room', unix_time: int, initial_state: dict, game_settings: dict) -> None:
