@@ -75,6 +75,18 @@ class BonkBot(BotEventHandler):
         await self.__start(BotData(name=name))
 
     async def login_with_password(self, name: str, password: str, *, remember: bool = False, bypass_username_check: bool = False) -> Optional[str]:
+        """
+        Log in to an account using a username and password.
+        
+        :param name: Account name.
+        :param password: Account password.
+        :param remember: If True, return a remember token.
+        :param bypass_username_check: Bypass username validation checks.
+                                      Use this if you have legacy accounts with invalid username (e.g., empty name ).
+        :return: Remember token if `remember` is True, else None.
+        :raises BotAlreadyLoggedInError: If the bot is already logged in.
+        :raises ApiError: If the API returns an error.
+        """
         if self._is_logged:
             raise BotAlreadyLoggedInError()
         if not bypass_username_check:
