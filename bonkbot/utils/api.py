@@ -1,10 +1,31 @@
 import re
+from typing import Optional
+
+from ..types.errors.error_type import ErrorType
 
 USERNAME_REGEX = re.compile(r'^[A-Za-z0-9_ ]{2,16}$')
 
-def validate_username(username: str) -> None:
+def validate_username(username: str, *, is_guest: bool) -> Optional[ErrorType]:
     if not username.isascii():
-        raise ValueError('Username must contain only ASCII characters.')
+        return ErrorType.USERNAME_MUST_BE_ASCII
+
+    if len(username) < 2:
+        return ErrorType.USERNAME_TOO_SHORT
+
+    if len(username) > 15:
+        return ErrorType.USERNAME_TOO_LONG
 
     if not USERNAME_REGEX.fullmatch(username):
-        raise ValueError('Username must be 2-16 characters long and contain only letters, numbers, spaces, and underscores.')
+        return ErrorType.USERNAME_INVALID_CHARS
+
+    if username.startswith(' '):
+        return ErrorType.USERNAME_INVALID_START
+
+    if not is_guest:
+        if username.startswith('_'):
+            return ErrorType.USERNAME_INVALID_START
+
+        if '  ' in username:
+            return ErrorType.USERNAME_INVALID_CHARS
+
+    return None

@@ -69,12 +69,18 @@ class BonkBot(BotEventHandler):
     async def login_as_guest(self, name: str) -> None:
         if self._is_logged:
             raise BotAlreadyLoggedInError()
-        validate_username(name)
+        error = validate_username(name, is_guest=True)
+        if error is not None:
+            raise ApiError(error)
         await self.__start(BotData(name=name))
 
-    async def login_with_password(self, name: str, password: str, *, remember: bool = False) -> Optional[str]:
+    async def login_with_password(self, name: str, password: str, *, remember: bool = False, bypass_username_check: bool = False) -> Optional[str]:
         if self._is_logged:
             raise BotAlreadyLoggedInError()
+        if not bypass_username_check:
+            error = validate_username(name, is_guest=False)
+            if error is not None:
+                raise ApiError(error)
         result = await self._bonk_api.fetch_data_with_password(name, password, remember=remember)
         if isinstance(result, ErrorType):
             raise ApiError(result)
