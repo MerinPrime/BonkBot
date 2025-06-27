@@ -28,7 +28,6 @@ class Player:
     peer_id: str = ''
     balance: int = 0
     ping: int = 105
-    joined_with_bypass: Optional[bool] = None
     moves: Dict[int, 'PlayerMove'] = field(default_factory=dict)
     prev_inputs: List[Tuple[int, 'Inputs']] = field(default_factory=list)
     peer_ban_until: float = 0

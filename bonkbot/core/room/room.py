@@ -290,7 +290,6 @@ class Room:
             is_guest=self._bot.is_guest,
             level=self._bot.level,
             peer_id=self._peer_id,
-            joined_with_bypass=None,
         )
         self._room_data = RoomData(
             name=self._room_params.name,
@@ -508,7 +507,6 @@ class Room:
                 ready=player_data['ready'],
                 tabbed=player_data['tabbed'],
                 level=player_data['level'],
-                joined_with_bypass=None,
             )
             if i == bot_id:
                 self._bot_player = player
@@ -522,7 +520,7 @@ class Room:
         await self._bot.dispatch(BotEventHandler.on_room_join, self)
 
     async def __on_player_join(self, player_id: int, peer_id: str, username: str, is_guest: bool, level: int,
-                               joined_with_bypass: bool, avatar: dict) -> None:
+                               team: int, avatar: dict) -> None:
         connection = None
         for data_connection in self._connections:
             if data_connection.peer == peer_id:
@@ -533,13 +531,12 @@ class Room:
             room=self,
             data_connection=connection,
             id=player_id,
-            team=Team.FFA if self.team_state == TeamState.FFA and not self.team_lock else Team.SPECTATOR,
+            team=Team.from_number(team),
             avatar=Avatar.from_json(avatar),
             peer_id=peer_id,
             name=username,
             is_guest=is_guest,
             level=level,
-            joined_with_bypass=joined_with_bypass,
         )
         self._room_data.players.append(player)
         await self._socket.emit(
