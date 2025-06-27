@@ -16,7 +16,7 @@ from ...types.errors import ApiError, ErrorType
 from ...types.errors.room_already_connected import RoomAlreadyConnected
 from ...types.errors.room_not_connected import RoomNotConnected
 from ...types.input import Inputs
-from ...types.map.bonkmap import BonkMap, DEFAULT_MAP
+from ...types.map.bonkmap import DEFAULT_MAP, BonkMap
 from ...types.mode import Mode
 from ...types.player_move import PlayerMove
 from ...types.room.room_action import RoomAction
@@ -42,6 +42,7 @@ from .timesyncer import TimeSyncer
 if TYPE_CHECKING:
     from peerjs_py.dataconnection.BufferedConnection.BinaryPack import BinaryPack
 
+    from ...types.room.game_settings import GameSettings
     from ...types.room.room_join_params import RoomJoinParams
     from ...types.server import Server
     from ..bot.bot import BonkBot
@@ -68,7 +69,7 @@ class Room:
 
     @property
     def map(self) -> 'BonkMap':
-        return copy.deepcopy(self._room_data.map)
+        return copy.deepcopy(self._room_data.game_settings.map)
 
     @property
     def name(self) -> str:
@@ -104,7 +105,7 @@ class Room:
 
     @property
     def mode(self) -> 'Mode':
-        return self._room_data.mode
+        return self._room_data.game_settings.mode
 
     @property
     def min_level(self) -> Optional[int]:
@@ -124,15 +125,15 @@ class Room:
 
     @property
     def rounds(self) -> int:
-        return self._room_data.rounds
+        return self._room_data.game_settings.rounds
 
     @property
     def team_state(self) -> 'TeamState':
-        return self._room_data.team_state
+        return self._room_data.game_settings.team_state
 
     @property
     def team_lock(self) -> bool:
-        return self._room_data.team_lock
+        return self._room_data.game_settings.team_lock
 
     @property
     def is_unlisted(self) -> Optional[bool]:
@@ -175,6 +176,10 @@ class Room:
     @property
     def is_running(self) -> bool:
         return self._running
+
+    @property
+    def game_settings(self) -> 'GameSettings':
+        return self._room_data.game_settings
 
     def get_player_by_id(self, player_id: int) -> 'Player':
         return self._room_data.player_by_id(player_id)
@@ -294,8 +299,9 @@ class Room:
             name=self._room_params.name,
             host=self._bot_player,
             players=[self._bot_player],
-            map=copy.deepcopy(DEFAULT_MAP),
         )
+        self._room_data.game_settings.balance.append(0)
+        self._room_data.game_settings.map = copy.deepcopy(DEFAULT_MAP)
         await self._socket.emit(SocketEvents.Outgoing.CREATE_ROOM, data)
 
     async def _join(self) -> None:
@@ -478,7 +484,7 @@ class Room:
                            join_id: int, join_bypass: str, *args) -> None:
         self._room_data.join_id = f'{join_id:06}'
         self._room_data.join_bypass = join_bypass
-        self._room_data.team_lock = team_lock
+        self._room_data.game_settings.team_lock = team_lock
         for i, player_data in enumerate(players):
             if player_data is None:
                 self._room_data.players.append(Player(
@@ -514,9 +520,6 @@ class Room:
             self._room_data.players.append(player)
         self._bot_player = self._room_data.player_by_id(bot_id)
         self._room_data.host = self._room_data.player_by_id(host_id)
-        self._is_connected = True
-        await self._bot.dispatch(BotEventHandler.on_room_connection, self, RoomAction.JOIN)
-        await self._bot.dispatch(BotEventHandler.on_room_join, self)
 
     async def __on_player_join(self, player_id: int, peer_id: str, username: str, is_guest: bool, level: int,
                                team: int, avatar: dict) -> None:
@@ -538,11 +541,12 @@ class Room:
             level=level,
         )
         self._room_data.players.append(player)
+        self._room_data.game_settings.balance.append(0)
         await self._socket.emit(
             SocketEvents.Outgoing.INFORM_IN_LOBBY,
             {
                 'sid': player_id,
-                'gs': self._room_data.get_game_settings(),
+                'gs': self._room_data.game_settings.to_json(),
             })
         await self._bot.dispatch(BotEventHandler.on_player_join, self, player)
 
@@ -627,7 +631,7 @@ class Room:
         for player in self.players:
             player.moves.clear()
             player.prev_inputs.clear()
-        self._room_data.set_game_settings(game_settings)
+        self._room_data.game_settings.from_json(game_settings)
         pair = StaticPair(PSON_KEYS)
         buffer = ByteBuffer().from_base64(encoded_state, lz_encoded=True, case_encoded=True)
         initial_state = pair.decode(buffer)
@@ -639,7 +643,7 @@ class Room:
         await self.bot.dispatch(BotEventHandler.on_player_team_change, self, player)
 
     async def __on_team_lock(self, state: bool) -> None:
-        self._room_data.team_lock = state
+        self._room_data.game_settings.team_lock = state
         await self.bot.dispatch(BotEventHandler.on_team_lock, self)
 
     async def __on_message(self, player_id: int, message: str) -> None:
@@ -656,15 +660,15 @@ class Room:
             await self.disconnect()
 
     async def __on_mode_change(self, engine: str, mode: str) -> None:
-        self._room_data.mode = Mode.from_mode_code(mode)
+        self._room_data.game_settings.mode = Mode.from_mode_code(mode)
         await self.bot.dispatch(BotEventHandler.on_mode_change, self)
 
     async def __on_rounds_change(self, rounds: int) -> None:
-        self._room_data.rounds = rounds
+        self._room_data.game_settings.rounds = rounds
         await self.bot.dispatch(BotEventHandler.on_rounds_change, self)
 
     async def __on_map_change(self, encoded_map: str) -> None:
-        self._room_data.map = BonkMap.decode_from_database(encoded_map)
+        self._room_data.game_settings.map = BonkMap.decode_from_database(encoded_map)
         await self.bot.dispatch(BotEventHandler.on_map_change, self)
 
     async def __on_afk_warn(self) -> None:
@@ -680,15 +684,18 @@ class Room:
         await self.bot.dispatch(BotEventHandler.on_map_suggest_client, self, player, name, author)
 
     async def __on_set_balance(self, player_id: int, balance: int) -> None:
+        game_settings = self.game_settings
+        if player_id >= len(game_settings.balance):
+            game_settings.balance += [0] * (len(game_settings.balance) + 1 - player_id)
+        game_settings.balance[player_id] = balance
         player = self.get_player_by_id(player_id)
-        player.balance = balance
         await self.bot.dispatch(BotEventHandler.on_set_balance, self, player)
 
     async def __on_teams_toggle(self, state: bool) -> None:
         if state:
-            self._room_data.team_state = TeamState.TEAMS
+            self._room_data.game_settings.team_state = TeamState.TEAMS
         else:
-            self._room_data.team_state = TeamState.FFA
+            self._room_data.game_settings.team_state = TeamState.FFA
         await self.bot.dispatch(BotEventHandler.on_teams_toggle, self)
 
     async def __on_replay_record(self, player_id: int) -> None:
@@ -732,7 +739,10 @@ class Room:
         await self._bot.dispatch(BotEventHandler.on_xp_gain, self, new_xp)
 
     async def __inform_in_lobby(self, game_settings: dict) -> None:
-        self._room_data.set_game_settings(game_settings)
+        self._room_data.game_settings.from_json(game_settings)
+        self._is_connected = True
+        await self._bot.dispatch(BotEventHandler.on_room_connection, self, RoomAction.JOIN)
+        await self._bot.dispatch(BotEventHandler.on_room_join, self)
 
     async def __inform_in_game(self, data: dict) -> None:
         encoded_state = data['state']
@@ -740,7 +750,7 @@ class Room:
         random = data['random']
         inputs = data['inputs']
         frame = data['fc']
-        self._room_data.set_game_settings(data['gs'])
+        self._room_data.game_settings.from_json(data['gs'])
         for input_data in inputs:
             player = self.get_player_by_id(input_data['p'])
             inputs = Inputs()
@@ -867,9 +877,9 @@ class Room:
         if not self.is_host:
             raise ApiError(ErrorType.NOT_HOST)
         if state:
-            self._room_data.team_state = TeamState.TEAMS
+            self._room_data.game_settings.team_state = TeamState.TEAMS
         else:
-            self._room_data.team_state = TeamState.FFA
+            self._room_data.game_settings.team_state = TeamState.FFA
         await self.socket.emit(SocketEvents.Outgoing.SET_TEAM_STATE, {'t': state})
 
     async def record_replay(self) -> None:

@@ -26,7 +26,6 @@ class Player:
     level: int
     data_connection: Optional['BinaryPack'] = None
     peer_id: str = ''
-    balance: int = 0
     ping: int = 105
     moves: Dict[int, 'PlayerMove'] = field(default_factory=dict)
     prev_inputs: List[Tuple[int, 'Inputs']] = field(default_factory=list)
@@ -38,7 +37,14 @@ class Player:
     muted: bool = False
     is_friend: bool = False
     is_left: bool = False
-
+    
+    @property
+    def balance(self) -> int:
+        game_settings = self.room.game_settings
+        if self.id >= len(game_settings.balance):
+            return 0
+        return game_settings.balance[self.id]
+    
     @property
     def is_bot(self) -> bool:
         return self.room.bot == self
