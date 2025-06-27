@@ -64,7 +64,7 @@ class MirrorBot(BonkBot):
         await room.move(frame, inputs)
 
     async def on_move_revert(self, room: 'Room', player: 'Player', move: 'PlayerMove') -> None:
-        candidates = [bot_move for bot_move in room.bot_player.moves.values() if bot_move.frame < move.frame and bot_move.valid]
+        candidates = [bot_move for bot_move in room.bot_player.moves.values() if bot_move.frame < move.frame]
         if not candidates:
             last_inputs = Inputs()
             sequence = None
