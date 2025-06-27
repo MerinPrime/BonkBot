@@ -16,7 +16,7 @@ class RoomData:
     join_bypass: str = ''
     host: Optional['Player'] = None
     players: List['Player'] = field(default_factory=list)
-    map: Optional['BonkMap'] = None
+    map: 'BonkMap' = field(default_factory=BonkMap)
     mode: 'Mode' = Mode.CLASSIC
     team_state: 'TeamState' = TeamState.FFA
     team_lock: bool = False

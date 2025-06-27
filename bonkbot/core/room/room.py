@@ -16,7 +16,7 @@ from ...types.errors import ApiError, ErrorType
 from ...types.errors.room_already_connected import RoomAlreadyConnected
 from ...types.errors.room_not_connected import RoomNotConnected
 from ...types.input import Inputs
-from ...types.map.bonkmap import BonkMap
+from ...types.map.bonkmap import BonkMap, DEFAULT_MAP
 from ...types.mode import Mode
 from ...types.player_move import PlayerMove
 from ...types.room.room_action import RoomAction
@@ -296,7 +296,7 @@ class Room:
             name=self._room_params.name,
             host=self._bot_player,
             players=[self._bot_player],
-            map=BonkMap.decode_from_database('ILAcJAhBFBjBzCIDCAbAcgBwEYA1IDOAWgMrAAeAJgFYCiwytlAjEQGLoAMsAtm50gCmAdwbBIbACoBDAOrNh2AOIBVeAFlcATXIBJZAAtURJak4BpaMAASJAExsCW2eQPTRkACJFdITwDMANRB6RhZ2Ll5+JCgAdhjgX08PGKsYa0gE8WB0LLz8goKrCGZA7B4AVgNsWUCAa10OAHstfFR-AGoAeh7envAbLoA3Pr7O0d7waWxMOyzM4DYALxBhKjp4FSVXSiUiId4BQuO8roAWfOQugYTPLsl1JcfnlZO394-Pk7TgaFpMv4QegQZDCNh1LKeYAAeWKXwKMH+vyQgUksCUbAAzNg6pAiHlhJ4IfDCioAcCQGwVJjIAZKHYLkggA'),
+            map=copy.deepcopy(DEFAULT_MAP),
         )
         await self._socket.emit(SocketEvents.Outgoing.CREATE_ROOM, data)
 
@@ -325,7 +325,6 @@ class Room:
             name=self._room_params.name,
             host=None,
             players=[],
-            map=BonkMap.decode_from_database('ILAcJAhBFBjBzCIDCAbAcgBwEYA1IDOAWgMrAAeAJgFYCiwytlAjEQGLoAMsAtm50gCmAdwbBIbACoBDAOrNh2AOIBVeAFlcATXIBJZAAtURJak4BpaMAASJAExsCW2eQPTRkACJFdITwDMANRB6RhZ2Ll5+JCgAdhjgX08PGKsYa0gE8WB0LLz8goKrCGZA7B4AVgNsWUCAa10OAHstfFR-AGoAeh7envAbLoA3Pr7O0d7waWxMOyzM4DYALxBhKjp4FSVXSiUiId4BQuO8roAWfOQugYTPLsl1JcfnlZO394-Pk7TgaFpMv4QegQZDCNh1LKeYAAeWKXwKMH+vyQgUksCUbAAzNg6pAiHlhJ4IfDCioAcCQGwVJjIAZKHYLkggA'),
         )
         await self._socket.emit(SocketEvents.Outgoing.JOIN_ROOM, data)
 
