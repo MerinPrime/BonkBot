@@ -16,6 +16,10 @@ class ErrorType(enum.Enum):
     * Sending friend request too fast
     May be another reasons.
     '''
+    HOST_CHANGE_RATE_LIMITED = ('host change rate limited',)
+    '''
+    You are transferring host too quickly. Please wait before trying again.
+    '''
     PASSWORD = ('password',)
     '''
     Invalid account password.
@@ -50,10 +54,6 @@ class ErrorType(enum.Enum):
     ROOM_NOT_FOUND = ('roomnotfound','room_not_found')
     '''
     Room not found.
-    '''
-    HOST_CHANGE_RATE_LIMITED = ('host change rate limited',)
-    '''
-    You transfer host too fast.
     '''
     NEW_HOST_NOT_PRESENT = ('new_host_not_present',)
     '''
