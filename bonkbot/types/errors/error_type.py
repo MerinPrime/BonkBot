@@ -36,10 +36,9 @@ class ErrorType(enum.Enum):
     NOT_HOST = ('not_host',)
     '''
     Occurs when a non-host player attempts to:
-    * Kick another player
-    * Change the balance
-    * Modify the map
-    * Ban players
+    * Kick or ban another player
+    * Change the player balance
+    * Change the map
     * Change mode or rounds
     * Etc.
     '''
