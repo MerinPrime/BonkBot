@@ -70,7 +70,6 @@ class MirrorBot(BonkBot):
         await room.move(move.frame, last_inputs, sequence)
 
 
-
 bot = MirrorBot()
 bot.event_loop.run_until_complete(bot.login_as_guest('MirrorBot'))
 bot.event_loop.run_forever()
