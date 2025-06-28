@@ -36,6 +36,7 @@ dependencies = [
     "python-socketio~=4.6",
     "peerjs-py==0.1.1",
     "lzstring==1.0.4",
+    "attrs~=25.3"
 ]
 
 [project.urls]
