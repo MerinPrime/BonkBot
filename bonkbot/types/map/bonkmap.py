@@ -418,12 +418,12 @@ class BonkMap:
         # region Spawns
         spawn_count = buffer.read_int16()
         for _ in range(spawn_count):
-            bonk_map.spawns.append(Spawn.from_buffer(buffer))
+            bonk_map.spawns.append(Spawn().from_buffer(buffer))
         # endregion
         # region Capture zones
         cap_zone_count = buffer.read_int16()
         for _ in range(cap_zone_count):
-            bonk_map.cap_zones.append(CaptureZone.from_buffer(buffer, bonk_map.version))
+            bonk_map.cap_zones.append(CaptureZone().from_buffer(buffer, bonk_map.version))
         # endregion
         # region Joints
         joint_count = buffer.read_int16()
@@ -629,11 +629,11 @@ class BonkMap:
         # endregion
         # region Capture zones
         for spawn_data in json_data['spawns']:
-            bonk_map.spawns.append(Spawn.from_json(spawn_data))
+            bonk_map.spawns.append(Spawn().from_json(spawn_data))
         # endregion
         # region Capture zones
         for capture_zone_data in json_data['capZones']:
-            bonk_map.cap_zones.append(CaptureZone.from_json(capture_zone_data))
+            bonk_map.cap_zones.append(CaptureZone().from_json(capture_zone_data))
         # endregion
         return bonk_map
 

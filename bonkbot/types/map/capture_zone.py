@@ -38,14 +38,12 @@ class CaptureZone:
             data['ty'] = self.type.value
         return data
 
-    @staticmethod
-    def from_json(data: dict) -> 'CaptureZone':
-        capture_zone = CaptureZone()
-        capture_zone.name = data['n']
-        capture_zone.seconds = data['l']
-        capture_zone.shape_id = data['i']
-        capture_zone.type = data.get('ty', CaptureType.NORMAL)
-        return capture_zone
+    def from_json(self, data: dict) -> 'CaptureZone':
+        self.name = data['n']
+        self.seconds = data['l']
+        self.shape_id = data['i']
+        self.type = data.get('ty', CaptureType.NORMAL)
+        return self
     
     def to_buffer(self, buffer: 'ByteBuffer') -> None:
         buffer.write_utf(self.name)
@@ -53,12 +51,10 @@ class CaptureZone:
         buffer.write_int16(self.shape_id)
         buffer.write_int16(self.type.value)
     
-    @staticmethod
-    def from_buffer(buffer: 'ByteBuffer', version: int) -> 'CaptureZone':
-        capture_zone = CaptureZone()
-        capture_zone.name = buffer.read_utf()
-        capture_zone.seconds = buffer.read_float64()
-        capture_zone.shape_id = buffer.read_int16()
+    def from_buffer(self, buffer: 'ByteBuffer', version: int) -> 'CaptureZone':
+        self.name = buffer.read_utf()
+        self.seconds = buffer.read_float64()
+        self.shape_id = buffer.read_int16()
         if version >= 6:
-            capture_zone.type = CaptureType.from_id(buffer.read_int16())
-        return capture_zone
+            self.type = CaptureType.from_id(buffer.read_int16())
+        return self

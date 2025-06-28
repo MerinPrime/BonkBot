@@ -47,21 +47,19 @@ class Spawn:
             data['ye'] = self.yellow
         return data
     
-    @staticmethod
-    def from_json(data: dict) -> 'Spawn':
-        spawn = Spawn()
-        spawn.name = data['n']
-        spawn.ffa = data['f']
-        spawn.blue = data['b']
-        spawn.red = data['r']
-        spawn.priority = data['priority']
-        spawn.position = (data['x'], data['y'])
-        spawn.velocity = (data['xv'], data['yv'])
+    def from_json(self, data: dict) -> 'Spawn':
+        self.name = data['n']
+        self.ffa = data['f']
+        self.blue = data['b']
+        self.red = data['r']
+        self.priority = data['priority']
+        self.position = (data['x'], data['y'])
+        self.velocity = (data['xv'], data['yv'])
         if data.get('gr') is not None:
-            spawn.green = data['gr']
+            self.green = data['gr']
         if data.get('ye') is not None:
-            spawn.yellow = data['ye']
-        return spawn
+            self.yellow = data['ye']
+        return self
     
     def to_buffer(self, buffer: 'ByteBuffer') -> None:
         buffer.write_float64(self.position[0])
@@ -76,16 +74,14 @@ class Spawn:
         buffer.write_bool(self.yellow)
         buffer.write_utf(self.name)
 
-    @staticmethod
-    def from_buffer(buffer: 'ByteBuffer') -> 'Spawn':
-        spawn = Spawn()
-        spawn.position = (buffer.read_float64(), buffer.read_float64())
-        spawn.velocity = (buffer.read_float64(), buffer.read_float64())
-        spawn.priority = buffer.read_int16()
-        spawn.red = buffer.read_bool()
-        spawn.ffa = buffer.read_bool()
-        spawn.blue = buffer.read_bool()
-        spawn.green = buffer.read_bool()
-        spawn.yellow = buffer.read_bool()
-        spawn.name = buffer.read_utf()
-        return spawn
+    def from_buffer(self, buffer: 'ByteBuffer') -> 'Spawn':
+        self.position = (buffer.read_float64(), buffer.read_float64())
+        self.velocity = (buffer.read_float64(), buffer.read_float64())
+        self.priority = buffer.read_int16()
+        self.red = buffer.read_bool()
+        self.ffa = buffer.read_bool()
+        self.blue = buffer.read_bool()
+        self.green = buffer.read_bool()
+        self.yellow = buffer.read_bool()
+        self.name = buffer.read_utf()
+        return self
