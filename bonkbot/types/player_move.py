@@ -18,10 +18,3 @@ class PlayerMove:
     @property
     def valid(self) -> bool:
         return not self.reverted or (self.reverted and self.unreverted)
-
-    def to_json(self) -> dict:
-        return {
-            'f': self.frame,
-            'i': self.inputs.flags,
-            'c': self.sequence,
-        }
