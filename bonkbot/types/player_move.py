@@ -16,8 +16,8 @@ class PlayerMove:
     peer_ignored: bool = False
     
     @property
-    def valid(self):
-        return not self.reverted or self.reverted and self.unreverted
+    def valid(self) -> bool:
+        return not self.reverted or (self.reverted and self.unreverted)
 
     def to_json(self) -> dict:
         return {
