@@ -5,12 +5,12 @@ import attrs
 
 def convert_to_float_vector(value: Tuple[Any, Any]) -> Tuple[float, float]:
     if not isinstance(value, (tuple, list)) or len(value) != 2:
-        raise TypeError(f"Position must be a tuple or list of two elements, but got {type(value)}")
+        raise TypeError(f'Position must be a tuple or list of two elements, but got {type(value)}')
     
     try:
         return float(value[0]), float(value[1])
     except (ValueError, TypeError) as e:
-        raise TypeError(f"Could not convert position elements to float: {value}.\n{e}")
+        raise TypeError(f'Could not convert position elements to float: {value}.\nErr: {e}') from e
 
 
 def validate_vector_range(min_value: float, max_value: float) -> None:
