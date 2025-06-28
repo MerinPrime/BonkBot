@@ -4,7 +4,7 @@ from typing import List
 from ...core.constants import MAP_VERSION
 from ...pson.bytebuffer import ByteBuffer
 from ..mode import Mode
-from .capture_zone import CaptureType, CaptureZone
+from .capture_zone import CaptureZone
 from .map_metadata import MapMetadata
 from .map_properties import MapProperties
 from .physics import CollideGroup
@@ -240,13 +240,7 @@ class BonkMap:
         # endregion
         # region Capture zones
         for capture_zone in self.cap_zones:
-            capture_zone_data = {}
-            capture_zone_data['i'] = capture_zone.shape_id
-            capture_zone_data['l'] = capture_zone.seconds
-            capture_zone_data['n'] = capture_zone.name
-            if capture_zone.type is not None:
-                capture_zone_data['ty'] = capture_zone.type.value
-            data['capZones'].append(capture_zone_data)
+            data['capZones'].append(capture_zone.to_json())
         # endregion
         return data
 
@@ -429,13 +423,7 @@ class BonkMap:
         # region Capture zones
         cap_zone_count = buffer.read_int16()
         for _ in range(cap_zone_count):
-            cap_zone = CaptureZone()
-            cap_zone.name = buffer.read_utf()
-            cap_zone.seconds = buffer.read_float64()
-            cap_zone.shape_id = buffer.read_int16()
-            if bonk_map.version >= 6:
-                cap_zone.type = CaptureType.from_id(buffer.read_int16())
-            bonk_map.cap_zones.append(cap_zone)
+            bonk_map.cap_zones.append(CaptureZone.from_buffer(buffer, bonk_map.version))
         # endregion
         # region Joints
         joint_count = buffer.read_int16()
@@ -645,13 +633,7 @@ class BonkMap:
         # endregion
         # region Capture zones
         for capture_zone_data in json_data['capZones']:
-            capture_zone = CaptureZone()
-            capture_zone.name = capture_zone_data['n']
-            capture_zone.shape_id = capture_zone_data['i']
-            capture_zone.seconds = capture_zone_data['l']
-            if capture_zone_data.get('ty') is not None:
-                capture_zone.type = CaptureType.from_id(capture_zone_data['ty'])
-            bonk_map.cap_zones.append(capture_zone)
+            bonk_map.cap_zones.append(CaptureZone.from_json(capture_zone_data))
         # endregion
         return bonk_map
 
