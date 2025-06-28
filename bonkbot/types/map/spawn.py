@@ -1,9 +1,11 @@
-from typing import Optional, Tuple
+from typing import TYPE_CHECKING, Optional, Tuple
 
 import attrs
 
-from ...pson.bytebuffer import ByteBuffer
-from ...utils.validation import validate_vector_range, convert_to_float_vector
+from ...utils.validation import convert_to_float_vector, validate_vector_range
+
+if TYPE_CHECKING:
+    from ...pson.bytebuffer import ByteBuffer
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/ISpawn.ts
@@ -61,7 +63,7 @@ class Spawn:
             spawn.yellow = data['ye']
         return spawn
     
-    def to_buffer(self, buffer: ByteBuffer) -> None:
+    def to_buffer(self, buffer: 'ByteBuffer') -> None:
         buffer.write_float64(self.position[0])
         buffer.write_float64(self.position[1])
         buffer.write_float64(self.velocity[0])
@@ -75,7 +77,7 @@ class Spawn:
         buffer.write_utf(self.name)
 
     @staticmethod
-    def from_buffer(buffer: ByteBuffer) -> 'Spawn':
+    def from_buffer(buffer: 'ByteBuffer') -> 'Spawn':
         spawn = Spawn()
         spawn.position = (buffer.read_float64(), buffer.read_float64())
         spawn.velocity = (buffer.read_float64(), buffer.read_float64())
