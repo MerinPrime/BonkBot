@@ -909,6 +909,8 @@ class Room:
         if sequence is None:
             sequence = self._sequence
             self._sequence += 1
+        else:
+            self._sequence = sequence
         await self.socket.emit(
             SocketEvents.Outgoing.MOVE,
             {
