@@ -236,21 +236,7 @@ class BonkMap:
         # endregion
         # region Spawns
         for spawn in self.spawns:
-            spawn_data = {}
-            spawn_data['f'] = spawn.ffa
-            spawn_data['b'] = spawn.blue
-            spawn_data['r'] = spawn.red
-            if spawn.green is not None:
-                spawn_data['gr'] = spawn.green
-            if spawn.yellow is not None:
-                spawn_data['ye'] = spawn.yellow
-            spawn_data['n'] = spawn.name
-            spawn_data['priority'] = spawn.priority
-            spawn_data['x'] = spawn.position[0]
-            spawn_data['y'] = spawn.position[1]
-            spawn_data['xv'] = spawn.velocity[0]
-            spawn_data['yv'] = spawn.velocity[1]
-            data['spawns'].append(spawn_data)
+            data['spawns'].append(spawn.to_json())
         # endregion
         # region Capture zones
         for capture_zone in self.cap_zones:
@@ -438,17 +424,7 @@ class BonkMap:
         # region Spawns
         spawn_count = buffer.read_int16()
         for _ in range(spawn_count):
-            spawn = Spawn()
-            spawn.position = (buffer.read_float64(), buffer.read_float64())
-            spawn.velocity = (buffer.read_float64(), buffer.read_float64())
-            spawn.priority = buffer.read_int16()
-            spawn.red = buffer.read_bool()
-            spawn.ffa = buffer.read_bool()
-            spawn.blue = buffer.read_bool()
-            spawn.green = buffer.read_bool()
-            spawn.yellow = buffer.read_bool()
-            spawn.name = buffer.read_utf()
-            bonk_map.spawns.append(spawn)
+            bonk_map.spawns.append(Spawn.from_buffer(buffer))
         # endregion
         # region Capture zones
         cap_zone_count = buffer.read_int16()
@@ -665,19 +641,7 @@ class BonkMap:
         # endregion
         # region Capture zones
         for spawn_data in json_data['spawns']:
-            spawn = Spawn()
-            spawn.name = spawn_data['n']
-            spawn.priority = spawn_data['priority']
-            spawn.position = (spawn_data['x'], spawn_data['y'])
-            spawn.velocity = (spawn_data['xv'], spawn_data['yv'])
-            spawn.ffa = spawn_data['f']
-            spawn.blue = spawn_data['b']
-            spawn.red = spawn_data['r']
-            if spawn_data.get('gr') is not None:
-                spawn.green = spawn_data['gr']
-            if spawn_data.get('ye') is not None:
-                spawn.yellow = spawn_data['ye']
-            bonk_map.spawns.append(spawn)
+            bonk_map.spawns.append(Spawn.from_json(spawn_data))
         # endregion
         # region Capture zones
         for capture_zone_data in json_data['capZones']:

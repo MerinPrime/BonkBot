@@ -2,6 +2,7 @@ from typing import Optional, Tuple
 
 import attrs
 
+from ...pson.bytebuffer import ByteBuffer
 from ...utils.validation import validate_vector_range, convert_to_float_vector
 
 
@@ -14,7 +15,8 @@ class Spawn:
     red: bool = attrs.field(default=True, validator=attrs.validators.instance_of(bool))
     green: Optional[bool] = attrs.field(default=None, validator=attrs.validators.optional(attrs.validators.instance_of(bool)))
     yellow: Optional[bool] = attrs.field(default=None, validator=attrs.validators.optional(attrs.validators.instance_of(bool)))
-    priority: float = attrs.field(default=5, converter=float, validator=attrs.validators.and_(
+    priority: int = attrs.field(default=5, validator=attrs.validators.and_(
+        attrs.validators.instance_of(int),
         attrs.validators.ge(0),
         attrs.validators.le(10000),
     ))
@@ -24,3 +26,64 @@ class Spawn:
     velocity: Tuple[float, float] = attrs.field(default=(0.0, 0.0),
                                                 converter=convert_to_float_vector,
                                                 validator=validate_vector_range(-10000, 10000))
+    
+    def to_json(self) -> dict:
+        data = {
+            'n': self.name,
+            'f': self.ffa,
+            'b': self.blue,
+            'r': self.red,
+            'priority': self.priority,
+            'x': self.position[0],
+            'y': self.position[1],
+            'xv': self.velocity[0],
+            'yv': self.velocity[1],
+        }
+        if self.green is not None:
+            data['gr'] = self.green
+        if self.yellow is not None:
+            data['ye'] = self.yellow
+        return data
+    
+    @staticmethod
+    def from_json(data: dict) -> 'Spawn':
+        spawn = Spawn()
+        spawn.name = data['n']
+        spawn.ffa = data['f']
+        spawn.blue = data['b']
+        spawn.red = data['r']
+        spawn.priority = data['priority']
+        spawn.position = (data['x'], data['y'])
+        spawn.velocity = (data['xv'], data['yv'])
+        if data.get('gr') is not None:
+            spawn.green = data['gr']
+        if data.get('ye') is not None:
+            spawn.yellow = data['ye']
+        return spawn
+    
+    def to_buffer(self, buffer: ByteBuffer) -> None:
+        buffer.write_float64(self.position[0])
+        buffer.write_float64(self.position[1])
+        buffer.write_float64(self.velocity[0])
+        buffer.write_float64(self.velocity[1])
+        buffer.write_int16(self.priority)
+        buffer.write_bool(self.red)
+        buffer.write_bool(self.ffa)
+        buffer.write_bool(self.blue)
+        buffer.write_bool(self.green)
+        buffer.write_bool(self.yellow)
+        buffer.write_utf(self.name)
+
+    @staticmethod
+    def from_buffer(buffer: ByteBuffer) -> 'Spawn':
+        spawn = Spawn()
+        spawn.position = (buffer.read_float64(), buffer.read_float64())
+        spawn.velocity = (buffer.read_float64(), buffer.read_float64())
+        spawn.priority = buffer.read_int16()
+        spawn.red = buffer.read_bool()
+        spawn.ffa = buffer.read_bool()
+        spawn.blue = buffer.read_bool()
+        spawn.green = buffer.read_bool()
+        spawn.yellow = buffer.read_bool()
+        spawn.name = buffer.read_utf()
+        return spawn
