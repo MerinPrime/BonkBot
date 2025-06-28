@@ -20,12 +20,16 @@ Requires Python 3.8 or newer.
 Report any issues or suggest new features on the [GitHub Issues page](https://github.com/MerinPrime/BonkBot/issues).
 
 ## 🚀 Installation
-### Using PyPI ( Recommended )
-PyPI distribution is planned for the future.
+
+[//]: # (### Using PyPI &#40; Recommended &#41;)
+[//]: # (```bash)
+[//]: # ()
+[//]: # (```)
 ### From github
 ```bash
 pip install git+https://github.com/MerinPrime/BonkBot.git
 ```
+> PyPI distribution is planned for the future.
 
 ## 📚 Examples
 * [Rooms Watcher (Decorators)](examples/rooms_watcher.py)
