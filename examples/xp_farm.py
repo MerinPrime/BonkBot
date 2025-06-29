@@ -72,6 +72,7 @@ async def run_bot_lifecycle(name: str, password: str, event_loop: AbstractEventL
                 await bot.login_with_token(remember_token)
             
             print(f'{name}: Trying to create room')
+            await bot.update_server()
             room = bot.create_room(f"{name}'s XP Farm", unlisted=True, max_players=1)
             await room.connect()
 
