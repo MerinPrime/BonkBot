@@ -1,4 +1,4 @@
-from typing import Any, Tuple
+from typing import Any, Tuple, Sized
 
 import attrs
 
@@ -26,3 +26,13 @@ def validate_vector_range(min_value: float, max_value: float) -> None:
             raise ValueError(f"'{attribute.name}' y-coordinate ({y}) is out of the valid range [{min_value}, {max_value}]")
     
     return validate_vector_range
+
+
+def validate_length(max_length: int):
+    def validator(instance: Any, attribute: attrs.Attribute, value: Sized) -> None:
+        if len(value) >= max_length:
+            raise ValueError(
+                f"'{attribute.name}' length must be <= {max_length}: {len(value)}, {value}"
+            )
+
+    return validator
