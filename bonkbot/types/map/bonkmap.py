@@ -3,7 +3,6 @@ from typing import List
 
 from ...core.constants import MAP_VERSION
 from ...pson.bytebuffer import ByteBuffer
-from ..mode import Mode
 from .capture_zone import CaptureZone
 from .map_metadata import MapMetadata
 from .map_properties import MapProperties

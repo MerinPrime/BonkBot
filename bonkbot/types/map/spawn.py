@@ -2,7 +2,14 @@ from typing import TYPE_CHECKING, Optional, Tuple
 
 import attrs
 
-from ...utils.validation import convert_to_float_vector, validate_vector_range, validate_length
+from ...utils.validation import (
+    convert_to_float_vector,
+    validate_bool,
+    validate_int,
+    validate_opt_bool,
+    validate_str,
+    validate_vector_range,
+)
 
 if TYPE_CHECKING:
     from ...pson.bytebuffer import ByteBuffer
@@ -11,20 +18,13 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/ISpawn.ts
 @attrs.define(slots=True, auto_attribs=True)
 class Spawn:
-    name: str = attrs.field(default='Spawn', validator=attrs.validators.and_(
-        attrs.validators.instance_of(str),
-        validate_length(60),
-    ))
-    ffa: bool = attrs.field(default=True, validator=attrs.validators.instance_of(bool))
-    blue: bool = attrs.field(default=True, validator=attrs.validators.instance_of(bool))
-    red: bool = attrs.field(default=True, validator=attrs.validators.instance_of(bool))
-    green: Optional[bool] = attrs.field(default=None, validator=attrs.validators.optional(attrs.validators.instance_of(bool)))
-    yellow: Optional[bool] = attrs.field(default=None, validator=attrs.validators.optional(attrs.validators.instance_of(bool)))
-    priority: int = attrs.field(default=5, validator=attrs.validators.and_(
-        attrs.validators.instance_of(int),
-        attrs.validators.ge(0),
-        attrs.validators.le(10000),
-    ))
+    name: str = attrs.field(default='Spawn', validator=validate_str(59))
+    ffa: bool = attrs.field(default=True, validator=validate_bool())
+    blue: bool = attrs.field(default=True, validator=validate_bool())
+    red: bool = attrs.field(default=True, validator=validate_bool())
+    green: Optional[bool] = attrs.field(default=None, validator=validate_opt_bool())
+    yellow: Optional[bool] = attrs.field(default=None, validator=validate_opt_bool())
+    priority: int = attrs.field(default=5, validator=validate_int(0, 10000))
     position: Tuple[float, float] = attrs.field(default=(400.0, 300.0), converter=convert_to_float_vector,
                                                 validator=validate_vector_range(-10000, 10000))
     velocity: Tuple[float, float] = attrs.field(default=(0.0, 0.0), converter=convert_to_float_vector,

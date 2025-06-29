@@ -1,53 +1,24 @@
 from typing import TYPE_CHECKING, Optional
 
-import attrs
+from attrs import define, field
+
+from ...utils.validation import validate_bool, validate_float, validate_int
 
 if TYPE_CHECKING:
     from ...pson.bytebuffer import ByteBuffer
 
-
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/avatar/Layer.ts
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/avatar/Avatar.ts
-@attrs.define(slots=True, auto_attribs=True)
+@define(slots=True, auto_attribs=True)
 class Layer:
-    id: int = attrs.field(default=1, validator=attrs.validators.and_(
-        # Must be int in range [1, 115]
-        attrs.validators.instance_of(int),
-        attrs.validators.le(115),
-        attrs.validators.ge(1),
-    ))
-    scale: float = attrs.field(default=0.25, validator=attrs.validators.and_(
-        # Must be float in range [-10, 10]
-        attrs.validators.instance_of(float),
-        attrs.validators.le(10),
-        attrs.validators.ge(-10),
-    ))
-    angle: float = attrs.field(default=0, validator=attrs.validators.and_(
-        # Must be float in range [-9999, 9999]
-        attrs.validators.instance_of(float),
-        attrs.validators.le(9999),
-        attrs.validators.ge(-9999),
-    ))
-    x: float = attrs.field(default=0, validator=attrs.validators.and_(
-        # Must be float in range [-99999, 99999]
-        attrs.validators.instance_of(float),
-        attrs.validators.le(99999),
-        attrs.validators.ge(-99999),
-    ))
-    y: float = attrs.field(default=0, validator=attrs.validators.and_(
-        # Must be float in range [-99999, 99999]
-        attrs.validators.instance_of(float),
-        attrs.validators.le(99999),
-        attrs.validators.ge(-99999),
-    ))
-    flip_x: bool = attrs.field(default=False, validator=attrs.validators.instance_of(bool))
-    flip_y: bool = attrs.field(default=False, validator=attrs.validators.instance_of(bool))
-    color: int = attrs.field(default=0, validator=attrs.validators.and_(
-        # Must be int in range [0, 16777215]
-        attrs.validators.instance_of(int),
-        attrs.validators.le(0xFFFFFF),
-        attrs.validators.ge(0x000000),
-    ))
+    id: int = field(default=1, validator=validate_int(1, 115))
+    scale: float = field(default=0.25, validator=validate_float(-10, 10))
+    angle: float = field(default=0, validator=validate_float(-9999, 9999))
+    x: float = field(default=0, validator=validate_float(-99999, 99999))
+    y: float = field(default=0, validator=validate_float(-99999, 99999))
+    flip_x: bool = field(default=False, validator=validate_bool())
+    flip_y: bool = field(default=False, validator=validate_bool())
+    color: int = field(default=0, validator=validate_int(0, 16777215))
 
     @staticmethod
     def from_buffer(buffer: 'ByteBuffer') -> Optional['Layer']:

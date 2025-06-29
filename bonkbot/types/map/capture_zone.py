@@ -1,41 +1,27 @@
-import enum
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
-import attrs
+from attrs import define, field
 
-from bonkbot.utils.validation import validate_length
+from ...utils.validation import (
+    validate_float,
+    validate_int,
+    validate_str,
+    validate_type,
+)
+from .capture_type import CaptureType
 
 if TYPE_CHECKING:
     from bonkbot.pson import ByteBuffer
 
 
-class CaptureType(enum.IntEnum):
-    NORMAL = 1
-    INSTANT_RED = 2
-    INSTANT_BLUE = 3
-    INSTANT_GREEN = 4
-    INSTANT_YELLOW = 5
-
-    @staticmethod
-    def from_id(type_id: int) -> 'CaptureType':
-        for capture_type in CaptureType:
-            if type_id == capture_type.value:
-                return capture_type
-
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/ICapZone.ts
-@attrs.define(slots=True, auto_attribs=True)
+@define(slots=True, auto_attribs=True)
 class CaptureZone:
-    name: str = attrs.field(default='Cap Zone', validator=attrs.validators.and_(
-        attrs.validators.instance_of(str),
-        validate_length(30)
-    ))
-    shape_id: int = attrs.field(default=-1, validator=attrs.validators.optional(attrs.validators.ge(-1)))
-    seconds: float = attrs.field(default=10, converter=float, validator=attrs.validators.and_(
-        attrs.validators.ge(0.01),
-        attrs.validators.le(1000)
-    ))
-    type: 'CaptureType' = attrs.field(default=CaptureType.NORMAL, validator=attrs.validators.instance_of(CaptureType))
+    name: str = field(default='Cap Zone', validator=validate_str(29))
+    shape_id: int = field(default=-1, validator=validate_int(-1))
+    seconds: float = field(default=10, converter=float, validator=validate_float(0.01, 1000))
+    type: 'CaptureType' = field(default=CaptureType.NORMAL, validator=validate_type(CaptureType))
     
     def to_json(self) -> dict:
         data = {

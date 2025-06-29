@@ -1,4 +1,4 @@
-from typing import Any, Tuple, Sized
+from typing import Any, Callable, Iterable, Optional, Tuple
 
 import attrs
 
@@ -27,12 +27,82 @@ def validate_vector_range(min_value: float, max_value: float) -> None:
     
     return validate_vector_range
 
+def validate_int(min_value: Optional[int] = None,
+                 max_value: Optional[int] = None) -> Callable[[Any, attrs.Attribute, Any], None]:
+    validators = []
+    if min_value is not None:
+        validators.append(attrs.validators.ge(min_value))
+    if max_value is not None:
+        validators.append(attrs.validators.le(max_value))
+    return attrs.validators.and_(attrs.validators.instance_of(int), *validators)
 
-def validate_length(max_length: int):
-    def validator(instance: Any, attribute: attrs.Attribute, value: Sized) -> None:
-        if len(value) >= max_length:
-            raise ValueError(
-                f"'{attribute.name}' length must be <= {max_length}: {len(value)}, {value}"
-            )
+def validate_float(min_value: Optional[float] = None,
+                   max_value: Optional[float] = None) -> Callable[[Any, attrs.Attribute, Any], None]:
+    validators = []
+    if min_value is not None:
+        validators.append(attrs.validators.ge(min_value))
+    if max_value is not None:
+        validators.append(attrs.validators.le(max_value))
+    return attrs.validators.and_(attrs.validators.instance_of(float), *validators)
 
-    return validator
+def validate_bool() -> Callable[[Any, attrs.Attribute, Any], None]:
+    return attrs.validators.instance_of(bool)
+
+def validate_str(max_len: Optional[int] = None) -> Callable[[Any, attrs.Attribute, Any], None]:
+    validators = []
+    if max_len is not None:
+        validators.append(attrs.validators.max_len(max_len))
+    return attrs.validators.and_(
+        attrs.validators.instance_of(str),
+        *validators,
+    )
+
+def validate_opt_str(max_len: Optional[int] = None) -> Callable[[Any, attrs.Attribute, Any], None]:
+    validators = []
+    if max_len is not None:
+        validators.append(attrs.validators.max_len(max_len))
+    return attrs.validators.optional(attrs.validators.and_(
+        attrs.validators.instance_of(str),
+        *validators,
+    ))
+
+def validate_opt_bool() -> Callable[[Any, attrs.Attribute, Any], None]:
+    return attrs.validators.optional(attrs.validators.instance_of(bool))
+
+def validate_opt_int(min_value: Optional[int] = None,
+                     max_value: Optional[int] = None) -> Callable[[Any, attrs.Attribute, Any], None]:
+    validators = [
+        attrs.validators.instance_of(int),
+    ]
+    if min_value is not None:
+        validators.append(attrs.validators.ge(min_value))
+    if max_value is not None:
+        validators.append(attrs.validators.le(max_value))
+    return attrs.validators.optional(attrs.validators.and_(*validators))
+
+def validate_int_opts(options: Iterable[int]) -> Callable[[Any, attrs.Attribute, Any], None]:
+    return attrs.validators.and_(
+        attrs.validators.instance_of(int),
+        attrs.validators.in_(options),
+    )
+
+def validate_type_list(cls_type: type, max_len: Optional[int] = None) -> Callable[[Any, attrs.Attribute, Any], None]:
+    validators = []
+    if max_len is not None:
+        validators.append(attrs.validators.max_len(max_len))
+    return attrs.validators.deep_iterable(
+        attrs.validators.instance_of(cls_type),
+        attrs.validators.and_(
+            attrs.validators.instance_of(list),
+            *validators,
+        ),
+    )
+
+def validate_contributors() -> Callable[[Any, attrs.Attribute, Any], None]:
+    return attrs.validators.deep_iterable(
+        validate_str(15),
+        attrs.validators.instance_of(list),
+    )
+
+def validate_type(cls_type: type) -> Callable[[Any, attrs.Attribute, Any], None]:
+    return attrs.validators.instance_of(cls_type)

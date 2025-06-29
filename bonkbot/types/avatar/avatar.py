@@ -1,30 +1,25 @@
-import copy
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List
 
-import attrs
+from attrs import define, field
 
+from ...utils.validation import validate_int, validate_type_list
 from .layer import Layer
 
 if TYPE_CHECKING:
     from ...pson.bytebuffer import ByteBuffer
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/avatar/Avatar.ts
-@attrs.define(slots=True, auto_attribs=True)
+@define(slots=True, auto_attribs=True)
 class Avatar:
-    layers: List[Optional['Layer']] = attrs.field(factory=list, on_setattr=lambda x, y, value: copy.deepcopy(value))
-    base_color: int = attrs.field(default=0x448aff, validator=attrs.validators.and_(
-        # Must be int in range [0, 16777215]
-        attrs.validators.instance_of(int),
-        attrs.validators.le(0xFFFFFF),
-        attrs.validators.ge(0x000000),
-    ))
+    layers: List['Layer'] = field(factory=list, validator=validate_type_list(Layer, 16))
+    base_color: int = field(default=0x448aff, validator=validate_int(0, 16777215))
 
     @staticmethod
     def from_buffer(buffer: 'ByteBuffer') -> 'Avatar':
         avatar = Avatar()
         if buffer.size == 0:
             return avatar
-        avatar.layers = [None] * 16
+        layers = [None] * 16
         buffer.read_bytes(4)
         version = buffer.read_int16()
         buffer.read_uint8()
@@ -36,10 +31,11 @@ class Avatar:
                 index = buffer.read_uint8() - 48
             elif marker == 5:
                 index = (buffer.read_uint8() - 48) * 10 + (buffer.read_uint8() - 48)
-            avatar.layers[index] = Layer.from_buffer(buffer)
+            layers[index] = Layer.from_buffer(buffer)
             marker = buffer.read_uint8()
         for i in range(layer_count):
-            avatar.layers[i] = Layer.from_buffer(buffer)
+            layers[i] = Layer.from_buffer(buffer)
+        avatar.layers = list(filter(lambda x: x is not None, layers))
         if version >= 2:
             avatar.base_color = buffer.read_int32()
         return avatar
@@ -56,5 +52,5 @@ class Avatar:
         return {
             'bc': self.base_color,
             'layers': [layer.to_json()
-                       for layer in filter(lambda x: x is not None, self.layers)],
+                       for layer in self.layers],
         }
