@@ -43,7 +43,13 @@ def validate_float(min_value: Optional[float] = None,
         validators.append(attrs.validators.ge(min_value))
     if max_value is not None:
         validators.append(attrs.validators.le(max_value))
-    return attrs.validators.and_(attrs.validators.instance_of(float), *validators)
+    return attrs.validators.and_(
+        attrs.validators.or_(
+            attrs.validators.instance_of(int),
+            attrs.validators.instance_of(float),
+        ),
+        *validators,
+    )
 
 def validate_bool() -> Callable[[Any, attrs.Attribute, Any], None]:
     return attrs.validators.instance_of(bool)
