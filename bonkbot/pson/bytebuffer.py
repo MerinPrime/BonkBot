@@ -1,6 +1,6 @@
 import base64
 import struct
-from typing import Optional
+from typing import Optional, Union
 from urllib.parse import unquote
 
 from lzstring import LZString
@@ -31,25 +31,23 @@ class ByteBuffer:
         self.endian = '>'
 
     def read_bytes(self, count: int = 1) -> bytearray:
+        if self.offset + count > self.size:
+            raise EOFError(f'Not enough bytes to read. Requested {count}, available {self.size - self.offset}')
+        data = self.bytes[self.offset:self.offset+count]
         self.offset += count
-        return self.bytes[self.offset-count:self.offset]
+        return data
 
     def from_base64(self, data: str, *, uri_encoded: bool = False,
                     lz_encoded: bool = False, case_encoded: bool = False) -> 'ByteBuffer':
         if uri_encoded:
             data = unquote(data)
         if case_encoded:
-            temp_data = ''
-            for i, char in enumerate(data):
-                if i <= 100 and char.islower():
-                    temp_data += char.upper()
-                elif i <= 100 and char.isupper():
-                    temp_data += char.lower()
-                else:
-                    temp_data += char
-            data = temp_data
+            head, tail = data[:101], data[101:]
+            data = head.swapcase() + tail
         if lz_encoded:
             data = LZString.decompressFromEncodedURIComponent(data)
+            if data is None:
+                raise ValueError("LZString decompression failed")
         self.bytes += base64.b64decode(data)
         return self
 
@@ -80,24 +78,24 @@ class ByteBuffer:
     def read_varint32(self) -> int:
         value = 0
         shift = 0
-        for _ in range(4):
+        for _ in range(5):
             byte = self.read_uint8()
             value |= (byte & 0x7F) << shift
-            shift += 7
             if (byte & 0x80) == 0:
-                break
-        return value
+                return value
+            shift += 7
+        raise ValueError("varint32 is too long")
 
     def read_varint64(self) -> int:
         value = 0
         shift = 0
-        for _ in range(8):
+        for _ in range(10):
             byte = self.read_uint8()
             value |= (byte & 0x7F) << shift
-            shift += 7
             if (byte & 0x80) == 0:
-                break
-        return value
+                return value
+            shift += 7
+        raise ValueError("varint64 is too long")
 
     def read_float32(self) -> float:
         return struct.unpack(self.endian + 'f', self.read_bytes(4))[0]
@@ -113,17 +111,16 @@ class ByteBuffer:
         length = self.read_uint16()
         return self.read_bytes(length).decode('utf-8')
 
-    def read_vstr(self) -> float:
+    def read_vstr(self) -> str:
         length = self.read_varint32()
         return self.read_bytes(length).decode('utf-8')
 
-    def write_bytes(self, _bytes: bytearray) -> None:
-        empty = self.size - self.offset
-        if empty < len(_bytes):
-            needed = len(_bytes) - empty
-            self.bytes.extend(b'\x00' * needed)
-        self.bytes[self.offset:self.offset+len(_bytes)] = _bytes
-        self.offset += len(_bytes)
+    def write_bytes(self, data: Union[bytearray, bytes]) -> None:
+        data_len = len(data)
+        if self.offset + data_len > self.size:
+            self.bytes.extend(b'\x00' * (self.offset + data_len - self.size))
+        self.bytes[self.offset:self.offset + data_len] = data
+        self.offset += data_len
 
     def write_uint8(self, value: int) -> None:
         self.write_bytes(struct.pack(self.endian + 'B', value))
@@ -153,26 +150,30 @@ class ByteBuffer:
         self.write_bytes(struct.pack(self.endian + 'q', value))
 
     def write_varint32(self, value: int) -> None:
-        _bytes = []
-        for _ in range(4):
+        if value > 0xFFFFFFFF:
+            raise OverflowError('varint32 is too large')
+        data = bytearray()
+        for _ in range(5):
             byte = value & 0x7F
             value >>= 7
             if value == 0:
-                _bytes.append(byte)
+                data.append(byte)
                 break
-            _bytes.append(byte | 0x80)
-        self.write_bytes(_bytes)
+            data.append(byte | 0x80)
+        self.write_bytes(data)
 
     def write_varint64(self, value: int) -> None:
-        _bytes = []
-        for _ in range(8):
+        if value > 0xFFFFFFFFFFFFFFFF:
+            raise OverflowError('varint64 is too large')
+        data = bytearray()
+        for _ in range(10):
             byte = value & 0x7F
             value >>= 7
             if value == 0:
-                _bytes.append(byte)
+                data.append(byte)
                 break
-            _bytes.append(byte | 0x80)
-        self.write_bytes(_bytes)
+            data.append(byte | 0x80)
+        self.write_bytes(data)
 
     def write_float32(self, value: float) -> None:
         self.write_bytes(struct.pack(self.endian + 'f', value))

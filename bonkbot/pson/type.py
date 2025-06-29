@@ -1,8 +1,8 @@
-from typing import Union
+import enum
+from typing import Union, Optional, List, Dict
 
 
-class T:
-    ZERO = 0x00
+class PSONType(enum.IntEnum):
     MAX = 0xEF
     NULL = 0xF0
     TRUE = 0xF1
@@ -22,4 +22,4 @@ class T:
     BINARY = 0xFF
 
 
-PsonValue = Union[str, int, float, bool, list, dict, bytearray]
+JsonValue = Optional[Union[str, int, float, bool, List['JsonValue'], Dict[str, 'JsonValue'], bytearray]]
