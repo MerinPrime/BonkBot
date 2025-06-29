@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Optional
 
 from attrs import define, field
 
-from ...utils.validation import validate_bool, validate_opt_bool, validate_float
+from ...utils.validation import validate_bool, validate_float, validate_opt_bool
 
 if TYPE_CHECKING:
     from ...pson.bytebuffer import ByteBuffer
