@@ -20,13 +20,14 @@ class BotEventHandler:
     def __init__(self) -> None:
         self.__event_emitter = EventEmitter()
         self.__events = {}
-
-        for name, method in inspect.getmembers(BotEventHandler, predicate=inspect.isfunction):
-            if name.startswith('on_'):
-                self.__events[name] = method
-
+        
+        events = []
+        for name, _ in inspect.getmembers(BotEventHandler, predicate=inspect.isfunction):
+            events.append(name)
+        
         for name, method in inspect.getmembers(self, predicate=inspect.ismethod):
-            if name.startswith('on_') and name in self.__events:
+            if name.startswith('on_') and name in events:
+                self.__events[name] = method
                 self.event(method)
 
     def event(self, function: Callable[..., Coroutine[Any, Any, Any]]) -> Callable[..., Coroutine[Any, Any, Any]]:
@@ -45,12 +46,12 @@ class BotEventHandler:
         func_sig = inspect.signature(self.__events[event_name])
         handler_sig = inspect.signature(function)
 
-        handler_params = len(list(handler_sig.parameters.values()))
-        func_params = len(list(func_sig.parameters.values())) - 1
-
-        if func_params != handler_params:
+        handler_params = list(handler_sig.parameters.values())
+        func_params = list(func_sig.parameters.values())
+        
+        if len(func_params) != len(handler_params):
             raise TypeError(
-                f'Handler expected to get {handler_params} arguments, but got {func_params}',
+                f'Handler expected to get {len(handler_params)} arguments, but got {len(func_params)}',
             )
 
         self.__event_emitter.off(event_name, self.__events[event_name])
