@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Optional, Tuple
 
 import attrs
 
-from ...utils.validation import convert_to_float_vector, validate_vector_range
+from ...utils.validation import convert_to_float_vector, validate_vector_range, validate_length
 
 if TYPE_CHECKING:
     from ...pson.bytebuffer import ByteBuffer
@@ -11,7 +11,10 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/ISpawn.ts
 @attrs.define(slots=True, auto_attribs=True)
 class Spawn:
-    name: str = attrs.field(default='Spawn', validator=attrs.validators.instance_of(str))
+    name: str = attrs.field(default='Spawn', validator=attrs.validators.and_(
+        attrs.validators.instance_of(str),
+        validate_length(60),
+    ))
     ffa: bool = attrs.field(default=True, validator=attrs.validators.instance_of(bool))
     blue: bool = attrs.field(default=True, validator=attrs.validators.instance_of(bool))
     red: bool = attrs.field(default=True, validator=attrs.validators.instance_of(bool))
@@ -22,11 +25,9 @@ class Spawn:
         attrs.validators.ge(0),
         attrs.validators.le(10000),
     ))
-    position: Tuple[float, float] = attrs.field(default=(400.0, 300.0),
-                                                converter=convert_to_float_vector,
+    position: Tuple[float, float] = attrs.field(default=(400.0, 300.0), converter=convert_to_float_vector,
                                                 validator=validate_vector_range(-10000, 10000))
-    velocity: Tuple[float, float] = attrs.field(default=(0.0, 0.0),
-                                                converter=convert_to_float_vector,
+    velocity: Tuple[float, float] = attrs.field(default=(0.0, 0.0), converter=convert_to_float_vector,
                                                 validator=validate_vector_range(-10000, 10000))
     
     def to_json(self) -> dict:
