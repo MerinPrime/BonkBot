@@ -52,21 +52,11 @@ class BonkMap:
             'spawns': [],
             'capZones': [],
         }
+        # region Properties
+        data['s'] = self.properties.to_json()
+        # endregion
         # region Metadata
         data['m'] = self.metadata.to_json()
-        # endregion
-        # region Properties
-        data['s']['gd'] = self.properties.grid_size
-        data['s']['nc'] = self.properties.players_dont_collide
-        data['s']['re'] = self.properties.respawn_on_death
-        data['s']['fl'] = self.properties.players_can_fly
-        data['s']['pq'] = 2 if self.properties.complex_physics else 1
-        if self.properties.a1 is not None:
-            data['s']['a1'] = self.properties.a1
-        if self.properties.a2 is not None:
-            data['s']['a2'] = self.properties.a2
-        if self.properties.a3 is not None:
-            data['s']['a3'] = self.properties.a3
         # endregion
         # region Physics
         for body in self.physics.bodies:
@@ -237,19 +227,7 @@ class BonkMap:
             raise NotImplementedError('Future map version.')
 
         # region Properties
-        bonk_map.properties.respawn_on_death = buffer.read_bool()
-        bonk_map.properties.players_dont_collide = buffer.read_bool()
-
-        if bonk_map.version >= 3:
-            bonk_map.properties.complex_physics = buffer.read_int16() == 2
-
-        if 4 <= bonk_map.version <= 12:
-            bonk_map.properties.grid_size = buffer.read_int16()
-        elif bonk_map.version >= 13:
-            bonk_map.properties.grid_size = buffer.read_float32()
-
-        if bonk_map.version >= 9:
-            bonk_map.properties.players_can_fly = buffer.read_bool()
+        bonk_map.properties.from_buffer(buffer, bonk_map.version)
         # endregion
         # region MetaData
         bonk_map.metadata.from_buffer(buffer, bonk_map.version)
@@ -439,8 +417,8 @@ class BonkMap:
     def from_json(cls, json_data: dict) -> 'BonkMap':
         bonk_map = BonkMap()
         bonk_map.version = json_data['v']
+        bonk_map.properties.from_json(json_data['s'])
         bonk_map.metadata.from_json(json_data['m'])
-        bonk_map.properties = MapProperties.from_json(json_data['s'])
         # region Physics
         for body_data in json_data['physics']['bodies']:
             body = Body()

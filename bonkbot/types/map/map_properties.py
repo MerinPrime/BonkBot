@@ -1,28 +1,69 @@
-from dataclasses import dataclass
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
+from attrs import define, field
+
+from ...utils.validation import validate_bool, validate_opt_bool, validate_float
+
+if TYPE_CHECKING:
+    from ...pson.bytebuffer import ByteBuffer
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMapProperties.ts
-@dataclass
+@define(slots=True, auto_attribs=True)
 class MapProperties:
-    grid_size: float = 25
-    players_dont_collide: bool = False
-    respawn_on_death: bool = False
-    players_can_fly: bool = False
-    complex_physics: bool = False
-    a1: Optional[bool] = None
-    a2: Optional[bool] = None
-    a3: Optional[bool] = None
+    grid_size: float = field(default=25, converter=float, validator=validate_float(2, 100))
+    players_dont_collide: bool = field(default=False, validator=validate_bool())
+    respawn_on_death: bool = field(default=False, validator=validate_bool())
+    players_can_fly: bool = field(default=False, validator=validate_bool())
+    complex_physics: bool = field(default=False, validator=validate_bool())
+    a1: Optional[bool] = field(default=None, validator=validate_opt_bool())
+    a2: Optional[bool] = field(default=None, validator=validate_opt_bool())
+    a3: Optional[bool] = field(default=None, validator=validate_opt_bool())
 
-    @staticmethod
-    def from_json(data: dict) -> 'MapProperties':
-        properties = MapProperties()
-        properties.grid_size = data.get('gd', 25)
-        properties.players_dont_collide = data.get('nc', False)
-        properties.respawn_on_death = data.get('re', False)
-        properties.players_can_fly = data.get('fl', False)
-        properties.complex_physics = data.get('pq', 1) == 2
-        properties.a1 = data.get('a1')
-        properties.a2 = data.get('a2')
-        properties.a3 = data.get('a3')
-        return properties
+    def to_json(self) -> dict:
+        data = {
+            'gd': self.grid_size,
+            'nc': self.players_dont_collide,
+            're': self.respawn_on_death,
+            'fl': self.players_can_fly,
+            'pq': 2 if self.complex_physics else 1,
+        }
+        if self.a1 is not None:
+            data['a1'] = self.a1
+        if self.a2 is not None:
+            data['a2'] = self.a2
+        if self.a3 is not None:
+            data['a3'] = self.a3
+        return data
+    
+    def from_json(self, data: dict) -> 'MapProperties':
+        self.grid_size = data['gd']
+        self.players_dont_collide = data['nc']
+        self.respawn_on_death = data['re']
+        self.players_can_fly = data['fl']
+        self.complex_physics = data['pq'] == 2
+        self.a1 = data.get('a1')
+        self.a2 = data.get('a2')
+        self.a3 = data.get('a3')
+        return self
+
+    def to_buffer(self, buffer: 'ByteBuffer') -> None:
+        buffer.write_bool(self.players_dont_collide)
+        buffer.write_bool(self.respawn_on_death)
+        buffer.write_int16(2 if self.complex_physics else 1)
+        buffer.write_float32(self.grid_size)
+        buffer.write_bool(self.players_can_fly)
+
+    def from_buffer(self, buffer: 'ByteBuffer', version: int) -> 'MapProperties':
+        self.respawn_on_death = buffer.read_bool()
+        self.players_dont_collide = buffer.read_bool()
+        if version >= 3:
+            self.complex_physics = buffer.read_int16() == 2
+        if 4 <= version <= 12:
+            self.grid_size = buffer.read_int16()
+        elif version >= 13:
+            self.grid_size = buffer.read_float32()
+        if version >= 9:
+            self.players_can_fly = buffer.read_bool()
+        
+        return self
