@@ -79,6 +79,9 @@ class BotEventHandler:
     async def on_room_connection(self, room: 'Room', action: 'RoomAction') -> None:
         pass
 
+    async def on_room_disconnect(self, room: 'Room') -> None:
+        pass
+
     async def on_room_create(self, room: 'Room') -> None:
         pass
 

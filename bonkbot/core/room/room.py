@@ -230,6 +230,7 @@ class Room:
         self._connections = []
         self._sequence = 0
         self._bot.remove_room(self)
+        await self._bot.dispatch(BotEventHandler.on_room_disconnect, self)
 
     async def _handle_p2p_revert(self) -> None:
         await self.wait_for_connection()
