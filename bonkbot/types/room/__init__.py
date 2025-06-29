@@ -1,3 +1,4 @@
+from .game_settings import GameSettings
 from .room_action import RoomAction
 from .room_create_params import RoomCreateParams
 from .room_data import RoomData
