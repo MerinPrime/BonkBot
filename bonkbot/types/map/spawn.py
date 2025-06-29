@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Optional, Tuple
 
-import attrs
+from attrs import define, field
 
 from ...utils.validation import (
     convert_to_float_vector,
@@ -16,18 +16,18 @@ if TYPE_CHECKING:
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/ISpawn.ts
-@attrs.define(slots=True, auto_attribs=True)
+@define(slots=True, auto_attribs=True)
 class Spawn:
-    name: str = attrs.field(default='Spawn', validator=validate_str(59))
-    ffa: bool = attrs.field(default=True, validator=validate_bool())
-    blue: bool = attrs.field(default=True, validator=validate_bool())
-    red: bool = attrs.field(default=True, validator=validate_bool())
-    green: Optional[bool] = attrs.field(default=None, validator=validate_opt_bool())
-    yellow: Optional[bool] = attrs.field(default=None, validator=validate_opt_bool())
-    priority: int = attrs.field(default=5, validator=validate_int(0, 10000))
-    position: Tuple[float, float] = attrs.field(default=(400.0, 300.0), converter=convert_to_float_vector,
+    name: str = field(default='Spawn', validator=validate_str(59))
+    ffa: bool = field(default=True, validator=validate_bool())
+    blue: bool = field(default=True, validator=validate_bool())
+    red: bool = field(default=True, validator=validate_bool())
+    green: Optional[bool] = field(default=None, validator=validate_opt_bool())
+    yellow: Optional[bool] = field(default=None, validator=validate_opt_bool())
+    priority: int = field(default=5, validator=validate_int(0, 10000))
+    position: Tuple[float, float] = field(default=(400.0, 300.0), converter=convert_to_float_vector,
                                                 validator=validate_vector_range(-10000, 10000))
-    velocity: Tuple[float, float] = attrs.field(default=(0.0, 0.0), converter=convert_to_float_vector,
+    velocity: Tuple[float, float] = field(default=(0.0, 0.0), converter=convert_to_float_vector,
                                                 validator=validate_vector_range(-10000, 10000))
     
     def to_json(self) -> dict:
