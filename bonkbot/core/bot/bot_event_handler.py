@@ -76,7 +76,7 @@ class BotEventHandler:
     async def on_error(self, bot: 'BonkBot', error: Exception) -> None:
         raise error
 
-    async def on_room_connection(self, room: 'Room', action: 'RoomAction') -> None:
+    async def on_room_connect(self, room: 'Room', action: 'RoomAction') -> None:
         pass
 
     async def on_room_disconnect(self, room: 'Room') -> None:
