@@ -54,23 +54,7 @@ class BonkMap:
             'capZones': [],
         }
         # region Metadata
-        data['m']['a'] = self.metadata.author
-        data['m']['n'] = self.metadata.name
-        data['m']['dbv'] = self.metadata.database_version
-        data['m']['dbid'] = self.metadata.database_id
-        data['m']['rxa'] = self.metadata.original_author
-        data['m']['rxn'] = self.metadata.original_name
-        data['m']['rxdb'] = self.metadata.original_database_version
-        data['m']['rxid'] = self.metadata.original_database_id
-        data['m']['pub'] = self.metadata.is_published
-        data['m']['cr'] = self.metadata.contributors
-        data['m']['date'] = self.metadata.date
-        data['m']['authid'] = self.metadata.auth_id
-        data['m']['mo'] = self.metadata.mode.mode
-        if self.metadata.votes_down is not None:
-            data['m']['vd'] = self.metadata.votes_down
-        if self.metadata.votes_up is not None:
-            data['m']['vu'] = self.metadata.votes_up
+        data['m'] = self.metadata.to_json()
         # endregion
         # region Properties
         data['s']['gd'] = self.properties.grid_size
@@ -269,32 +253,7 @@ class BonkMap:
             bonk_map.properties.players_can_fly = buffer.read_bool()
         # endregion
         # region MetaData
-        bonk_map.metadata.original_name = buffer.read_utf()
-        bonk_map.metadata.original_author = buffer.read_utf()
-        bonk_map.metadata.original_database_id = buffer.read_uint32()
-        bonk_map.metadata.original_database_version = buffer.read_int16()
-        bonk_map.metadata.name = buffer.read_utf()
-        bonk_map.metadata.author = buffer.read_utf()
-
-        if bonk_map.version >= 10:
-            bonk_map.metadata.votes_up = buffer.read_uint32()
-            bonk_map.metadata.votes_down = buffer.read_uint32()
-
-        if bonk_map.version >= 4:
-            bonk_map.metadata.contributors = []
-            contributors_count = buffer.read_int16()
-            for _ in range(contributors_count):
-                bonk_map.metadata.contributors.append(buffer.read_utf())
-
-        if bonk_map.version >= 5:
-            bonk_map.metadata.mode = Mode.from_mode_code(buffer.read_utf())
-            bonk_map.metadata.database_id = buffer.read_int32()
-
-        if bonk_map.version >= 7:
-            bonk_map.metadata.is_published = buffer.read_bool()
-
-        if bonk_map.version >= 8:
-            bonk_map.metadata.database_version = buffer.read_int32()
+        bonk_map.metadata.from_buffer(buffer, bonk_map.version)
         # endregion
         # region Physics
         bonk_map.physics.ppm = buffer.read_int16()
@@ -481,7 +440,7 @@ class BonkMap:
     def from_json(cls, json_data: dict) -> 'BonkMap':
         bonk_map = BonkMap()
         bonk_map.version = json_data['v']
-        bonk_map.metadata = MapMetadata.from_json(json_data['m'])
+        bonk_map.metadata.from_json(json_data['m'])
         bonk_map.properties = MapProperties.from_json(json_data['s'])
         # region Physics
         for body_data in json_data['physics']['bodies']:
