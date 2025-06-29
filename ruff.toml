@@ -42,6 +42,7 @@ ignore = [
     "ANN003",
     "W293",
     "ANN401",
+    "B023",
 ]
 
 [lint.per-file-ignores]
