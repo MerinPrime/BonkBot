@@ -16,19 +16,26 @@ if TYPE_CHECKING:
 class BotEventHandler:
     __event_emitter: EventEmitter
     __events: dict
+    __default_events: dict
 
     def __init__(self) -> None:
         self.__event_emitter = EventEmitter()
+        
         self.__events = {}
-        
-        events = []
-        for name, _ in inspect.getmembers(BotEventHandler, predicate=inspect.isfunction):
-            events.append(name)
-        
-        for name, method in inspect.getmembers(self, predicate=inspect.ismethod):
-            if name.startswith('on_') and name in events:
-                self.__events[name] = method
+        for name, method in inspect.getmembers(BotEventHandler, predicate=inspect.isfunction):
+            if not name.startswith('on_'):
+                continue
+            self.__events[name] = method
+
+        self.__default_events = {}
+        for event in self.__events.keys():
+            base_method = getattr(BotEventHandler, event)
+            method = getattr(self, event)
+            if method.__func__ is not base_method:
                 self.event(method)
+            else:
+                self.event(method)
+                self.__default_events[event] = method
 
     def event(self, function: Callable[..., Coroutine[Any, Any, Any]]) -> Callable[..., Coroutine[Any, Any, Any]]:
         return self.on(function, function)
@@ -49,12 +56,13 @@ class BotEventHandler:
         handler_params = list(handler_sig.parameters.values())
         func_params = list(func_sig.parameters.values())
         
-        if len(func_params) != len(handler_params):
+        if len(func_params) - 1 != len(handler_params):
             raise TypeError(
-                f'Handler expected to get {len(handler_params)} arguments, but got {len(func_params)}',
+                f'Handler expected to get {len(handler_params)} arguments, but got {len(func_params) - 1}',
             )
-
-        self.__event_emitter.off(event_name, self.__events[event_name])
+        
+        if event_name in self.__default_events:
+            self.__event_emitter.off(event_name, self.__default_events[event_name])
         self.__event_emitter.on(event_name, function)
         return function
 
