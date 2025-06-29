@@ -11,7 +11,7 @@ from ...utils.validation import (
 from .capture_type import CaptureType
 
 if TYPE_CHECKING:
-    from bonkbot.pson import ByteBuffer
+    from ...pson.bytebuffer import ByteBuffer
 
 
 
