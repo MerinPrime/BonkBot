@@ -28,7 +28,7 @@ class BotEventHandler:
             self.__events[name] = method
 
         self.__default_events = {}
-        for event in self.__events.keys():
+        for event in self.__events:
             base_method = getattr(BotEventHandler, event)
             method = getattr(self, event)
             if method.__func__ is not base_method:
