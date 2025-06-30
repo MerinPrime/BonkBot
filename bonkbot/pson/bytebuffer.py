@@ -47,7 +47,7 @@ class ByteBuffer:
         if lz_encoded:
             data = LZString.decompressFromEncodedURIComponent(data)
             if data is None:
-                raise ValueError("LZString decompression failed")
+                raise ValueError('LZString decompression failed')
         self.bytes += base64.b64decode(data)
         return self
 
@@ -84,7 +84,7 @@ class ByteBuffer:
             if (byte & 0x80) == 0:
                 return value
             shift += 7
-        raise ValueError("varint32 is too long")
+        raise ValueError('varint32 is too long')
 
     def read_varint64(self) -> int:
         value = 0
@@ -95,7 +95,7 @@ class ByteBuffer:
             if (byte & 0x80) == 0:
                 return value
             shift += 7
-        raise ValueError("varint64 is too long")
+        raise ValueError('varint64 is too long')
 
     def read_float32(self) -> float:
         return struct.unpack(self.endian + 'f', self.read_bytes(4))[0]

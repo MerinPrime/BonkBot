@@ -61,7 +61,7 @@ class StaticPair:
                 zzval = zigzag_encode64(value)
                 buffer.write_varint64(zzval)
         elif type(value) is float:
-            if is_double(value): 
+            if is_double(value):
                 buffer.offset -= 4
                 buffer.write_uint8(PSONType.FLOAT)
                 buffer.write_float32(value)
@@ -135,7 +135,7 @@ class StaticPair:
                 value = self.decode(buffer)
                 try:
                     obj[key] = value
-                except TypeError as e:
+                except TypeError:
                     pass
             return obj
         if code == PSONType.ARRAY:

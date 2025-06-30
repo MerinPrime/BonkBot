@@ -1,5 +1,5 @@
 import enum
-from typing import Union, Optional, List, Dict
+from typing import Dict, List, Optional, Union
 
 
 class PSONType(enum.IntEnum):
