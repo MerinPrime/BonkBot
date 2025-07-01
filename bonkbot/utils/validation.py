@@ -54,10 +54,12 @@ def validate_float(min_value: Optional[float] = None,
 def validate_bool() -> Callable[[Any, attrs.Attribute, Any], None]:
     return attrs.validators.instance_of(bool)
 
-def validate_str(max_len: Optional[int] = None) -> Callable[[Any, attrs.Attribute, Any], None]:
+def validate_str(max_len: Optional[int] = None, min_len: Optional[int] = None) -> Callable[[Any, attrs.Attribute, Any], None]:
     validators = []
     if max_len is not None:
         validators.append(attrs.validators.max_len(max_len))
+    if min_len is not None:
+        validators.append(attrs.validators.min_len(min_len))
     return attrs.validators.and_(
         attrs.validators.instance_of(str),
         *validators,
