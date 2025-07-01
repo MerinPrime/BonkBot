@@ -1,8 +1,7 @@
-from dataclasses import dataclass
 from typing import Optional
 
-from attrs.setters import frozen
 from attrs import define, field
+from attrs.setters import frozen
 
 from ..utils.validation import validate_opt_int, validate_str
 
