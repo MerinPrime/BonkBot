@@ -74,6 +74,11 @@ class ErrorType(enum.Enum):
 
     # Custom Errors
 
+    UNDEFINED = ('undefined',)
+    '''
+    Unknown error.
+    '''
+
     USERNAME_MUST_BE_ASCII = ('username_must_be_ascii',)
     '''
     Username must contain only ASCII characters.
@@ -101,4 +106,5 @@ class ErrorType(enum.Enum):
         for error_type in ErrorType:
             if code in error_type.value:
                 return error_type
-        raise ValueError(f'{code} is not a valid error code')
+        print(f'Undefined error {code}.')
+        return ErrorType.UNDEFINED
