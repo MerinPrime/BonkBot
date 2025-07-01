@@ -1,13 +1,18 @@
 import enum
 from dataclasses import dataclass
 
+from attr.setters import frozen
+from attrs import define, field
 
-@dataclass(frozen=True)
+from build.lib.bonkbot.utils.validation import validate_str, validate_float
+
+
+@define
 class ServerInfo:
-    name: str
-    latitude: float
-    longitude: float
-    country: str
+    name: str = field(validator=validate_str(), on_setattr=frozen)
+    latitude: float = field(validator=validate_float(), on_setattr=frozen)
+    longitude: float = field(validator=validate_float(), on_setattr=frozen)
+    country: str = field(validator=validate_str(), on_setattr=frozen)
 
 
 class Server(enum.Enum):
