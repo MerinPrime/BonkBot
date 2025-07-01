@@ -6,7 +6,7 @@ from attrs.setters import frozen
 from ..utils.validation import validate_float, validate_str
 
 
-@define
+@define(slots=True, auto_attribs=True)
 class ServerInfo:
     name: str = field(validator=validate_str(), on_setattr=frozen)
     latitude: float = field(validator=validate_float(), on_setattr=frozen)

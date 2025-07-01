@@ -16,7 +16,7 @@ class InputFlag(enum.IntFlag):
     ALL = LEFT | RIGHT | UP | DOWN | HEAVY | SPECIAL
 
 
-@define
+@define(slots=True, auto_attribs=True)
 class Inputs:
     left: bool = field(default=None, validator=validate_bool())
     right: bool = field(default=None, validator=validate_bool())

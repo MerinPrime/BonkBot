@@ -27,7 +27,7 @@ from .spawn import Spawn
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMap.ts
-@define
+@define(slots=True, auto_attribs=True)
 class BonkMap:
     version: int = field(default=MAP_VERSION, validator=validate_int(1))
     metadata: 'MapMetadata' = field(factory=MapMetadata, validator=validate_type(MapMetadata))
