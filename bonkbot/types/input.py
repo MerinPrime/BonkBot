@@ -1,5 +1,8 @@
 import enum
-from dataclasses import dataclass
+
+from attrs import define, field
+
+from bonkbot.utils.validation import validate_bool
 
 
 class InputFlag(enum.IntFlag):
@@ -13,14 +16,14 @@ class InputFlag(enum.IntFlag):
     ALL = LEFT | RIGHT | UP | DOWN | HEAVY | SPECIAL
 
 
-@dataclass
+@define
 class Inputs:
-    left: bool = False
-    right: bool = False
-    up: bool = False
-    down: bool = False
-    heavy: bool = False
-    special: bool = False
+    left: bool = field(default=None, validator=validate_bool())
+    right: bool = field(default=None, validator=validate_bool())
+    up: bool = field(default=None, validator=validate_bool())
+    down: bool = field(default=None, validator=validate_bool())
+    heavy: bool = field(default=None, validator=validate_bool())
+    special: bool = field(default=None, validator=validate_bool())
 
     @property
     def flags(self) -> int:
