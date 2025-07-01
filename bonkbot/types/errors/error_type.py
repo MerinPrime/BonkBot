@@ -159,7 +159,7 @@ class ErrorType(enum.Enum):
     '''
     Username must contain only ASCII characters.
     '''
-    USERNAME_TOO_SHORT = ('username_too_short')
+    USERNAME_TOO_SHORT = ('username_too_short',)
     '''
     Username must be at least 2 characters long.
     '''
