@@ -63,6 +63,14 @@ class ErrorType(enum.Enum):
     '''
     Avatar data invalid.
     '''
+    MAP_UNPUBLISHED = ('map_unpublished',)
+    '''
+    Couldn't unfavourite map because it isn't public.
+    '''
+    NOT_FAVED = ('not_faved',)
+    '''
+    This map isn't in your favourites
+    '''
 
     # Custom Errors
 
