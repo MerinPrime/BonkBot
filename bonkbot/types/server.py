@@ -1,7 +1,7 @@
 import enum
 from dataclasses import dataclass
 
-from attr.setters import frozen
+from attrs.setters import frozen
 from attrs import define, field
 
 from build.lib.bonkbot.utils.validation import validate_str, validate_float
