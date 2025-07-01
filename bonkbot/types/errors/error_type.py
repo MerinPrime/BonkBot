@@ -8,7 +8,7 @@ class ErrorType(enum.Enum):
 
     # Bonk Errors
 
-    RATE_LIMITED = ('ratelimited', 'rate_limit')
+    RATE_LIMITED = ('ratelimited', 'rate_limited', 'rate_limit')
     '''
     You did something too fast.
     Possible reasons:
@@ -24,7 +24,7 @@ class ErrorType(enum.Enum):
     '''
     Invalid account password.
     '''
-    USERNAME_INVALID = ('username_invalid', 'username_fail', 'invalid guest name')
+    USERNAME_INVALID = ('username_invalid', 'invalid guest name')
     '''
     Invalid username. Possible reasons include:
     * Too short
@@ -63,13 +63,89 @@ class ErrorType(enum.Enum):
     '''
     Avatar data invalid.
     '''
-    MAP_UNPUBLISHED = ('map_unpublished',)
+    MAP_UNPUBLISHED = ('map_unpublished', 'map_private')
     '''
-    Couldn't unfavourite map because it isn't public.
+    Map is private, it must be published.
     '''
     NOT_FAVED = ('not_faved',)
     '''
-    This map isn't in your favourites
+    This map isn't in your favourites.
+    '''
+    ALREADY_FAVED = ('already_faved',)
+    '''
+    This map is already in your favourites.
+    '''
+    USERNAME_TAKEN = ('username_taken',)
+    '''
+    Username is already taken. ( Account registration )
+    '''
+    DATA_MISSING = ('data_missing',)
+    '''
+    Please enter both a username and password. ( Account registration )
+    '''
+    PASSWORD_WEAK = ('password_weak',)
+    '''
+    This password is too weak. Make it stronger. ( Account registration )
+    '''
+    USERNAME_NOT_FOUND = ('username_fail', 'username_not_found')
+    '''
+    No account with that username.
+    '''
+    BANNED = ('banned',)
+    '''
+    Account banned.
+    '''
+    PASSWORD_INCORRECT = ('password',)
+    '''
+    Password incorrect.
+    '''
+    TOKEN = ('password',)
+    '''
+    Please log out and in again and try again. ( Password changing )
+    '''
+    SERVER_ERROR = ('server_error_1', 'server_error_2')
+    '''
+    Please log out and in again and try again. ( Password changing )
+    '''
+    OLD_PASSWORD_INCORRECT = ('oldpass_wrong',)
+    '''
+    Old password is incorrect. ( Password changing )
+    '''
+    CANT_FRIEND_SELF = ('cant_friend_self',)
+    '''
+    Cant friend yourself.
+    '''
+    ALREADY_FRIENDS = ('already_friends',)
+    '''
+    You are already friends.
+    '''
+    ALREADY_SENT_REQUEST = ('already_sent_request',)
+    '''
+    You have already sent them a friend request.
+    '''
+    NOT_LOGGED_IN = ('not_logged_in',)
+    '''
+    You are guest.
+    '''
+    INVALID_MAPID = ('invalid_mapid',)
+    '''
+    Map issue.
+    '''
+    INVALID_COMMENT = ('invalid_comment',)
+    '''
+    Comment invalid.
+    '''
+    COMMENT_TOO_LONG = ('comment_too_long',)
+    '''
+    Comment too long.
+    '''
+    INVALID_DBV = ('invalid_dbv',)
+    '''
+    Map issue.
+    '''
+    UNAUTHORISED = ('unauthorised',)
+    '''
+    You dont have those privileges.
     '''
 
     # Custom Errors
