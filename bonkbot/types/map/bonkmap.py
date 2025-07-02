@@ -8,7 +8,6 @@ from ...utils.validation import validate_int, validate_type, validate_type_list
 from .capture_zone import CaptureZone
 from .map_metadata import MapMetadata
 from .map_properties import MapProperties
-from .physics import CollideGroup
 from .physics.body.body import Body
 from .physics.body.body_type import BodyType
 from .physics.body.force_zone import ForceZoneType
@@ -84,23 +83,7 @@ class BonkMap:
             body_data['fz']['p'] = body.force_zone.push_bodies
             body_data['fz']['a'] = body.force_zone.push_arrows
             body_data['fz']['cf'] = body.force_zone.center_force
-            body_data['s'] = {}
-            body_data['s']['type'] = body.shape.body_type.value
-            body_data['s']['n'] = body.shape.name
-            body_data['s']['fricp'] = body.shape.friction_players
-            body_data['s']['ld'] = body.shape.linear_damping
-            body_data['s']['ad'] = body.shape.angular_damping
-            body_data['s']['de'] = body.shape.density
-            body_data['s']['fric'] = body.shape.friction
-            body_data['s']['re'] = body.shape.restitution
-            body_data['s']['fr'] = body.shape.fixed_rotation
-            body_data['s']['bu'] = body.shape.anti_tunnel
-            body_data['s']['f_1'] = (body.shape.collide_mask & CollideFlag.A) != 0
-            body_data['s']['f_2'] = (body.shape.collide_mask & CollideFlag.B) != 0
-            body_data['s']['f_3'] = (body.shape.collide_mask & CollideFlag.C) != 0
-            body_data['s']['f_4'] = (body.shape.collide_mask & CollideFlag.D) != 0
-            body_data['s']['f_p'] = (body.shape.collide_mask & CollideFlag.PLAYERS) != 0
-            body_data['s']['f_c'] = body.shape.collide_group
+            body_data['s'] = body.shape.to_json()
             data['physics']['bodies'].append(body_data)
         for fixture in self.physics.fixtures:
             fixture_data = {}
@@ -442,27 +425,7 @@ class BonkMap:
             body.force_zone.push_bodies = body_data['fz']['p']
             body.force_zone.push_arrows = body_data['fz']['a']
             body.force_zone.center_force = body_data['fz']['cf']
-            body.shape.body_type = BodyType.from_name(body_data['s']['type'])
-            body.shape.name = body_data['s']['n']
-            body.shape.friction_players = body_data['s']['fricp']
-            body.shape.linear_damping = body_data['s']['ld']
-            body.shape.angular_damping = body_data['s']['ad']
-            body.shape.density = body_data['s']['de']
-            body.shape.friction = body_data['s']['fric']
-            body.shape.restitution = body_data['s']['re']
-            body.shape.fixed_rotation = body_data['s']['fr']
-            body.shape.anti_tunnel = body_data['s']['bu']
-            body.shape.collide_group = CollideGroup.from_id(body_data['s']['f_c'])
-            if body_data['s']['f_1']:
-                body.shape.collide_mask |= CollideFlag.A
-            if body_data['s']['f_2']:
-                body.shape.collide_mask |= CollideFlag.B
-            if body_data['s']['f_3']:
-                body.shape.collide_mask |= CollideFlag.C
-            if body_data['s']['f_4']:
-                body.shape.collide_mask |= CollideFlag.D
-            if body_data['s']['f_p']:
-                body.shape.collide_mask |= CollideFlag.PLAYERS
+            body.shape.from_json(body_data['s'])
             bonk_map.physics.bodies.append(body)
         for fixture_data in json_data['physics']['fixtures']:
             fixture = Fixture(-1)
