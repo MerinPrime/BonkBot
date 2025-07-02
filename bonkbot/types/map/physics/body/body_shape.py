@@ -29,7 +29,7 @@ class BodyShape:
 
     collide_mask: 'CollideFlag' = field(default=CollideFlag.ALL, validator=validate_type(CollideFlag))
     collide_group: 'CollideGroup' = field(default=CollideGroup.A, validator=validate_type(CollideGroup))
-    
+
     def to_json(self) -> dict:
         return {
             'type': self.body_type.value,

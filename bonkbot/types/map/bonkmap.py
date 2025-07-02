@@ -10,7 +10,6 @@ from .map_metadata import MapMetadata
 from .map_properties import MapProperties
 from .physics.body.body import Body
 from .physics.body.body_type import BodyType
-from .physics.body.force_zone import ForceZoneType
 from .physics.collide import CollideFlag
 from .physics.fixture import Fixture
 from .physics.joint.distance_joint import DistanceJoint
@@ -74,15 +73,7 @@ class BonkMap:
             body_data['cf']['y'] = body.force.force_y
             body_data['cf']['w'] = body.force.is_relative
             body_data['cf']['ct'] = body.force.torque
-            body_data['fz'] = {}
-            body_data['fz']['on'] = body.force_zone.enabled
-            body_data['fz']['x'] = body.force_zone.force[0]
-            body_data['fz']['y'] = body.force_zone.force[1]
-            body_data['fz']['t'] = body.force_zone.type.value
-            body_data['fz']['d'] = body.force_zone.push_players
-            body_data['fz']['p'] = body.force_zone.push_bodies
-            body_data['fz']['a'] = body.force_zone.push_arrows
-            body_data['fz']['cf'] = body.force_zone.center_force
+            body_data['fz'] = body.force_zone.to_json()
             body_data['s'] = body.shape.to_json()
             data['physics']['bodies'].append(body_data)
         for fixture in self.physics.fixtures:
@@ -322,15 +313,7 @@ class BonkMap:
             if bonk_map.version >= 2 and buffer.read_bool():
                 body.shape.collide_mask = body.shape.collide_mask | CollideFlag.PLAYERS
             if bonk_map.version >= 14:
-                body.force_zone.enabled = buffer.read_bool()
-                if body.force_zone.enabled:
-                    body.force_zone.force = (buffer.read_float64(), buffer.read_float64())
-                    body.force_zone.push_players = buffer.read_bool()
-                    body.force_zone.push_bodies = buffer.read_bool()
-                    body.force_zone.push_arrows = buffer.read_bool()
-                    if bonk_map.version >= 15:
-                        body.force_zone.type = ForceZoneType.from_id(buffer.read_int16())
-                        body.force_zone.center = buffer.read_float64()
+                body.force_zone.from_buffer(buffer, bonk_map.version)
             fixtures_count = buffer.read_int16()
             for _ in range(fixtures_count):
                 body.fixtures.append(buffer.read_int16())
@@ -418,13 +401,7 @@ class BonkMap:
             body.force.force_y = body_data['cf']['y']
             body.force.is_relative = body_data['cf']['w']
             body.force.torque = body_data['cf']['ct']
-            body.force_zone.enabled = body_data['fz']['on']
-            body.force_zone.force = (body_data['fz']['x'], body_data['fz']['y'])
-            body.force_zone.type = ForceZoneType.from_id(body_data['fz']['t'])
-            body.force_zone.push_players = body_data['fz']['d']
-            body.force_zone.push_bodies = body_data['fz']['p']
-            body.force_zone.push_arrows = body_data['fz']['a']
-            body.force_zone.center_force = body_data['fz']['cf']
+            body.force_zone.from_json(body_data['fz'])
             body.shape.from_json(body_data['s'])
             bonk_map.physics.bodies.append(body)
         for fixture_data in json_data['physics']['fixtures']:
