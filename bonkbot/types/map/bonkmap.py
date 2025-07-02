@@ -294,17 +294,7 @@ class BonkMap:
             body.shape.anti_tunnel = buffer.read_bool()
             body.force.from_buffer(buffer)
             body.shape.collide_group = buffer.read_int16()
-            body.shape.collide_mask = CollideFlag.NONE
-            if buffer.read_bool():
-                body.shape.collide_mask = body.shape.collide_mask | CollideFlag.A
-            if buffer.read_bool():
-                body.shape.collide_mask = body.shape.collide_mask | CollideFlag.B
-            if buffer.read_bool():
-                body.shape.collide_mask = body.shape.collide_mask | CollideFlag.C
-            if buffer.read_bool():
-                body.shape.collide_mask = body.shape.collide_mask | CollideFlag.D
-            if bonk_map.version >= 2 and buffer.read_bool():
-                body.shape.collide_mask = body.shape.collide_mask | CollideFlag.PLAYERS
+            body.shape.collide_mask = CollideFlag.from_buffer(buffer, bonk_map.version)
             if bonk_map.version >= 14:
                 body.force_zone.from_buffer(buffer, bonk_map.version)
             fixtures_count = buffer.read_int16()
