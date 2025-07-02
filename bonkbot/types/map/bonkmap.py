@@ -2,13 +2,13 @@ from typing import List
 
 from attrs import define, field
 
-from .physics import CollideGroup
 from ...core.constants import MAP_VERSION
 from ...pson.bytebuffer import ByteBuffer
 from ...utils.validation import validate_int, validate_type, validate_type_list
 from .capture_zone import CaptureZone
 from .map_metadata import MapMetadata
 from .map_properties import MapProperties
+from .physics import CollideGroup
 from .physics.body.body import Body
 from .physics.body.body_type import BodyType
 from .physics.collide import CollideFlag
@@ -140,24 +140,7 @@ class BonkMap:
                 joint_data['r'] = joint.ratio
             data['physics']['joints'].append(joint_data)
         for shape in self.physics.shapes:
-            shape_data = {}
-            if isinstance(shape, BoxShape):
-                shape_data['type'] = 'bx'
-                shape_data['w'] = shape.width
-                shape_data['h'] = shape.height
-                shape_data['a'] = shape.angle
-                shape_data['sk'] = shape.shrink
-            elif isinstance(shape, CircleShape):
-                shape_data['type'] = 'ci'
-                shape_data['r'] = shape.radius
-                shape_data['sk'] = shape.shrink
-            elif isinstance(shape, PolygonShape):
-                shape_data['type'] = 'po'
-                shape_data['a'] = shape.angle
-                shape_data['s'] = shape.scale
-                shape_data['v'] = shape.vertices
-            shape_data['c'] = shape.position
-            data['physics']['shapes'].append(shape_data)
+            data['physics']['shapes'].append(shape.to_json())
         data['physics']['bro'] = self.physics.bro.copy()
         data['physics']['ppm'] = self.physics.ppm
         # endregion
@@ -198,25 +181,13 @@ class BonkMap:
             shape_id = buffer.read_int16()
             if shape_id == 1:
                 shape = BoxShape()
-                shape.width = buffer.read_float64()
-                shape.height = buffer.read_float64()
-                shape.position = (buffer.read_float64(), buffer.read_float64())
-                shape.angle = buffer.read_float64()
-                shape.shrink = buffer.read_bool()
+                shape.from_buffer(buffer)
             elif shape_id == 2:
                 shape = CircleShape()
-                shape.radius = buffer.read_float64()
-                shape.position = (buffer.read_float64(), buffer.read_float64())
-                shape.shrink = buffer.read_bool()
+                shape.from_buffer(buffer)
             elif shape_id == 3:
                 shape = PolygonShape()
-                shape.scale = buffer.read_float64()
-                shape.angle = buffer.read_float64()
-                shape.position = (buffer.read_float64(), buffer.read_float64())
-                shape.vertices = []
-                vertices_count = buffer.read_int16()
-                for _ in range(vertices_count):
-                    shape.vertices.append((buffer.read_float64(), buffer.read_float64()))
+                shape.from_buffer(buffer)
             else:
                 raise ValueError(f'Invalid shape id: {shape_id}')
             bonk_map.physics.shapes.append(shape)
@@ -398,20 +369,13 @@ class BonkMap:
             shape = None
             if shape_data['type'] == 'bx':
                 shape = BoxShape()
-                shape.width = shape_data['w']
-                shape.height = shape_data['h']
-                shape.angle = shape_data['a']
-                shape.shrink = shape_data['sk']
+                shape.from_json(shape_data)
             elif shape_data['type'] == 'ci':
                 shape = CircleShape()
-                shape.radius = shape_data['r']
-                shape.shrink = shape_data['sk']
+                shape.from_json(shape_data)
             elif shape_data['type'] == 'po':
                 shape = PolygonShape()
-                shape.angle = shape_data['a']
-                shape.scale = shape_data['s']
-                shape.vertices = [(x, y) for x, y in shape_data['v']]
-            shape.position = (shape_data['c'][0], shape_data['c'][1])
+                shape.from_json(shape_data)
             bonk_map.physics.shapes.append(shape)
         bonk_map.physics.bro = json_data['physics']['bro']
         bonk_map.physics.ppm = json_data['physics']['ppm']

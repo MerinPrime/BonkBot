@@ -22,7 +22,7 @@ class CaptureZone:
     shape_id: int = field(default=-1, validator=validate_int(-1))
     seconds: float = field(default=10, converter=float, validator=validate_float(0.01, 1000))
     type: 'CaptureType' = field(default=CaptureType.NORMAL, validator=validate_type(CaptureType))
-    
+
     def to_json(self) -> dict:
         data = {
             'i': self.shape_id,
@@ -39,13 +39,13 @@ class CaptureZone:
         self.shape_id = data['i']
         self.type = data.get('ty', CaptureType.NORMAL)
         return self
-    
+
     def to_buffer(self, buffer: 'ByteBuffer') -> None:
         buffer.write_utf(self.name)
         buffer.write_float64(self.seconds)
         buffer.write_int16(self.shape_id)
         buffer.write_int16(self.type.value)
-    
+
     def from_buffer(self, buffer: 'ByteBuffer', version: int) -> 'CaptureZone':
         self.name = buffer.read_utf()
         self.seconds = buffer.read_float64()
