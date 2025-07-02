@@ -1,4 +1,4 @@
-from typing import Any, Callable, Iterable, Optional, Tuple
+from typing import Any, Callable, Iterable, Optional, Tuple, Union
 
 import attrs
 
@@ -11,6 +11,15 @@ def convert_to_float_vector(value: Tuple[Any, Any]) -> Tuple[float, float]:
         return float(value[0]), float(value[1])
     except (ValueError, TypeError) as e:
         raise TypeError(f'Could not convert position elements to float: {value}.\nErr: {e}') from e
+
+def convert_to_float_or_none(value: Optional[Union[int, float, str]]) -> Optional[float]:
+    if value is None:
+        return None
+    
+    try:
+        return float(value)
+    except (ValueError, TypeError) as e:
+        raise TypeError(f'Attribute must be type of float or None, given: {type(value).__name__}') from e
 
 
 def validate_vector_range(min_value: float, max_value: float) -> None:
