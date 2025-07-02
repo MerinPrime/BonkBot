@@ -68,11 +68,7 @@ class BonkMap:
             body_data['fx'] = body.fixtures
             body_data['p'] = body.position
             body_data['lv'] = body.linear_velocity
-            body_data['cf'] = {}
-            body_data['cf']['x'] = body.force.force_x
-            body_data['cf']['y'] = body.force.force_y
-            body_data['cf']['w'] = body.force.is_relative
-            body_data['cf']['ct'] = body.force.torque
+            body_data['cf'] = body.force.to_json()
             body_data['fz'] = body.force_zone.to_json()
             body_data['s'] = body.shape.to_json()
             data['physics']['bodies'].append(body_data)
@@ -296,10 +292,7 @@ class BonkMap:
             body.shape.angular_damping = buffer.read_float64()
             body.shape.fixed_rotation = buffer.read_bool()
             body.shape.anti_tunnel = buffer.read_bool()
-            body.force.force_x = buffer.read_float64()
-            body.force.force_y = buffer.read_float64()
-            body.force.torque = buffer.read_float64()
-            body.force.is_relative = buffer.read_bool()
+            body.force.from_buffer(buffer)
             body.shape.collide_group = buffer.read_int16()
             body.shape.collide_mask = CollideFlag.NONE
             if buffer.read_bool():
@@ -397,10 +390,7 @@ class BonkMap:
             body.fixtures = body_data['fx']
             body.position = (body_data['p'][0], body_data['p'][1])
             body.linear_velocity = (body_data['lv'][0], body_data['lv'][1])
-            body.force.force_x = body_data['cf']['x']
-            body.force.force_y = body_data['cf']['y']
-            body.force.is_relative = body_data['cf']['w']
-            body.force.torque = body_data['cf']['ct']
+            body.force.from_json(body_data['cf'])
             body.force_zone.from_json(body_data['fz'])
             body.shape.from_json(body_data['s'])
             bonk_map.physics.bodies.append(body)
