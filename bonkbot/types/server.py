@@ -9,8 +9,8 @@ from ..utils.validation import validate_float, validate_str
 @define(slots=True, auto_attribs=True)
 class ServerInfo:
     name: str = field(validator=validate_str(), on_setattr=frozen)
-    latitude: float = field(validator=validate_float(), on_setattr=frozen)
-    longitude: float = field(validator=validate_float(), on_setattr=frozen)
+    latitude: float = field(converter=float, validator=validate_float(), on_setattr=frozen)
+    longitude: float = field(converter=float, validator=validate_float(), on_setattr=frozen)
     country: str = field(validator=validate_str(), on_setattr=frozen)
 
 
