@@ -7,7 +7,7 @@ from bonkbot.utils.validation import (
     validate_bool,
     validate_float,
     validate_type,
-    validate_vector_range,
+    validate_vector_range, convert_to_float_vector,
 )
 
 if TYPE_CHECKING:
@@ -31,7 +31,8 @@ class ForceZoneType(enum.IntEnum):
 class ForceZone:
     enabled: bool = field(default=False, validator=validate_bool())
     type: 'ForceZoneType' = field(default=ForceZoneType.ABSOLUTE, validator=validate_type(ForceZoneType))
-    force: Tuple[float, float] = field(default=(0, 0), validator=validate_vector_range(-999999, 999999))
+    force: Tuple[float, float] = field(default=(0, 0), converter=convert_to_float_vector,
+                                       validator=validate_vector_range(-999999, 999999))
     '''FOR ABSOLUTE & RELATIVE'''
     center_force: float = field(default=0, converter=float, validator=validate_float(0, 999999))
     '''FOR CENTER_PUSH & CENTER_PULL'''
