@@ -4,10 +4,11 @@ from typing import TYPE_CHECKING, Tuple
 from attrs import define, field
 
 from bonkbot.utils.validation import (
+    convert_to_float_vector,
     validate_bool,
     validate_float,
     validate_type,
-    validate_vector_range, convert_to_float_vector,
+    validate_vector_range,
 )
 
 if TYPE_CHECKING:

@@ -73,26 +73,7 @@ class BonkMap:
             body_data['s'] = body.shape.to_json()
             data['physics']['bodies'].append(body_data)
         for fixture in self.physics.fixtures:
-            fixture_data = {}
-            fixture_data['d'] = fixture.death
-            fixture_data['de'] = fixture.density
-            fixture_data['f'] = fixture.color
-            fixture_data['fp'] = fixture.friction_players
-            fixture_data['fr'] = fixture.friction
-            if fixture.inner_grapple is not None:
-                fixture_data['ig'] = fixture.inner_grapple
-            fixture_data['n'] = fixture.name
-            fixture_data['ng'] = fixture.no_grapple
-            fixture_data['np'] = fixture.no_physics
-            fixture_data['re'] = fixture.restitution
-            fixture_data['sh'] = fixture.shape_id
-            if fixture.sn is not None:
-                fixture_data['sn'] = fixture.sn
-            if fixture.fs is not None:
-                fixture_data['fs'] = fixture.fs
-            if fixture.zp is not None:
-                fixture_data['zp'] = fixture.zp
-            data['physics']['fixtures'].append(fixture_data)
+            data['physics']['fixtures'].append(fixture.to_json())
         for joint in self.physics.joints:
             joint_data = {}
             if isinstance(joint, RevoluteJoint):
@@ -241,39 +222,7 @@ class BonkMap:
 
         fixtures_count = buffer.read_int16()
         for _ in range(fixtures_count):
-            fixture = Fixture(shape_id=-1)
-            fixture.shape_id = buffer.read_int16()
-            fixture.name = buffer.read_utf()
-
-            fixture.friction = buffer.read_float64()
-            if fixture.friction == 1.7976931348623157e+308:
-                fixture.friction = None
-
-            friction_players = buffer.read_int16()
-            if friction_players == 0:
-                fixture.friction_players = None
-            elif friction_players == 1:
-                fixture.friction_players = False
-            elif friction_players == 2:
-                fixture.friction_players = True
-
-            fixture.restitution = buffer.read_float64()
-            if fixture.restitution == 1.7976931348623157e+308:
-                fixture.restitution = None
-
-            fixture.density = buffer.read_float64()
-            if fixture.density == 1.7976931348623157e+308:
-                fixture.density = None
-
-            fixture.color = buffer.read_uint32()
-            fixture.death = buffer.read_bool()
-            fixture.no_physics = buffer.read_bool()
-
-            if bonk_map.version >= 11:
-                fixture.no_grapple = buffer.read_bool()
-            if bonk_map.version >= 12:
-                fixture.inner_grapple = buffer.read_bool()
-            bonk_map.physics.fixtures.append(fixture)
+            bonk_map.physics.fixtures.append(Fixture().from_buffer(buffer, bonk_map.version))
 
         body_count = buffer.read_int16()
         for _ in range(body_count):
@@ -385,26 +334,7 @@ class BonkMap:
             body.shape.from_json(body_data['s'])
             bonk_map.physics.bodies.append(body)
         for fixture_data in json_data['physics']['fixtures']:
-            fixture = Fixture(-1)
-            fixture.death = fixture_data['d']
-            fixture.color = fixture_data['f']
-            fixture.friction_players = fixture_data['fp']
-            fixture.density = fixture_data['de']
-            fixture.friction = fixture_data['fr']
-            fixture.restitution = fixture_data['re']
-            fixture.name = fixture_data['n']
-            fixture.no_grapple = fixture_data['ng']
-            fixture.no_physics = fixture_data['np']
-            fixture.shape_id = fixture_data['sh']
-            if fixture_data.get('ig') is not None:
-                fixture.inner_grapple = fixture_data['ig']
-            if fixture_data.get('sn') is not None:
-                fixture.sn = fixture_data['sn']
-            if fixture_data.get('fs') is not None:
-                fixture.fs = fixture_data['fs']
-            if fixture_data.get('zp') is not None:
-                fixture.zp = fixture_data['zp']
-            bonk_map.physics.fixtures.append(fixture)
+            bonk_map.physics.fixtures.append(Fixture().from_json(fixture_data))
         for joint_data in json_data['physics']['joints']:
             joint = None
             if joint_data['type'] == 'rv':
