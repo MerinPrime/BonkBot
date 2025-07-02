@@ -2,6 +2,7 @@ from typing import List
 
 from attrs import define, field
 
+from .physics import CollideGroup
 from ...core.constants import MAP_VERSION
 from ...pson.bytebuffer import ByteBuffer
 from ...utils.validation import validate_int, validate_type, validate_type_list
@@ -242,7 +243,7 @@ class BonkMap:
             body.shape.fixed_rotation = buffer.read_bool()
             body.shape.anti_tunnel = buffer.read_bool()
             body.force.from_buffer(buffer)
-            body.shape.collide_group = buffer.read_int16()
+            body.shape.collide_group = CollideGroup.from_id(buffer.read_int16())
             body.shape.collide_mask = CollideFlag.from_buffer(buffer, bonk_map.version)
             if bonk_map.version >= 14:
                 body.force_zone.from_buffer(buffer, bonk_map.version)
