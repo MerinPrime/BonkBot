@@ -877,10 +877,7 @@ class Room:
     async def set_teams(self, state: bool) -> None:
         if not self.is_host:
             raise ApiError(ErrorType.NOT_HOST)
-        if state:
-            self._room_data.game_settings.team_state = TeamState.TEAMS
-        else:
-            self._room_data.game_settings.team_state = TeamState.FFA
+        self._room_data.game_settings.team_state = TeamState.TEAMS if state else TeamState.FFA
         await self.socket.emit(SocketEvents.Outgoing.SET_TEAM_STATE, {'t': state})
 
     async def record_replay(self) -> None:
