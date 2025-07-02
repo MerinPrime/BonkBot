@@ -77,6 +77,17 @@ def validate_opt_str(max_len: Optional[int] = None) -> Callable[[Any, attrs.Attr
 def validate_opt_bool() -> Callable[[Any, attrs.Attribute, Any], None]:
     return attrs.validators.optional(attrs.validators.instance_of(bool))
 
+def validate_opt_float(min_value: Optional[float] = None,
+                       max_value: Optional[float] = None) -> Callable[[Any, attrs.Attribute, Any], None]:
+    validators = [
+        attrs.validators.instance_of(float),
+    ]
+    if min_value is not None:
+        validators.append(attrs.validators.ge(min_value))
+    if max_value is not None:
+        validators.append(attrs.validators.le(max_value))
+    return attrs.validators.optional(attrs.validators.and_(*validators))
+
 def validate_opt_int(min_value: Optional[int] = None,
                      max_value: Optional[int] = None) -> Callable[[Any, attrs.Attribute, Any], None]:
     validators = [
