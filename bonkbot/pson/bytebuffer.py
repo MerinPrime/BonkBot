@@ -1,7 +1,7 @@
 import base64
 import struct
 from typing import Optional, Union
-from urllib.parse import unquote, quote
+from urllib.parse import quote, unquote
 
 from lzstring import LZString
 
@@ -54,6 +54,7 @@ class ByteBuffer:
     def to_base64(self, *, uri_encode: bool = False,
                   lz_encode: bool = False, case_encode: bool = False) -> str:
         encoded = base64.b64encode(self.bytes)
+        encoded = encoded.decode('ascii')
         if lz_encode:
             encoded = LZString.compressToEncodedURIComponent(encoded)
             if encoded is None:
