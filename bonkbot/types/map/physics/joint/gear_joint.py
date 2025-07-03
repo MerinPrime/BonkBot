@@ -2,8 +2,8 @@ from typing import TYPE_CHECKING
 
 from attrs import define, field
 
+from .....utils.validation import validate_float, validate_int, validate_str
 from .joint import Joint
-from .....utils.validation import validate_int, validate_float, validate_str
 
 if TYPE_CHECKING:
     from .....pson.bytebuffer import ByteBuffer

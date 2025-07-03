@@ -8,10 +8,7 @@ from ...utils.validation import validate_int, validate_type, validate_type_list
 from .capture_zone import CaptureZone
 from .map_metadata import MapMetadata
 from .map_properties import MapProperties
-from .physics import CollideGroup
 from .physics.body.body import Body
-from .physics.body.body_type import BodyType
-from .physics.collide import CollideFlag
 from .physics.fixture import Fixture
 from .physics.joint.distance_joint import DistanceJoint
 from .physics.joint.gear_joint import GearJoint
@@ -68,6 +65,58 @@ class BonkMap:
             data['capZones'].append(capture_zone.to_json())
         
         return data
+
+    def encode_to_database(self) -> 'BonkMap':
+        buffer = ByteBuffer()
+        buffer.set_big_endian()
+        
+        buffer.write_int16(MAP_VERSION)
+        self.properties.to_buffer(buffer)
+        self.metadata.to_buffer(buffer)
+        buffer.write_int16(self.physics.ppm)
+
+        buffer.write_int16(len(self.physics.bro))
+        for bro in self.physics.bro:
+            buffer.write_int16(bro)
+
+        buffer.write_int16(len(self.physics.shapes))
+        for shape in self.physics.shapes:
+            if isinstance(shape, BoxShape):
+                buffer.write_int16(1)
+            elif isinstance(shape, CircleShape):
+                buffer.write_int16(2)
+            elif isinstance(shape, PolygonShape):
+                buffer.write_int16(3)
+            shape.to_buffer(buffer)
+        
+        buffer.write_int16(len(self.physics.fixtures))
+        for fixture in self.physics.fixtures:
+            fixture.to_buffer(buffer)
+        buffer.write_int16(len(self.physics.bodies))
+        for body in self.physics.bodies:
+            body.to_buffer(buffer)
+        buffer.write_int16(len(self.spawns))
+        for spawn in self.spawns:
+            spawn.to_buffer(buffer)
+        buffer.write_int16(len(self.spawns))
+        for cap_zone in self.cap_zones:
+            cap_zone.to_buffer(buffer)
+
+        buffer.write_int16(len(self.physics.joints))
+        for joint in self.physics.joints:
+            if isinstance(joint, RevoluteJoint):
+                buffer.write_int16(1)
+            elif isinstance(joint, DistanceJoint):
+                buffer.write_int16(2)
+            elif isinstance(joint, LPJJoint):
+                buffer.write_int16(3)
+            elif isinstance(joint, LSJJoint):
+                buffer.write_int16(4)
+            elif isinstance(joint, GearJoint):
+                buffer.write_int16(5)
+            joint.to_buffer(buffer)
+
+        return buffer.to_base64(lz_encode=True)
 
     @staticmethod
     def decode_from_database(encoded_data: str) -> 'BonkMap':

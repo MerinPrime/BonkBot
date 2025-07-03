@@ -2,13 +2,12 @@ from typing import TYPE_CHECKING, List
 
 from attrs import define, field
 
-from ....utils.validation import validate_type_list, validate_int_list, validate_int
+from ....utils.validation import validate_int, validate_int_list, validate_type_list
 
-if TYPE_CHECKING:
-    from .body.body import Body
-    from .fixture import Fixture
-    from .joint.joint import Joint
-    from .shape.shape import Shape
+from .body.body import Body
+from .fixture import Fixture
+from .joint.joint import Joint
+from .shape.shape import Shape
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMapPhysics.ts

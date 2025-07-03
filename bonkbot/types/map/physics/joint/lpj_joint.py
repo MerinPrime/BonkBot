@@ -2,9 +2,14 @@ from typing import TYPE_CHECKING, Tuple
 
 from attrs import define, field
 
+from .....utils.validation import (
+    convert_to_float_vector,
+    validate_bool,
+    validate_float,
+    validate_int,
+    validate_vector_range,
+)
 from .joint import Joint
-from .....utils.validation import validate_int, validate_bool, validate_float, validate_vector_range, \
-    convert_to_float_vector
 
 if TYPE_CHECKING:
     from .....pson.bytebuffer import ByteBuffer

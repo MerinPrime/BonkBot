@@ -1,7 +1,7 @@
 import base64
 import struct
 from typing import Optional, Union
-from urllib.parse import unquote
+from urllib.parse import unquote, quote
 
 from lzstring import LZString
 
@@ -50,6 +50,20 @@ class ByteBuffer:
                 raise ValueError('LZString decompression failed')
         self.bytes += base64.b64decode(data)
         return self
+
+    def to_base64(self, *, uri_encode: bool = False,
+                  lz_encode: bool = False, case_encode: bool = False) -> str:
+        encoded = base64.b64encode(self.bytes)
+        if lz_encode:
+            encoded = LZString.compressToEncodedURIComponent(encoded)
+            if encoded is None:
+                raise ValueError('LZString compression failed')
+        if case_encode:
+            head, tail = encoded[:101], encoded[101:]
+            encoded = head.swapcase() + tail
+        if uri_encode:
+            encoded = quote(encoded)
+        return encoded
 
     def read_uint8(self) -> int:
         return struct.unpack(self.endian + 'B', self.read_bytes(1))[0]

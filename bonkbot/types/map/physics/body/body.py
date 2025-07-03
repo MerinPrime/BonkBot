@@ -1,14 +1,20 @@
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
-from attrs import field, define
+from attrs import define, field
 
-from .body_type import BodyType
+from .....utils.validation import (
+    convert_to_float_vector,
+    validate_float,
+    validate_int_list,
+    validate_opt_str,
+    validate_type,
+    validate_vector_range,
+)
+from ..collide import CollideFlag, CollideGroup
 from .body_force import BodyForce
 from .body_shape import BodyShape
+from .body_type import BodyType
 from .force_zone import ForceZone
-from ..collide import CollideGroup, CollideFlag
-from .....utils.validation import validate_opt_str, validate_type, validate_int_list, validate_float, \
-    convert_to_float_vector, validate_vector_range
 
 if TYPE_CHECKING:
     from .....pson.bytebuffer import ByteBuffer
@@ -26,7 +32,7 @@ class Body:
     angle: float = field(default=0.0, converter=float, validator=validate_float(-9999, 9999))
     angular_velocity: float = field(default=0.0, converter=float, validator=validate_float(-9999, 9999))
 
-    fixtures: List[int] = field(factory=ForceZone, validator=validate_int_list(0, 32767))
+    fixtures: List[int] = field(factory=list, validator=validate_int_list(0, 32767))
     shape: 'BodyShape' = field(factory=BodyShape, validator=validate_type(BodyShape))
     force: 'BodyForce' = field(factory=BodyForce, validator=validate_type(BodyForce))
     force_zone: 'ForceZone' = field(factory=ForceZone, validator=validate_type(ForceZone))
