@@ -1,5 +1,8 @@
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List
+
+from attrs import define, field
+
+from ....utils.validation import validate_type_list, validate_int_list, validate_int
 
 if TYPE_CHECKING:
     from .body.body import Body
@@ -9,11 +12,11 @@ if TYPE_CHECKING:
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMapPhysics.ts
-@dataclass
+@define(slots=True, auto_attribs=True)
 class MapPhysics:
-    bodies: List['Body'] = field(default_factory=list)
-    fixtures: List['Fixture'] = field(default_factory=list)
-    joints: List['Joint'] = field(default_factory=list)
-    shapes: List['Shape'] = field(default_factory=list)
-    bro: List[int] = field(default_factory=list)
-    ppm: int = 12
+    bodies: List['Body'] = field(factory=list, validator=validate_type_list(Body, 32767))
+    fixtures: List['Fixture'] = field(factory=list, validator=validate_type_list(Fixture, 32767))
+    joints: List['Joint'] = field(factory=list, validator=validate_type_list(Joint, 100))
+    shapes: List['Shape'] = field(factory=list, validator=validate_type_list(Shape, 32767))
+    bro: List[int] = field(factory=list, validator=validate_int_list(0, 32767, 0, 32767))
+    ppm: int = field(default=12, validator=validate_int(5, 30))
