@@ -41,20 +41,19 @@ class BonkMap:
     def to_json(self) -> dict:
         data = {
             'v': self.version,
-            'm': {},
-            's': {},
+            'm': self.metadata.to_json(),
+            's': self.properties.to_json(),
             'physics': {
                 'bodies': [],
                 'fixtures': [],
                 'joints': [],
                 'shapes': [],
-                'bro': [],
+                'bro': self.physics.bro.copy(),
+                'ppm': self.physics.ppm,
             },
             'spawns': [],
             'capZones': [],
         }
-        data['s'] = self.properties.to_json()
-        data['m'] = self.metadata.to_json()
         for body in self.physics.bodies:
             data['physics']['bodies'].append(body.to_json())
         for fixture in self.physics.fixtures:
@@ -63,8 +62,6 @@ class BonkMap:
             data['physics']['joints'].append(joint.to_json())
         for shape in self.physics.shapes:
             data['physics']['shapes'].append(shape.to_json())
-        data['physics']['bro'] = self.physics.bro.copy()
-        data['physics']['ppm'] = self.physics.ppm
         for spawn in self.spawns:
             data['spawns'].append(spawn.to_json())
         for capture_zone in self.cap_zones:
@@ -108,7 +105,6 @@ class BonkMap:
         fixtures_count = buffer.read_int16()
         for _ in range(fixtures_count):
             bonk_map.physics.fixtures.append(Fixture().from_buffer(buffer, bonk_map.version))
-
         body_count = buffer.read_int16()
         for _ in range(body_count):
             bonk_map.physics.bodies.append(Body().from_buffer(buffer, bonk_map.version))
