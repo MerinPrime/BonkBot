@@ -24,7 +24,6 @@ def convert_to_float_or_none(value: Optional[Union[int, float, str]]) -> Optiona
     except (ValueError, TypeError) as e:
         raise TypeError(f'Attribute must be type of float or None, given: {type(value).__name__}') from e
 
-
 def validate_vector_range(min_value: float, max_value: float) -> Callable[[Any, attrs.Attribute, Any], None]:
     def validate_vector_range(instance: Any, attribute: attrs.Attribute, value: Tuple[float, float]) -> None:
         if len(value) != 2:
@@ -38,7 +37,6 @@ def validate_vector_range(min_value: float, max_value: float) -> Callable[[Any, 
             raise ValueError(f"'{attribute.name}' y-coordinate ({y}) is out of the valid range [{min_value}, {max_value}]")
 
     return validate_vector_range
-
 
 def validate_vector_list_range(min_value: float, max_value: float) -> Callable[[Any, attrs.Attribute, Any], None]:
     return attrs.validators.deep_iterable(validate_vector_range(min_value, max_value))
