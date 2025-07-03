@@ -1,9 +1,8 @@
-from typing import TYPE_CHECKING, List
+from typing import List
 
 from attrs import define, field
 
 from ....utils.validation import validate_int, validate_int_list, validate_type_list
-
 from .body.body import Body
 from .fixture import Fixture
 from .joint.joint import Joint
