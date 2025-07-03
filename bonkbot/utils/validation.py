@@ -133,6 +133,13 @@ def validate_type_list(cls_type: type, max_len: Optional[int] = None) -> Callabl
         ),
     )
 
+def validate_int_list(min_value: Optional[float] = None,
+                      max_value: Optional[float] = None) -> Callable[[Any, attrs.Attribute, Any], None]:
+    return attrs.validators.deep_iterable(
+        validate_int(min_value, max_value),
+        attrs.validators.instance_of(list),
+    )
+
 def validate_contributors() -> Callable[[Any, attrs.Attribute, Any], None]:
     return attrs.validators.deep_iterable(
         validate_str(15),

@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Tuple
 
 from attrs import define, field
 
-from bonkbot.utils.validation import (
+from .....utils.validation import (
     convert_to_float_vector,
     validate_bool,
     validate_float,

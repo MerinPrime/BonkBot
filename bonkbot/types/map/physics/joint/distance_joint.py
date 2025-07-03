@@ -19,7 +19,7 @@ class DistanceJoint(Joint):
     pivot: Tuple[float, float] = field(default=(0, 0), converter=convert_to_float_vector,
                                        validator=validate_vector_range(-99999, 99999))
     attach: Tuple[float, float] = field(default=(0, 0), converter=convert_to_float_vector,
-                                       validator=validate_vector_range(-99999, 99999))
+                                        validator=validate_vector_range(-99999, 99999))
     break_force: float = field(default=0.0, converter=float, validator=validate_float(0, 99999999))
     collide_connected: bool = field(default=False, validator=validate_bool())
     draw_line: bool = field(default=True, validator=validate_bool())

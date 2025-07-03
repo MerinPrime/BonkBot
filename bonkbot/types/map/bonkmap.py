@@ -56,18 +56,7 @@ class BonkMap:
         data['s'] = self.properties.to_json()
         data['m'] = self.metadata.to_json()
         for body in self.physics.bodies:
-            body_data = {}
-            if body.name is not None:
-                body_data['n'] = body.name
-            body_data['a'] = body.angle
-            body_data['av'] = body.angular_velocity
-            body_data['fx'] = body.fixtures
-            body_data['p'] = body.position
-            body_data['lv'] = body.linear_velocity
-            body_data['cf'] = body.force.to_json()
-            body_data['fz'] = body.force_zone.to_json()
-            body_data['s'] = body.shape.to_json()
-            data['physics']['bodies'].append(body_data)
+            data['physics']['bodies'].append(body.to_json())
         for fixture in self.physics.fixtures:
             data['physics']['fixtures'].append(fixture.to_json())
         for joint in self.physics.joints:
@@ -122,30 +111,7 @@ class BonkMap:
 
         body_count = buffer.read_int16()
         for _ in range(body_count):
-            body = Body()
-            body.shape.body_type = BodyType.from_name(buffer.read_utf())
-            body.shape.name = buffer.read_utf()
-            body.position = (buffer.read_float64(), buffer.read_float64())
-            body.angle = buffer.read_float64()
-            body.shape.friction = buffer.read_float64()
-            body.shape.friction_players = buffer.read_bool()
-            body.shape.restitution = buffer.read_float64()
-            body.shape.density = buffer.read_float64()
-            body.linear_velocity = (buffer.read_float64(), buffer.read_float64())
-            body.angular_velocity = buffer.read_float64()
-            body.shape.linear_damping = buffer.read_float64()
-            body.shape.angular_damping = buffer.read_float64()
-            body.shape.fixed_rotation = buffer.read_bool()
-            body.shape.anti_tunnel = buffer.read_bool()
-            body.force.from_buffer(buffer)
-            body.shape.collide_group = CollideGroup.from_id(buffer.read_int16())
-            body.shape.collide_mask = CollideFlag.from_buffer(buffer, bonk_map.version)
-            if bonk_map.version >= 14:
-                body.force_zone.from_buffer(buffer, bonk_map.version)
-            fixtures_count = buffer.read_int16()
-            for _ in range(fixtures_count):
-                body.fixtures.append(buffer.read_int16())
-            bonk_map.physics.bodies.append(body)
+            bonk_map.physics.bodies.append(Body().from_buffer(buffer, bonk_map.version))
         spawn_count = buffer.read_int16()
         for _ in range(spawn_count):
             bonk_map.spawns.append(Spawn().from_buffer(buffer))
@@ -183,18 +149,7 @@ class BonkMap:
         bonk_map.properties.from_json(json_data['s'])
         bonk_map.metadata.from_json(json_data['m'])
         for body_data in json_data['physics']['bodies']:
-            body = Body()
-            if body_data.get('n') is not None:
-                body.name = body_data['n']
-            body.angle = body_data['a']
-            body.angular_velocity = body_data['av']
-            body.fixtures = body_data['fx']
-            body.position = (body_data['p'][0], body_data['p'][1])
-            body.linear_velocity = (body_data['lv'][0], body_data['lv'][1])
-            body.force.from_json(body_data['cf'])
-            body.force_zone.from_json(body_data['fz'])
-            body.shape.from_json(body_data['s'])
-            bonk_map.physics.bodies.append(body)
+            bonk_map.physics.bodies.append(Body().from_json(body_data))
         for fixture_data in json_data['physics']['fixtures']:
             bonk_map.physics.fixtures.append(Fixture().from_json(fixture_data))
         for joint_data in json_data['physics']['joints']:

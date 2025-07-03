@@ -2,7 +2,7 @@ import enum
 
 from attrs import define, field
 
-from bonkbot.utils.validation import validate_bool
+from ..utils.validation import validate_bool
 
 
 class InputFlag(enum.IntFlag):
