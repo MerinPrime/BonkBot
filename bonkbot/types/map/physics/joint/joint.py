@@ -1,7 +1,8 @@
-from dataclasses import dataclass
+
+from attrs import define
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IJoint.ts
-@dataclass
+@define(slots=True, auto_attribs=True)
 class Joint:
     pass
