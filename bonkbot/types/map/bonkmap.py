@@ -53,13 +53,8 @@ class BonkMap:
             'spawns': [],
             'capZones': [],
         }
-        # region Properties
         data['s'] = self.properties.to_json()
-        # endregion
-        # region Metadata
         data['m'] = self.metadata.to_json()
-        # endregion
-        # region Physics
         for body in self.physics.bodies:
             body_data = {}
             if body.name is not None:
@@ -81,15 +76,11 @@ class BonkMap:
             data['physics']['shapes'].append(shape.to_json())
         data['physics']['bro'] = self.physics.bro.copy()
         data['physics']['ppm'] = self.physics.ppm
-        # endregion
-        # region Spawns
         for spawn in self.spawns:
             data['spawns'].append(spawn.to_json())
-        # endregion
-        # region Capture zones
         for capture_zone in self.cap_zones:
             data['capZones'].append(capture_zone.to_json())
-        # endregion
+        
         return data
 
     @staticmethod
@@ -101,13 +92,8 @@ class BonkMap:
         if bonk_map.version > MAP_VERSION:
             raise NotImplementedError('Future map version.')
 
-        # region Properties
         bonk_map.properties.from_buffer(buffer, bonk_map.version)
-        # endregion
-        # region MetaData
         bonk_map.metadata.from_buffer(buffer, bonk_map.version)
-        # endregion
-        # region Physics
         bonk_map.physics.ppm = buffer.read_int16()
 
         bro_count = buffer.read_int16()
@@ -160,18 +146,12 @@ class BonkMap:
             for _ in range(fixtures_count):
                 body.fixtures.append(buffer.read_int16())
             bonk_map.physics.bodies.append(body)
-        # endregion
-        # region Spawns
         spawn_count = buffer.read_int16()
         for _ in range(spawn_count):
             bonk_map.spawns.append(Spawn().from_buffer(buffer))
-        # endregion
-        # region Capture zones
         cap_zone_count = buffer.read_int16()
         for _ in range(cap_zone_count):
             bonk_map.cap_zones.append(CaptureZone().from_buffer(buffer, bonk_map.version))
-        # endregion
-        # region Joints
         joint_count = buffer.read_int16()
         for _ in range(joint_count):
             joint_type_id = buffer.read_int16()
@@ -193,7 +173,6 @@ class BonkMap:
             else:
                 raise ValueError(f'Invalid joint id: {joint_type_id}')
             bonk_map.physics.joints.append(joint)
-        # endregion
 
         return bonk_map
 
@@ -203,7 +182,6 @@ class BonkMap:
         bonk_map.version = json_data['v']
         bonk_map.properties.from_json(json_data['s'])
         bonk_map.metadata.from_json(json_data['m'])
-        # region Physics
         for body_data in json_data['physics']['bodies']:
             body = Body()
             if body_data.get('n') is not None:
@@ -220,7 +198,6 @@ class BonkMap:
         for fixture_data in json_data['physics']['fixtures']:
             bonk_map.physics.fixtures.append(Fixture().from_json(fixture_data))
         for joint_data in json_data['physics']['joints']:
-            joint = None
             if joint_data['type'] == 'rv':
                 joint = RevoluteJoint()
                 joint.from_json(joint_data)
@@ -236,9 +213,10 @@ class BonkMap:
             elif joint_data['type'] == 'g':
                 joint = GearJoint()
                 joint.from_json(joint_data)
+            else:
+                raise ValueError(f'Invalid joint type: {joint_data["type"]}')
             bonk_map.physics.joints.append(joint)
         for shape_data in json_data['physics']['shapes']:
-            shape = None
             if shape_data['type'] == 'bx':
                 shape = BoxShape()
                 shape.from_json(shape_data)
@@ -248,18 +226,15 @@ class BonkMap:
             elif shape_data['type'] == 'po':
                 shape = PolygonShape()
                 shape.from_json(shape_data)
+            else:
+                raise ValueError(f'Invalid shape type: {shape_data["type"]}')
             bonk_map.physics.shapes.append(shape)
-        bonk_map.physics.bro = json_data['physics']['bro']
+        bonk_map.physics.bro = json_data['physics']['bro'].copy()
         bonk_map.physics.ppm = json_data['physics']['ppm']
-        # endregion
-        # region Capture zones
         for spawn_data in json_data['spawns']:
             bonk_map.spawns.append(Spawn().from_json(spawn_data))
-        # endregion
-        # region Capture zones
         for capture_zone_data in json_data['capZones']:
             bonk_map.cap_zones.append(CaptureZone().from_json(capture_zone_data))
-        # endregion
         return bonk_map
 
 DEFAULT_MAP = BonkMap.decode_from_database('ILAcJAhBFBjBzCIDCAbAcgBwEYA1IDOAWgMrAAeAJgFYCiwytlAjEQGLoAMsAtm50gCmAdwbBIbACoBDAOrNh2AOIBVeAFlcATXIBJZAAtURJak4BpaMAASJAExsCW2eQPTRkACJFdITwDMANRB6RhZ2Ll5+JCgAdhjgX08PGKsYa0gE8WB0LLz8goKrCGZA7B4AVgNsWUCAa10OAHstfFR-AGoAeh7envAbLoA3Pr7O0d7waWxMOyzM4DYALxBhKjp4FSVXSiUiId4BQuO8roAWfOQugYTPLsl1JcfnlZO394-Pk7TgaFpMv4QegQZDCNh1LKeYAAeWKXwKMH+vyQgUksCUbAAzNg6pAiHlhJ4IfDCioAcCQGwVJjIAZKHYLkggA')
