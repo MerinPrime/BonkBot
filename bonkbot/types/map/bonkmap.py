@@ -76,69 +76,7 @@ class BonkMap:
         for fixture in self.physics.fixtures:
             data['physics']['fixtures'].append(fixture.to_json())
         for joint in self.physics.joints:
-            joint_data = {}
-            if isinstance(joint, RevoluteJoint):
-                joint_data['type'] = 'rv'
-                joint_data['ba'] = joint.body_a_id
-                joint_data['bb'] = joint.body_b_id
-                joint_data['aa'] = joint.pivot
-                joint_data['d'] = {}
-                joint_data['d']['la'] = joint.from_angle
-                joint_data['d']['ua'] = joint.to_angle
-                joint_data['d']['mmt'] = joint.turn_force
-                joint_data['d']['ms'] = joint.motor_speed
-                joint_data['d']['el'] = joint.enable_limit
-                joint_data['d']['em'] = joint.enable_motor
-                joint_data['d']['cc'] = joint.collide_connected
-                joint_data['d']['bf'] = joint.break_force
-                joint_data['d']['dl'] = joint.draw_line
-            elif isinstance(joint, DistanceJoint):
-                joint_data['type'] = 'd'
-                joint_data['ba'] = joint.body_a_id
-                joint_data['bb'] = joint.body_b_id
-                joint_data['aa'] = joint.pivot
-                joint_data['ab'] = joint.attach
-                joint_data['d'] = {}
-                joint_data['d']['fh'] = joint.softness
-                joint_data['d']['dr'] = joint.damping
-                joint_data['d']['cc'] = joint.collide_connected
-                joint_data['d']['bf'] = joint.break_force
-                joint_data['d']['dl'] = joint.draw_line
-            elif isinstance(joint, LPJJoint):
-                joint_data['type'] = 'lpj'
-                joint_data['ba'] = joint.body_a_id
-                joint_data['bb'] = joint.body_b_id
-                joint_data['pax'] = joint.position[0]
-                joint_data['pay'] = joint.position[1]
-                joint_data['pa'] = joint.angle
-                joint_data['pf'] = joint.force
-                joint_data['pl'] = joint.pl
-                joint_data['pu'] = joint.pu
-                joint_data['plen'] = joint.path_length
-                joint_data['pms'] = joint.path_speed
-                joint_data['d'] = {}
-                joint_data['d']['cc'] = joint.collide_connected
-                joint_data['d']['bf'] = joint.break_force
-                joint_data['d']['dl'] = joint.draw_line
-            elif isinstance(joint, LSJJoint):
-                joint_data['type'] = 'lsj'
-                joint_data['ba'] = joint.body_a_id
-                joint_data['bb'] = joint.body_b_id
-                joint_data['sax'] = joint.position[0]
-                joint_data['say'] = joint.position[1]
-                joint_data['sf'] = joint.spring_force
-                joint_data['slen'] = joint.spring_length
-                joint_data['d'] = {}
-                joint_data['d']['cc'] = joint.collide_connected
-                joint_data['d']['bf'] = joint.break_force
-                joint_data['d']['dl'] = joint.draw_line
-            elif isinstance(joint, GearJoint):
-                joint_data['type'] = 'g'
-                joint_data['n'] = joint.name
-                joint_data['ja'] = joint.joint_a_id
-                joint_data['jb'] = joint.joint_b_id
-                joint_data['r'] = joint.ratio
-            data['physics']['joints'].append(joint_data)
+            data['physics']['joints'].append(joint.to_json())
         for shape in self.physics.shapes:
             data['physics']['shapes'].append(shape.to_json())
         data['physics']['bro'] = self.physics.bro.copy()
@@ -239,47 +177,21 @@ class BonkMap:
             joint_type_id = buffer.read_int16()
             if joint_type_id == 1:
                 joint = RevoluteJoint()
-                joint.from_angle = buffer.read_float64()
-                joint.to_angle = buffer.read_float64()
-                joint.turn_force = buffer.read_float64()
-                joint.motor_speed = buffer.read_float64()
-                joint.enable_limit = buffer.read_bool()
-                joint.enable_motor = buffer.read_bool()
-                joint.pivot = (buffer.read_float64(), buffer.read_float64())
+                joint.from_buffer(buffer)
             elif joint_type_id == 2:
                 joint = DistanceJoint()
-                joint.softness = buffer.read_float64()
-                joint.damping = buffer.read_float64()
-                joint.pivot = (buffer.read_float64(), buffer.read_float64())
-                joint.attach = (buffer.read_float64(), buffer.read_float64())
+                joint.from_buffer(buffer)
             elif joint_type_id == 3:
                 joint = LPJJoint()
-                joint.position = (buffer.read_float64(), buffer.read_float64())
-                joint.angle = buffer.read_float64()
-                joint.force = buffer.read_float64()
-                joint.pl = buffer.read_float64()
-                joint.pu = buffer.read_float64()
-                joint.path_length = buffer.read_float64()
-                joint.path_speed = buffer.read_float64()
+                joint.from_buffer(buffer)
             elif joint_type_id == 4:
                 joint = LSJJoint()
-                joint.position = (buffer.read_float64(), buffer.read_float64())
-                joint.spring_force = buffer.read_float64()
-                joint.spring_length = buffer.read_float64()
+                joint.from_buffer(buffer)
             elif joint_type_id == 5:
                 joint = GearJoint()
-                joint.name = buffer.read_utf()
-                joint.ratio = buffer.read_float64()
-                joint.joint_a_id = buffer.read_int16()
-                joint.joint_b_id = buffer.read_int16()
+                joint.from_buffer(buffer)
             else:
                 raise ValueError(f'Invalid joint id: {joint_type_id}')
-            if joint_type_id != 5:
-                joint.body_a_id = buffer.read_int16()
-                joint.body_b_id = buffer.read_int16()
-                joint.collide_connected = buffer.read_bool()
-                joint.break_force = buffer.read_float64()
-                joint.draw_line = buffer.read_bool()
             bonk_map.physics.joints.append(joint)
         # endregion
 
@@ -311,59 +223,19 @@ class BonkMap:
             joint = None
             if joint_data['type'] == 'rv':
                 joint = RevoluteJoint()
-                joint.body_a_id = joint_data['ba']
-                joint.body_b_id = joint_data['bb']
-                joint.pivot = joint_data['aa']
-                joint.from_angle = joint_data['d']['la']
-                joint.to_angle = joint_data['d']['ua']
-                joint.turn_force = joint_data['d']['mmt']
-                joint.motor_speed = joint_data['d']['ms']
-                joint.enable_limit = joint_data['d']['el']
-                joint.enable_motor = joint_data['d']['em']
-                joint.collide_connected = joint_data['d']['cc']
-                joint.break_force = joint_data['d']['bf']
-                joint.draw_line = joint_data['d']['dl']
+                joint.from_json(joint_data)
             elif joint_data['type'] == 'd':
                 joint = DistanceJoint()
-                joint.body_a_id = joint_data['ba']
-                joint.body_b_id = joint_data['bb']
-                joint.pivot = joint_data['aa']
-                joint.attach = joint_data['ab']
-                joint.softness = joint_data['d']['fh']
-                joint.damping = joint_data['d']['dr']
-                joint.collide_connected = joint_data['d']['cc']
-                joint.break_force = joint_data['d']['bf']
-                joint.draw_line = joint_data['d']['dl']
+                joint.from_json(joint_data)
             elif joint_data['type'] == 'lpj':
                 joint = LPJJoint()
-                joint.body_a_id = joint_data['ba']
-                joint.body_b_id = joint_data['bb']
-                joint.position = (joint_data['pax'], joint_data['pay'])
-                joint.angle = joint_data['pa']
-                joint.force = joint_data['pf']
-                joint.pl = joint_data['pl']
-                joint.pu = joint_data['pu']
-                joint.path_length = joint_data['plen']
-                joint.path_speed = joint_data['pms']
-                joint.collide_connected = joint_data['d']['cc']
-                joint.break_force = joint_data['d']['bf']
-                joint.draw_line = joint_data['d']['dl']
+                joint.from_json(joint_data)
             elif joint_data['type'] == 'lsj':
                 joint = LSJJoint()
-                joint.body_a_id = joint_data['ba']
-                joint.body_b_id = joint_data['bb']
-                joint.position = (joint_data['sax'], joint_data['say'])
-                joint.spring_force = joint_data['sf']
-                joint.spring_length = joint_data['slen']
-                joint.collide_connected = joint_data['d']['cc']
-                joint.break_force = joint_data['d']['bf']
-                joint.draw_line = joint_data['d']['dl']
+                joint.from_json(joint_data)
             elif joint_data['type'] == 'g':
                 joint = GearJoint()
-                joint.name = joint_data['n']
-                joint.joint_a_id = joint_data['ja']
-                joint.joint_b_id = joint_data['jb']
-                joint.ratio = joint_data['r']
+                joint.from_json(joint_data)
             bonk_map.physics.joints.append(joint)
         for shape_data in json_data['physics']['shapes']:
             shape = None
