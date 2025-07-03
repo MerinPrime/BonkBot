@@ -98,7 +98,7 @@ class BonkMap:
         buffer.write_int16(len(self.spawns))
         for spawn in self.spawns:
             spawn.to_buffer(buffer)
-        buffer.write_int16(len(self.spawns))
+        buffer.write_int16(len(self.cap_zones))
         for cap_zone in self.cap_zones:
             cap_zone.to_buffer(buffer)
 
