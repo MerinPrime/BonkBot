@@ -1,8 +1,9 @@
 from typing import TYPE_CHECKING
 
-from attrs import define
+from attrs import define, field
 
 from .joint import Joint
+from .....utils.validation import validate_int, validate_float, validate_str
 
 if TYPE_CHECKING:
     from .....pson.bytebuffer import ByteBuffer
@@ -12,10 +13,10 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IJointProperties.ts
 @define(slots=True, auto_attribs=True)
 class GearJoint(Joint):
-    name: str = 'Gear Joint'
-    ratio: float = 1
-    joint_a_id: int = -1
-    joint_b_id: int = -1
+    name: str = field(default='Gear Joint', validator=validate_str(29))
+    ratio: float = field(default=0.0, converter=float, validator=validate_float(-99999999, 99999999))
+    joint_a_id: int = field(default=0, validator=validate_int(0, 100))
+    joint_b_id: int = field(default=0, validator=validate_int(0, 100))
 
     def to_json(self) -> dict:
         return {
