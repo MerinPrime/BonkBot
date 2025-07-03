@@ -30,11 +30,12 @@ class PolygonShape(Shape):
             'c': self.position,
         }
 
-    def from_json(self, data: dict) -> 'Shape':
+    def from_json(self, data: dict) -> 'PolygonShape':
         self.vertices = data['v']
         self.scale = data['s']
         self.angle = data['a']
         self.position = data['c']
+        return self
 
     def to_buffer(self, buffer: 'ByteBuffer') -> None:
         buffer.write_float64(self.scale)
@@ -46,7 +47,7 @@ class PolygonShape(Shape):
             buffer.write_float64(x)
             buffer.write_float64(y)
 
-    def from_buffer(self, buffer: 'ByteBuffer') -> 'Shape':
+    def from_buffer(self, buffer: 'ByteBuffer') -> 'PolygonShape':
         self.scale = buffer.read_float64()
         self.angle = buffer.read_float64()
         self.position = (buffer.read_float64(), buffer.read_float64())
@@ -54,3 +55,4 @@ class PolygonShape(Shape):
         for _ in range(buffer.read_int16()):
             vertices.append((buffer.read_float64(), buffer.read_float64()))
         self.vertices = vertices
+        return self

@@ -23,10 +23,11 @@ class CircleShape(Shape):
             'sk': self.shrink,
         }
 
-    def from_json(self, data: dict) -> 'Shape':
+    def from_json(self, data: dict) -> 'CircleShape':
         self.radius = data['r']
         self.position = data['c']
         self.shrink = data['sk']
+        return self
 
     def to_buffer(self, buffer: 'ByteBuffer') -> None:
         buffer.write_float64(self.radius)
@@ -34,7 +35,8 @@ class CircleShape(Shape):
         buffer.write_float64(self.position[1])
         buffer.write_bool(self.shrink)
 
-    def from_buffer(self, buffer: 'ByteBuffer') -> 'Shape':
+    def from_buffer(self, buffer: 'ByteBuffer') -> 'CircleShape':
         self.radius = buffer.read_float64()
         self.position = (buffer.read_float64(), buffer.read_float64())
         self.shrink = buffer.read_bool()
+        return self
