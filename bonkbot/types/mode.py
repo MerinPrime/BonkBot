@@ -10,7 +10,7 @@ class GaMo:
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/GameSettings.ts
 class Mode(enum.Enum):
-    NONE = GaMo('', '', 0)
+    NONE = GaMo(engine='', mode='', id=0)
     CLASSIC = GaMo(engine='b', mode='b', id=1)
     SIMPLE = GaMo(engine='b', mode='bs', id=2)
     ARROWS = GaMo(engine='b', mode='ar', id=3)
