@@ -18,12 +18,12 @@ class InputFlag(enum.IntFlag):
 
 @define(slots=True, auto_attribs=True)
 class Inputs:
-    left: bool = field(default=None, validator=validate_bool())
-    right: bool = field(default=None, validator=validate_bool())
-    up: bool = field(default=None, validator=validate_bool())
-    down: bool = field(default=None, validator=validate_bool())
-    heavy: bool = field(default=None, validator=validate_bool())
-    special: bool = field(default=None, validator=validate_bool())
+    left: bool = field(default=False, validator=validate_bool())
+    right: bool = field(default=False, validator=validate_bool())
+    up: bool = field(default=False, validator=validate_bool())
+    down: bool = field(default=False, validator=validate_bool())
+    heavy: bool = field(default=False, validator=validate_bool())
+    special: bool = field(default=False, validator=validate_bool())
 
     @property
     def flags(self) -> int:
