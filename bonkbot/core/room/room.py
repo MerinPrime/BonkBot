@@ -636,7 +636,8 @@ class Room:
         pair = StaticPair(PSON_KEYS)
         buffer = ByteBuffer().from_base64(encoded_state, lz_encoded=True, case_encoded=True)
         initial_state = pair.decode(buffer)
-        await self.bot.dispatch(BotEventHandler.on_game_start, self, unix_time, initial_state, game_settings)
+        await self.bot.dispatch(BotEventHandler.on_game_start, self, unix_time,
+                                initial_state, self._room_data.game_settings)
 
     async def __on_player_team_change(self, player_id: int, team: int) -> None:
         player = self.get_player_by_id(player_id)
