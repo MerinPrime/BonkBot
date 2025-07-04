@@ -4,6 +4,7 @@ import enum
 class BodyType(enum.Enum):
     DYNAMIC = 'd'
     STATIC = 's'
+    KINEMATIC = 'k'
 
     @staticmethod
     def from_name(name: str) -> 'BodyType':
