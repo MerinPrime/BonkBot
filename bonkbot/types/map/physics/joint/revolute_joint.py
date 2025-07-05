@@ -34,6 +34,7 @@ class RevoluteJoint(Joint):
     
     def to_json(self) -> dict:
         return {
+            'type': 'rv',
             'aa': self.pivot,
             'ba': self.body_a_id,
             'bb': self.body_b_id,

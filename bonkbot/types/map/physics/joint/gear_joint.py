@@ -20,6 +20,7 @@ class GearJoint(Joint):
 
     def to_json(self) -> dict:
         return {
+            'type': 'g',
             'n': self.name,
             'ja': self.joint_a_id,
             'jb': self.joint_b_id,

@@ -35,6 +35,7 @@ class LPJJoint(Joint):
 
     def to_json(self) -> dict:
         return {
+            'type': 'lpj',
             'pax': self.position[0],
             'pay': self.position[1],
             'pa': self.angle,

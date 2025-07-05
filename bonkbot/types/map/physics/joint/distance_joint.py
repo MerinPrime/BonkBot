@@ -33,6 +33,7 @@ class DistanceJoint(Joint):
     
     def to_json(self) -> dict:
         return {
+            'type': 'd',
             'aa': self.pivot,
             'ab': self.attach,
             'ba': self.body_a_id,

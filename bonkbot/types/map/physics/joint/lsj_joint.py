@@ -31,6 +31,7 @@ class LSJJoint(Joint):
 
     def to_json(self) -> dict:
         return {
+            'type': 'lsj',
             'sax': self.position[0],
             'say': self.position[1],
             'sf': self.spring_force,
