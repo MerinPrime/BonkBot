@@ -62,6 +62,7 @@ class BodyShape:
         self.fixed_rotation = data['fr']
         self.anti_tunnel = data['bu']
         self.collide_group = CollideGroup.from_id(data['f_c'])
+        self.collide_mask = CollideFlag.NONE
         if data['f_1']:
             self.collide_mask |= CollideFlag.A
         if data['f_2']:
