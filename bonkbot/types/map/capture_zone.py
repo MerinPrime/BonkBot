@@ -37,7 +37,7 @@ class CaptureZone:
         self.name = data['n']
         self.seconds = data['l']
         self.shape_id = data['i']
-        self.type = data.get('ty', CaptureType.NORMAL)
+        self.type = CaptureType.from_id(data.get('ty', CaptureType.NORMAL.value))
         return self
 
     def to_buffer(self, buffer: 'ByteBuffer') -> None:
