@@ -25,7 +25,7 @@ class GameSettings:
             'map': self.map.to_json(),
             'gt': 1 if self.is_quick_play else 2,
             'wl': self.rounds,
-            'q': self.is_quick_play,
+            'q': 'bonkquick' if self.is_quick_play else False,
             'tl': self.team_lock,
             'tea': self.team_state != TeamState.FFA,
             'ga': self.mode.engine,
