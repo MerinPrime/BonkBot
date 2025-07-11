@@ -410,13 +410,13 @@ class Room:
                 move = PlayerMove()
                 move.time = time.time()
                 move.frame = data['f']
+                move.inputs.flags = data['i']
+                move.sequence = data['c']
                 move.by_peer = True
                 move.peer_ignored = False
                 move.by_socket = False
                 move.reverted = False
                 move.unreverted = False
-                move.inputs.flags = data['i']
-                move.sequence = data['c']
                 player.moves[move.sequence] = move
                 asyncio.create_task(self.bot.dispatch(BotEventHandler.on_player_move, self, player, copy.deepcopy(move)))
 
@@ -748,20 +748,16 @@ class Room:
 
     async def __inform_in_game(self, data: dict) -> None:
         encoded_state = data['state']
-        state_id = data['stateID']
-        random = data['random']
         inputs = data['inputs']
-        frame = data['fc']
         self._room_data.game_settings.from_json(data['gs'])
         for input_data in inputs:
             player = self.get_player_by_id(input_data['p'])
-            inputs = Inputs()
-            inputs.flags = input_data['i']
-            player.prev_inputs.append((input_data['f'], inputs))
+            player.prev_inputs[input_data['f']] = Inputs.from_flags(input_data['i'])
         pair = StaticPair(PSON_KEYS)
         buffer = ByteBuffer().from_base64(encoded_state, case_encoded=True, lz_encoded=True)
         initial_state = pair.decode(buffer)
-        await self._bot.dispatch(BotEventHandler.on_inform_in_game, self, frame, random, initial_state, state_id)
+        await self._bot.dispatch(BotEventHandler.on_inform_in_game, self, data['fc'], data['random'],
+                                 initial_state, data['stateID'])
 
     async def __on_room_id_obtain(self, join_id: int, join_bypass: str) -> None:
         self._room_data.join_id = f'{join_id:06}'

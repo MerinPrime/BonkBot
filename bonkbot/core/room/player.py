@@ -28,7 +28,7 @@ class Player:
     peer_id: str = ''
     ping: int = 105
     moves: Dict[int, 'PlayerMove'] = field(default_factory=dict)
-    prev_inputs: List[Tuple[int, 'Inputs']] = field(default_factory=list)
+    prev_inputs: Dict[int, 'Inputs'] = field(default_factory=dict)
     peer_ban_until: float = 0
     peer_ban_level: int = 0
     peer_reverts: int = 0
