@@ -210,7 +210,7 @@ class BonkBot(BotEventHandler):
     def data(self) -> 'BotData':
         if not self._is_logged:
             raise BotNotLoggedInError()
-        return self._data # TODO: Maybe better return a copy?
+        return self._data  # TODO: Maybe better return a copy?
 
     @property
     def name(self) -> str:

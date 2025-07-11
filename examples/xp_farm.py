@@ -19,10 +19,11 @@ accounts = [
 
 RESTART_DELAY_SECONDS = 30
 RATE_LIMIT_RESTART_DELAY_SECONDS = 600
-XP_GAIN_INTERVAL_SECONDS = 10 # Interval to prevent rate limiting
-XP_GAIN_CYCLE_SECONDS = 1000 # Need to be 1200 in total ( cycle + interval * 20 = 1200 )
+XP_GAIN_INTERVAL_SECONDS = 10  # Interval to prevent rate limiting
+XP_GAIN_CYCLE_SECONDS = 1000  # Need to be 1200 in total ( cycle + interval * 20 = 1200 )
 CONNECTION_TIMEOUT_SECONDS = 15
-XP_FARM_START_DELAY = 10 # Delay to prevent rate limiting
+XP_FARM_START_DELAY = 10  # Delay to prevent rate limiting
+
 
 async def farming_loop(bot: 'BonkBot') -> None:
     await asyncio.sleep(XP_FARM_START_DELAY)
@@ -119,6 +120,7 @@ async def run_bot_lifecycle(name: str, password: str, event_loop: AbstractEventL
             print(f'{name}: Will restart in {delay} seconds')
             await asyncio.sleep(delay)
 
+
 async def main() -> None:
     event_loop = asyncio.get_running_loop()
     
@@ -127,6 +129,7 @@ async def main() -> None:
     
     print('--- Starting bots lifecycle ---')
     await asyncio.gather(*lifecycles)
+
 
 if __name__ == '__main__':
     event_loop = asyncio.get_event_loop()

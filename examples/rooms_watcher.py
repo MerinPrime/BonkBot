@@ -11,6 +11,7 @@ I use BonkAPI instead of BonkBot because we need only an API without the need fo
 
 bonk_api = BonkAPI()
 
+
 async def main() -> None:
     print('Rooms watcher started')
 
@@ -28,5 +29,6 @@ async def main() -> None:
             print(f'New VTOL room: {room.name}')
         previous_rooms = current_rooms
         await asyncio.sleep(30)
+
 
 bonk_api.event_loop.run_until_complete(main())

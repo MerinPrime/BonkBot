@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from ..bot.bot import BonkBot
     from .room import Room
 
+
 @dataclass
 class Player:
     bot: 'BonkBot'

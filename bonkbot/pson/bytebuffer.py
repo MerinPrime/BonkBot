@@ -35,7 +35,7 @@ class ByteBuffer:
     def read_bytes(self, count: int = 1) -> bytearray:
         if self.offset + count > self.size:
             raise EOFError(f'Not enough bytes to read. Requested {count}, available {self.size - self.offset}')
-        data = self.bytes[self.offset:self.offset+count]
+        data = self.bytes[self.offset:self.offset + count]
         self.offset += count
         return data
 

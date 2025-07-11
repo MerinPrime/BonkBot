@@ -27,6 +27,7 @@ class ForceZoneType(enum.IntEnum):
             if type_id == force_zone_type.value:
                 return force_zone_type
 
+
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IBodyForceZoneProperties.ts
 @define(slots=True, auto_attribs=True)
 class ForceZone:

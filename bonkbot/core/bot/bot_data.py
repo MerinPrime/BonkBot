@@ -25,13 +25,13 @@ class BotData:
     @staticmethod
     def from_login_response(json_data: dict) -> 'BotData':
         data = BotData(
-            name = json_data['username'],
-            token = json_data['token'],
-            remember_token = json_data.get('remember_token'),
-            is_guest = False,
-            id = json_data['id'],
-            xp = json_data['xp'],
-            active_avatar = json_data['activeAvatarNumber'],
+            name=json_data['username'],
+            token=json_data['token'],
+            remember_token=json_data.get('remember_token'),
+            is_guest=False,
+            id=json_data['id'],
+            xp=json_data['xp'],
+            active_avatar=json_data['activeAvatarNumber'],
         )
 
         if 'avatar' in json_data:
@@ -41,7 +41,7 @@ class BotData:
             data.avatar = Avatar.from_buffer(avatar_buffer)
 
         for i in range(5):
-            key = f'avatar{i+1}'
+            key = f'avatar{i + 1}'
             if key in json_data:
                 avatar_buffer = ByteBuffer()
                 avatar_buffer.from_base64(json_data[key], uri_encoded=True)

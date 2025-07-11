@@ -14,6 +14,7 @@ The bot copies inputs of players like mirror.
 VTOL, Arrows and Death Arrows can cause an "unmirror".
 '''
 
+
 class MirrorBot(BonkBot):
     async def on_ready(self, bot: 'BonkBot') -> None:
         print('MirrorBot started')

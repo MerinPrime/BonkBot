@@ -51,7 +51,7 @@ class ErrorType(enum.Enum):
     Trying to change balance of player to invalid.
     Balance should be in range [-100; 100]
     '''
-    ROOM_NOT_FOUND = ('roomnotfound','room_not_found')
+    ROOM_NOT_FOUND = ('roomnotfound', 'room_not_found')
     '''
     Room not found.
     '''

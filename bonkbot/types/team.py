@@ -17,6 +17,7 @@ class Team(enum.IntEnum):
                 return team
         return Team.SPECTATOR
 
+
 class TeamState(enum.IntEnum):
     FFA = 0
     TEAMS = 1

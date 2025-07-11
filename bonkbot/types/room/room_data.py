@@ -6,6 +6,7 @@ from .game_settings import GameSettings
 if TYPE_CHECKING:
     from ...core.room.player import Player
 
+
 @dataclass
 class RoomData:
     name: str

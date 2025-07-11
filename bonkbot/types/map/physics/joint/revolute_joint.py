@@ -14,6 +14,7 @@ from .joint import Joint
 if TYPE_CHECKING:
     from .....pson.bytebuffer import ByteBuffer
 
+
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IJoint.ts
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IJointProperties.ts
 @define(slots=True, auto_attribs=True)

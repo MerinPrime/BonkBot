@@ -9,6 +9,7 @@ The bot monitors all active rooms and logs only available VTOL rooms.
 Using class inheriting to events.
 '''
 
+
 class RoomsWatcherBot(BonkBot):
     async def on_ready(self, bot: 'BonkBot') -> None:
         print('Rooms watcher started')

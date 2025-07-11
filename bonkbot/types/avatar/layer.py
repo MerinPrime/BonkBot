@@ -7,6 +7,7 @@ from ...utils.validation import validate_bool, validate_float, validate_int
 if TYPE_CHECKING:
     from ...pson.bytebuffer import ByteBuffer
 
+
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/avatar/Layer.ts
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/avatar/Avatar.ts
 @define(slots=True, auto_attribs=True)
@@ -30,28 +31,28 @@ class Layer:
             buffer.read_uint8()
         buffer.read_int16()
         layer = Layer(
-            id = buffer.read_uint16(),
-            scale = buffer.read_float32(),
-            angle = buffer.read_float32(),
-            x = buffer.read_float32(),
-            y = buffer.read_float32(),
-            flip_x = buffer.read_bool(),
-            flip_y = buffer.read_bool(),
-            color = buffer.read_int32(),
+            id=buffer.read_uint16(),
+            scale=buffer.read_float32(),
+            angle=buffer.read_float32(),
+            x=buffer.read_float32(),
+            y=buffer.read_float32(),
+            flip_x=buffer.read_bool(),
+            flip_y=buffer.read_bool(),
+            color=buffer.read_int32(),
         )
         return layer
 
     @staticmethod
     def from_json(data: dict) -> 'Layer':
         layer = Layer(
-            id = data['id'],
-            scale = data['scale'],
-            angle = data['angle'],
-            x = data['x'],
-            y = data['y'],
-            flip_x = data['flipX'],
-            flip_y = data['flipY'],
-            color = data['color'],
+            id=data['id'],
+            scale=data['scale'],
+            angle=data['angle'],
+            x=data['x'],
+            y=data['y'],
+            flip_x=data['flipX'],
+            flip_y=data['flipY'],
+            color=data['color'],
         )
         return layer
 

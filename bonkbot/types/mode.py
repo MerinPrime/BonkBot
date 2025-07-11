@@ -8,6 +8,7 @@ class GaMo:
     mode: str
     id: int
 
+
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/GameSettings.ts
 class Mode(enum.Enum):
     NONE = GaMo(engine='', mode='', id=0)

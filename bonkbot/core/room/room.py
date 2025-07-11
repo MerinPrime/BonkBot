@@ -47,6 +47,7 @@ if TYPE_CHECKING:
     from ...types.server import Server
     from ..bot.bot import BonkBot
 
+
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/network/NetworkEngine.ts
 class Room:
     def __init__(self, bot: 'BonkBot', room_params: Union['RoomJoinParams', 'RoomCreateParams']) -> None:
@@ -196,6 +197,7 @@ class Room:
         self._socket = AsyncClient(ssl_verify=False)
         self.__bind_listeners()
         self._bind_sugar()
+
         async def init_socket() -> None:
             await self._socket.connect(bonk_socket_api.format(self._room_params.server.name), transports=['websocket'])
             await self._make_timesync()
@@ -394,6 +396,7 @@ class Room:
 
     async def _process_new_connection(self, connection: 'BinaryPack') -> None:
         player = None
+
         def get_player() -> Player:
             nonlocal player
             if player is None:
