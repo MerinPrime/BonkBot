@@ -55,17 +55,21 @@ class Room:
         self._action: RoomAction = RoomAction.CREATE if isinstance(room_params, RoomCreateParams) else RoomAction.JOIN
 
         self._room_data: Optional[RoomData] = None
-        self._socket: AsyncClient = None
+        self._socket: Optional[AsyncClient] = None
         self._peer_ready: bool = False
-        self._time_offset: int = None
+        self._time_offset: Optional[int] = None
         self._synced: bool = False
-        self._peer_id: str = None
+        self._peer_id: Optional[str] = None
         self._is_connected: bool = False
         self._running: bool = False
-        self._bot_player: Player = None
-        self._p2p_revert_task: Task = None
+        self._bot_player: Optional[Player] = None
+        self._p2p_revert_task: Optional[Task] = None
         self._connections: List[BinaryPack] = []
         self._sequence: int = 0
+
+        # Sugar
+        self._connect_event: Optional[Event] = None
+        self._any_player: Optional[Future] = None
 
     @property
     def map(self) -> 'BonkMap':
