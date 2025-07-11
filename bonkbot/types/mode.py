@@ -1,12 +1,15 @@
 import enum
-from dataclasses import dataclass
+
+from attrs import define, field
+
+from ..utils.validation import validate_int, validate_str
 
 
-@dataclass(frozen=True)
+@define(slots=True, auto_attribs=True, frozen=True)
 class GaMo:
-    engine: str
-    mode: str
-    id: int
+    engine: str = field(validator=validate_str())
+    mode: str = field(validator=validate_str())
+    id: int = field(validator=validate_int(0))
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/GameSettings.ts
@@ -29,7 +32,7 @@ class Mode(enum.Enum):
         return self.value.mode
 
     @property
-    def id(self) -> str:
+    def id(self) -> int:
         return self.value.id
 
     @staticmethod
