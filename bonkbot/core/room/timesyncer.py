@@ -23,7 +23,7 @@ class TimeSyncer:
         self.sync_id: int = 0
         self.event_emitter: EventEmitter = EventEmitter()
         self._lock: Lock = Lock()
-        self._task: Task = None
+        self._task: Optional[Task] = None
         self._time_sum: int = 0
         self._in_progress: int = 0
         self._ids_time: Dict[int, float] = {}
@@ -75,7 +75,6 @@ class TimeSyncer:
         self._time_sum += offset
 
         del self._ids_time[data['id']]
-
         if self._in_progress == 0:
             mean_offset = int(self._time_sum / self.repeat)
             self.offset += mean_offset

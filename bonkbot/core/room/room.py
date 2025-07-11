@@ -164,7 +164,7 @@ class Room:
     def join_link(self) -> str:
         if self._room_data.join_id is None:
             return ''
-        return room_link_api.format(self.join_id, self.join_bypass)
+        return room_link_api.format(self.join_id, self.join_bypass or '')
 
     @property
     def bot(self) -> 'BonkBot':
@@ -312,20 +312,14 @@ class Room:
         await self._socket.emit(SocketEvents.Outgoing.CREATE_ROOM, data)
 
     async def _join(self) -> None:
-        password = self._room_params.password
-        if password is None:
-            password = ''
-        bypass = self._room_params.bypass
-        if bypass is None:
-            bypass = ''
         data = {
             'joinID': self._room_params.room_address,
-            'roomPassword': password,
+            'roomPassword': self._room_params.password or '',
             'guest': self.bot.is_guest,
             'dbid': 2,
             'version': PROTOCOL_VERSION,
             'peerID': self._peer_id,
-            'bypass': bypass,
+            'bypass': self._room_params.bypass or '',
             'avatar': self._bot.active_avatar.to_json(),
         }
         if self.bot.is_guest:
