@@ -50,3 +50,9 @@ class Inputs:
         self.down = bool(flags & InputFlag.DOWN)
         self.heavy = bool(flags & InputFlag.HEAVY)
         self.special = bool(flags & InputFlag.SPECIAL)
+
+    @staticmethod
+    def from_flags(flags: int) -> 'Inputs':
+        inputs = Inputs()
+        inputs.flags = flags
+        return inputs
