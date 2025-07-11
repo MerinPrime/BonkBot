@@ -42,7 +42,7 @@ class StaticPair:
             buffer.write_uint8(PSONType.NULL)
         elif type(value) is str:
             if value == '':
-                buffer.write_uint8(PSONType.ESTRING)
+                buffer.write_uint8(PSONType.EMPTY_STRING)
             elif value in self.str2code:
                 buffer.write_uint8(PSONType.STRING_GET)
                 buffer.write_uint8(self.str2code[value])
@@ -73,7 +73,7 @@ class StaticPair:
             buffer.write_uint8(PSONType.TRUE if value else PSONType.FALSE)
         elif type(value) is list:
             if len(value) == 0:
-                buffer.write_uint8(PSONType.EARRAY)
+                buffer.write_uint8(PSONType.EMPTY_ARRAY)
             else:
                 buffer.write_uint8(PSONType.ARRAY)
                 buffer.write_varint64(len(value))
@@ -82,7 +82,7 @@ class StaticPair:
         elif type(value) is dict:
             filtered_value = {k: v for k, v in value.items() if v is not None}
             if len(filtered_value) == 0:
-                buffer.write_uint8(PSONType.EOBJECT)
+                buffer.write_uint8(PSONType.EMPTY_OBJECT)
             else:
                 buffer.write_uint8(PSONType.OBJECT)
                 buffer.write_varint32(len(filtered_value))
@@ -122,11 +122,11 @@ class StaticPair:
             return True
         if code == PSONType.FALSE:
             return False
-        if code == PSONType.EOBJECT:
+        if code == PSONType.EMPTY_OBJECT:
             return {}
-        if code == PSONType.EARRAY:
+        if code == PSONType.EMPTY_ARRAY:
             return []
-        if code == PSONType.ESTRING:
+        if code == PSONType.EMPTY_STRING:
             return ''
         if code == PSONType.OBJECT:
             obj = {}

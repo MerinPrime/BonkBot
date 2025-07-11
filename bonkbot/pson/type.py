@@ -7,9 +7,9 @@ class PSONType(enum.IntEnum):
     NULL = 0xF0
     TRUE = 0xF1
     FALSE = 0xF2
-    EOBJECT = 0xF3
-    EARRAY = 0xF4
-    ESTRING = 0xF5
+    EMPTY_OBJECT = 0xF3
+    EMPTY_ARRAY = 0xF4
+    EMPTY_STRING = 0xF5
     OBJECT = 0xF6
     ARRAY = 0xF7
     INTEGER = 0xF8
