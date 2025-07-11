@@ -82,5 +82,5 @@ class Player:
 
     async def send_friend_request(self) -> None:
         if self.is_friend:
-            return
+            raise ApiError(ErrorType.ALREADY_FRIENDS)
         await self.room.socket.emit(SocketEvents.Outgoing.FRIEND_REQUEST, {'id': self.id})
