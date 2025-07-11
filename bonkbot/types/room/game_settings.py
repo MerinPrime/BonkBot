@@ -2,6 +2,12 @@ from typing import List
 
 import attrs
 
+from ...utils.validation import (
+    validate_bool,
+    validate_int,
+    validate_int_list,
+    validate_type,
+)
 from ..map.bonkmap import BonkMap
 from ..mode import Mode
 from ..team import TeamState
@@ -9,16 +15,13 @@ from ..team import TeamState
 
 @attrs.define(slots=True, auto_attribs=True)
 class GameSettings:
-    map: 'BonkMap' = attrs.field(factory=BonkMap)
-    is_quick_play: bool = attrs.field(default=False, validator=attrs.validators.instance_of(bool))
-    rounds: int = attrs.field(default=3, validator=attrs.validators.and_(
-        attrs.validators.instance_of(int),
-        attrs.validators.ge(1),
-    ))
-    team_lock: bool = attrs.field(default=False, validator=attrs.validators.instance_of(bool))
-    team_state: TeamState = attrs.field(default=TeamState.FFA, validator=attrs.validators.instance_of(TeamState))
-    mode: Mode = attrs.field(default=Mode.CLASSIC, validator=attrs.validators.instance_of(Mode))
-    balance: List[int] = attrs.field(factory=list)
+    map: 'BonkMap' = attrs.field(factory=BonkMap, validator=validate_type(BonkMap))
+    is_quick_play: bool = attrs.field(default=False, validator=validate_bool())
+    rounds: int = attrs.field(default=3, validator=validate_int(1))
+    team_lock: bool = attrs.field(default=False, validator=validate_bool())
+    team_state: TeamState = attrs.field(default=TeamState.FFA, validator=validate_type(TeamState))
+    mode: Mode = attrs.field(default=Mode.CLASSIC, validator=validate_type(Mode))
+    balance: List[int] = attrs.field(factory=list, validator=validate_int_list(-100, 100))
     
     def to_json(self) -> dict:
         return {
@@ -42,7 +45,7 @@ class GameSettings:
         else:
             raise ValueError(f'Invalid map provided: {encoded_map}')
         self.rounds = data['wl']
-        self.is_quick_play = data['q'] == 'bonkquick' or data['q'] == True
+        self.is_quick_play = data['q'] == ('bonkquick', True)
         self.team_lock = data['tl']
         if data['tea']:
             self.team_state = TeamState.TEAMS
