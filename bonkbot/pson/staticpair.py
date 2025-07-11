@@ -12,28 +12,29 @@ from .utils import (
 
 
 class StaticPair:
-    hash_dict: dict
-    ihash_dict: dict
+    str2code: dict
+    code2str: dict
     next_idx: int
 
-    def __init__(self, keys: Optional[List[str]]) -> None:
-        self.hash_dict = {}
+    def __init__(self, keys: Optional[List[str]] = None) -> None:
+        self.str2code = {}
+        self.code2str = {}
         self.next_idx = 0
 
         if keys is not None:
             for i, v in enumerate(keys):
-                self.hash_dict[v] = i
+                self.str2code[v] = i
+                self.code2str[i] = v
             self.next_idx = len(keys)
-            self.ihash_dict = {v: k for k, v in self.hash_dict.items()}
 
     def encode(self, value: Optional[JsonValue], buffer: 'ByteBuffer' = None) -> 'ByteBuffer':
         if buffer is None:
             buffer = ByteBuffer()
 
-        endian = buffer.endian
+        old_endian = buffer.endian
         buffer.set_little_endian()
         self.encode_value(value, buffer)
-        buffer.set_endian(endian)
+        buffer.set_endian(old_endian)
         return buffer
 
     def encode_value(self, value: Optional[JsonValue], buffer: 'ByteBuffer' = None) -> 'ByteBuffer':
@@ -42,24 +43,23 @@ class StaticPair:
         elif type(value) is str:
             if value == '':
                 buffer.write_uint8(PSONType.ESTRING)
-            elif value in self.hash_dict:
+            elif value in self.str2code:
                 buffer.write_uint8(PSONType.STRING_GET)
-                buffer.write_uint8(self.hash_dict[value])
+                buffer.write_uint8(self.str2code[value])
             else:
                 buffer.write_uint8(PSONType.STRING)
                 buffer.write_str(value)
         elif type(value) is int:
             if value <= 0xFFFFFFFF:
-                zzval = zigzag_encode32(value)
-                if zzval < PSONType.MAX:
-                    buffer.write_uint8(zzval)
+                encoded_value = zigzag_encode32(value)
+                if encoded_value < PSONType.MAX:
+                    buffer.write_uint8(encoded_value)
                 else:
                     buffer.write_uint8(PSONType.INTEGER)
-                    buffer.write_varint32(zzval)
+                    buffer.write_varint32(encoded_value)
             else:
                 buffer.write_uint8(PSONType.LONG)
-                zzval = zigzag_encode64(value)
-                buffer.write_varint64(zzval)
+                buffer.write_varint64(zigzag_encode64(value))
         elif type(value) is float:
             if is_double(value):
                 buffer.offset -= 4
@@ -87,9 +87,9 @@ class StaticPair:
                 buffer.write_uint8(PSONType.OBJECT)
                 buffer.write_varint32(len(filtered_value))
                 for k, v in filtered_value.items():
-                    if k in self.hash_dict:
+                    if k in self.str2code:
                         buffer.write_uint8(PSONType.STRING_GET)
-                        buffer.write_varint32(self.hash_dict[k])
+                        buffer.write_varint32(self.str2code[k])
                     else:
                         buffer.write_uint8(PSONType.STRING)
                         buffer.write_str(k)
@@ -154,6 +154,7 @@ class StaticPair:
         if code == PSONType.STRING:
             return buffer.read_str()
         if code == PSONType.STRING_GET:
-            return self.ihash_dict[buffer.read_uint8()]
+            return self.code2str[buffer.read_uint8()]
         if code == PSONType.BINARY:
             return buffer.read_bytes(buffer.read_varint32())
+        return None

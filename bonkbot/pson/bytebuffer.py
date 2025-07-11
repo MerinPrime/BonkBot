@@ -22,6 +22,8 @@ class ByteBuffer:
         return len(self.bytes)
 
     def set_endian(self, endian: str) -> None:
+        if endian not in ('<', '>'):
+            raise ValueError(f'Invalid value for endian: "{endian}". Expected either "<" (little-endian) or ">" (big-endian)')
         self.endian = endian
 
     def set_little_endian(self) -> None:
@@ -99,7 +101,7 @@ class ByteBuffer:
             if (byte & 0x80) == 0:
                 return value
             shift += 7
-        raise ValueError('varint32 is too long')
+        raise ValueError('Encoded varint32 is too large')
 
     def read_varint64(self) -> int:
         value = 0
@@ -110,7 +112,7 @@ class ByteBuffer:
             if (byte & 0x80) == 0:
                 return value
             shift += 7
-        raise ValueError('varint64 is too long')
+        raise ValueError('Encoded varint64 is too large')
 
     def read_float32(self) -> float:
         return struct.unpack(self.endian + 'f', self.read_bytes(4))[0]
@@ -166,7 +168,7 @@ class ByteBuffer:
 
     def write_varint32(self, value: int) -> None:
         if value > 0xFFFFFFFF:
-            raise OverflowError('varint32 is too large')
+            raise ValueError('Value for varint32 encoding is too large')
         data = bytearray()
         for _ in range(5):
             byte = value & 0x7F
@@ -179,7 +181,7 @@ class ByteBuffer:
 
     def write_varint64(self, value: int) -> None:
         if value > 0xFFFFFFFFFFFFFFFF:
-            raise OverflowError('varint64 is too large')
+            raise ValueError('Value for varint64 encoding is too large')
         data = bytearray()
         for _ in range(10):
             byte = value & 0x7F
