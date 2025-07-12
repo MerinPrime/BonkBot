@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 @define(slots=True, auto_attribs=True)
 class CaptureZone:
     name: str = field(default='Cap Zone', validator=validate_str(29))
-    shape_id: int = field(default=-1, validator=validate_int(-1))
+    shape_id: int = field(default=-1, validator=validate_int(-1, 32767))
     seconds: float = field(default=10, converter=float, validator=validate_float(0.01, 1000))
     type: 'CaptureType' = field(default=CaptureType.NORMAL, validator=validate_type(CaptureType))
 
