@@ -13,3 +13,4 @@ class CaptureType(enum.IntEnum):
         for capture_type in CaptureType:
             if type_id == capture_type.value:
                 return capture_type
+        return CaptureType.NORMAL
