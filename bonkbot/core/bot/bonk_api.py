@@ -5,7 +5,9 @@ from typing import List, Optional, Union
 
 from aiohttp import ClientSession
 
-from ...types import Friend, Mode, Server
+from ...types.server import Server
+from ...types.mode import Mode
+from ...types.friend import Friend
 from ...types.errors.error_type import ErrorType
 from ...types.map import BonkMap
 from ...types.room import RoomInfo

@@ -1,8 +1,6 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List, Optional
 
-from bonkbot.core.room import Player
-
 from .game_settings import GameSettings
 
 if TYPE_CHECKING:
