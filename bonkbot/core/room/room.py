@@ -422,7 +422,9 @@ class Room:
         def on_data(data: dict) -> None:
             player = get_player()
             if player.moves.get(data['c']) is not None:
-                player.moves[data['c']].by_peer = True
+                move = player.moves[data['c']]
+                move.time = time.time()
+                move.by_peer = True
             elif player.peer_ban_until > time.time():
                 pass
             else:
@@ -595,6 +597,7 @@ class Room:
         player = self.get_player_by_id(player_id)
         if player.moves.get(data['c']) is not None:
             move = player.moves[data['c']]
+            move.time = time.time()
             move.by_socket = True
             if move.reverted:
                 move.unreverted = True
@@ -934,8 +937,8 @@ class Room:
             },
         )
         move = PlayerMove()
-        move.frame = frame
-        move.inputs = inputs
-        move.sequence = sequence
         move.time = time.time()
+        move.frame = frame
+        move.inputs.flags = inputs.flags
+        move.sequence = sequence
         self.bot_player.moves[self._sequence] = move
