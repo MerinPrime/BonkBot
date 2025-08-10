@@ -1,4 +1,5 @@
 import enum
+from typing import TypedDict
 
 from attrs import define, field
 
@@ -14,6 +15,15 @@ class InputFlag(enum.IntFlag):
     HEAVY = 16
     SPECIAL = 32
     ALL = LEFT | RIGHT | UP | DOWN | HEAVY | SPECIAL
+
+
+class InputsJSON(TypedDict):
+    left: bool
+    right: bool
+    up: bool
+    down: bool
+    action: bool
+    action2: bool
 
 
 @define(slots=True, auto_attribs=True)
@@ -56,3 +66,21 @@ class Inputs:
         inputs = Inputs()
         inputs.flags = flags
         return inputs
+
+    def to_json(self) -> 'InputsJSON':
+        return {
+            'left': self.left,
+            'right': self.right,
+            'up': self.up,
+            'down': self.down,
+            'action': self.heavy,
+            'action2': self.special,
+        }
+
+    def from_json(self, data: 'InputsJSON') -> None:
+        self.left = data['left']
+        self.right = data['right']
+        self.up = data['up']
+        self.down = data['down']
+        self.heavy = data['action']
+        self.special = data['action2']
