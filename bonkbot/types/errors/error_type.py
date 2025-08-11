@@ -37,7 +37,7 @@ class ErrorType(enum.Enum):
     * Starts with a underscore
     * Contains multiple spaces in a row
     '''
-    NOT_HOST = ('not_host',)
+    NOT_HOST = ('not_host','not_hosting')
     '''
     Occurs when a non-host player attempts to:
     * Kick or ban another player
