@@ -228,7 +228,7 @@ class Room:
                 pass
         if self._socket.connected:
             await self._socket.disconnect()
-        if self.peer_ready:
+        if self.peer_ready and self._use_peers:
             await self._peer.destroy()
         self._unbind_sugar()
         self._room_data = None
