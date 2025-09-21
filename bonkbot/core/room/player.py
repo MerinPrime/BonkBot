@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, Optional
 
-from ...types.errors import ApiError, ErrorType
+from ...types.errors.api_error import ApiError
+from ...types.errors.error_type import ErrorType
 from ...types.team import Team
 from ..api.socket_events import SocketEvents
 
