@@ -37,7 +37,7 @@ pip install git+https://github.com/MerinPrime/BonkBot.git
 * [XP Farm](examples/xp_farm.py)
 * [Mirror Bot](examples/mirror_bot.py)
 
-## 📄 Documentation
+## Documentation
 Documentation is currently planned.  
 Docstrings will be added to cover all public APIs.  
 Your contributions and suggestions for documentation are welcome via [GitHub Issues page](https://github.com/MerinPrime/BonkBot/issues).
