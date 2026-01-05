@@ -32,7 +32,7 @@ pip install git+https://github.com/MerinPrime/BonkBot.git
 > PyPI distribution is planned for the future.
 
 ## Examples
-* [Rooms Watcher (Decorators)](examples/rooms_watcher.py)
+* [Rooms Watcher (API)](examples/rooms_watcher.py)
 * [Rooms Watcher (Class based)](examples/oop_rooms_watcher.py)
 * [XP Farm](examples/xp_farm.py)
 * [Mirror Bot](examples/mirror_bot.py)
