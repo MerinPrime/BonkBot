@@ -250,25 +250,36 @@ class Room:
     async def _handle_p2p_revert(self) -> None:
         await self.wait_for_connection()
         while True:
-            for player in self.players:
-                num_player_moves = len(player.moves)
-                start_index = num_player_moves - 1
-                end_index = max(0, num_player_moves - 1000)
+            current_time = time.time()
+            active_players = self.players
+            
+            for player in active_players:
+                moves = player.moves
+                if not moves:
+                    continue
+                
+                start_index = max(moves)
+                end_index = max(0, start_index - 1000)
+                
                 for i in range(start_index, end_index, -1):
-                    move = player.moves.get(i)
+                    move = moves.get(i)
                     if move is None:
                         continue
-                    time_since_move = time.time() - move.time
-                    if time_since_move > 2:
+                    
+                    delta = current_time - move.time
+                    if delta > 2.0:
                         break
-                    if time_since_move > 0.8 and move.by_peer and not move.by_socket and not move.peer_ignored and not move.reverted:
+                    
+                    if delta > 0.8 and move.by_peer and not move.by_socket and not move.peer_ignored and not move.reverted:
                         move.reverted = True
                         player.peer_reverts += 1
                         if player.peer_reverts >= 4:
                             player.peer_reverts = 0
                             player.peer_ban_level += 1
-                            player.peer_ban_until = time.time() + 15 * (2 ** player.peer_ban_level)
+                            player.peer_ban_until = current_time + 15 * (2 ** player.peer_ban_level)
+                        
                         asyncio.create_task(self.bot.dispatch(BotEventHandler.on_move_revert, self, player, move))
+            
             await asyncio.sleep(0.1)
 
     async def _init_connection(self) -> None:
