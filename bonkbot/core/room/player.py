@@ -49,7 +49,7 @@ class Player:
     
     @property
     def is_bot(self) -> bool:
-        return self.room.bot == self
+        return self.room.bot_player == self
 
     @property
     def is_host(self) -> bool:
