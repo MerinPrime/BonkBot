@@ -45,7 +45,7 @@ class StaticPair:
                 buffer.write_uint8(PSONType.EMPTY_STRING)
             elif value in self.str2code:
                 buffer.write_uint8(PSONType.STRING_GET)
-                buffer.write_uint8(self.str2code[value])
+                buffer.write_varint32(self.str2code[value])
             else:
                 buffer.write_uint8(PSONType.STRING)
                 buffer.write_str(value)
@@ -154,7 +154,7 @@ class StaticPair:
         if code == PSONType.STRING:
             return buffer.read_str()
         if code == PSONType.STRING_GET:
-            return self.code2str[buffer.read_uint8()]
+            return self.code2str[buffer.read_varint32()]
         if code == PSONType.BINARY:
             return buffer.read_bytes(buffer.read_varint32())
         return None
