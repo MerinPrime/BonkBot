@@ -30,7 +30,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "pymitter==1.0.0",
+    "pymitter~=1.0.0",
     "aiohttp>=3.9,<4.0",
     "python-engineio~=3.14",
     "python-socketio~=4.6",
