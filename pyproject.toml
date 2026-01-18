@@ -30,8 +30,8 @@ classifiers = [
 ]
 
 dependencies = [
-    "aiohttp~=3.10",
-    "pymitter~=1.0",
+    "pymitter==1.0.0",
+    "aiohttp>=3.9,<4.0",
     "python-engineio~=3.14",
     "python-socketio~=4.6",
     "peerjs-py==0.1.1",

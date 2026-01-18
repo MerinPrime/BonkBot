@@ -1,3 +1,4 @@
+target-version = "py38"
 exclude = [
     ".git",
     ".ruff_cache",
@@ -28,8 +29,10 @@ select = [
     "TC002",
     "TC003",
     "TC005",
-    "TC005",
     "TC007",
+    "ASYNC",
+    "W293",
+    "B"
 ]
 ignore = [
     "RUF006",
@@ -40,20 +43,15 @@ ignore = [
     "E741",
     "ANN002",
     "ANN003",
-    "W293",
     "ANN401",
-    "B023",
     "RUF059",
     "RUF029",
 ]
 
-[lint.per-file-ignores]
-"__init__.py" = ["F401"]
-
 [lint.flake8-quotes]
 docstring-quotes = "double"
 inline-quotes = "single"
-multiline-quotes = "single"
+multiline-quotes = "double"
 
 [lint.flake8-annotations]
 mypy-init-return = true
