@@ -121,13 +121,13 @@ class BotEventHandler:
     async def on_move_revert(self, room: 'Room', player: 'Player', move: 'PlayerMove') -> None:
         pass
 
-    async def on_player_left(self, room: 'Room', player: 'Player', timestamp: int) -> None:
+    async def on_player_left(self, room: 'Room', player: 'Player', frame: int) -> None:
         """Called when non-host player leaves a room.
         
         :param room: The Room instance.
         :param player: The Player who left the room.
-        :param timestamp: The number of frames that have elapsed since the game started.
-                          If the game has not started, this is the number of frames since the UNIX epoch.
+        :param frame: The number of frames that have elapsed since the game started.
+                      If the game has not started, this is the number of frames since the UNIX epoch.
         :return: None
         
         Note: If the player who left was the host, this event will NOT be
@@ -135,15 +135,15 @@ class BotEventHandler:
         """
         pass
 
-    async def on_host_left(self, room: 'Room', old_host: 'Player', new_host: Optional['Player'], timestamp: int) -> None:
+    async def on_host_left(self, room: 'Room', old_host: 'Player', new_host: Optional['Player'], frame: int) -> None:
         """Called when host leaves a room.
         
         :param room: The Room instance.
         :param old_host: The Player who was the host and has now left.
         :param new_host: The Player who has been promoted to the new host.
                          This will be `None` if the room was closed.
-        :param timestamp: The number of frames that have elapsed since the game started.
-                          If the game has not started, this is the number of frames since the UNIX epoch.
+        :param frame: The number of frames that have elapsed since the game started.
+                      If the game has not started, this is the number of frames since the UNIX epoch.
         :return: None
         """
         pass
