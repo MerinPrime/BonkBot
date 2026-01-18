@@ -494,6 +494,7 @@ class Room:
         self.socket.on(SocketEvents.Incoming.STATUS, self.__on_error)
         self.socket.on(SocketEvents.Incoming.LEVEL_UP, self.__on_level_up)
         self.socket.on(SocketEvents.Incoming.XP_GAIN, self.__on_xp_gain)
+        self.socket.on(SocketEvents.Incoming.LOCAL_REVERT, self.__local_revert)
         self.socket.on(SocketEvents.Incoming.INFORM_IN_GAME, self.__inform_in_game)
         self.socket.on(SocketEvents.Incoming.ROOM_ID_OBTAIN, self.__on_room_id_obtain)
         self.socket.on(SocketEvents.Incoming.PLAYER_TABBED, self.__on_player_tabbed)
@@ -773,6 +774,16 @@ class Room:
             self._bot.update_token(data['newToken'])
 
         await self._bot.dispatch(BotEventHandler.on_xp_gain, self, new_xp)
+
+    async def __local_revert(self, frame: int) -> None:
+        move = None
+        for _move in self.bot_player.moves.values():
+            if _move.frame == frame:
+                move = _move
+                break
+        if move is None:
+            return
+        asyncio.create_task(self.bot.dispatch(BotEventHandler.on_move_revert, self, self.bot_player, move))
 
     async def __inform_in_lobby(self, game_settings: dict) -> None:
         self._room_data.game_settings.from_json(game_settings)
