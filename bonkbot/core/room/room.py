@@ -68,6 +68,7 @@ class Room:
         self._sequence: int = 0
         self._peer_event: Optional[Event] = None
         self._use_peers: bool = True
+        self.timesyncer: Union[TimeSyncer, None] = None
 
         # Sugar
         self._connect_event: Optional[Event] = None
