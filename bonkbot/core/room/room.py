@@ -433,8 +433,11 @@ class Room:
         @connection.on('data')
         def on_data(data: dict) -> None:
             player = get_player()
-            if player.moves.get(data['c']) is not None:
-                move = player.moves[data['c']]
+            sequence = data.get('c')
+            if sequence is None: # BonkCommands
+                return
+            if player.moves.get(sequence) is not None:
+                move = player.moves[sequence]
                 move.time = time.time()
                 move.by_peer = True
             elif player.peer_ban_until > time.time():
@@ -444,7 +447,7 @@ class Room:
                 move.time = time.time()
                 move.frame = data['f']
                 move.inputs.flags = data['i']
-                move.sequence = data['c']
+                move.sequence = sequence
                 move.by_peer = True
                 move.peer_ignored = False
                 move.by_socket = False
@@ -608,8 +611,11 @@ class Room:
 
     async def __on_move(self, player_id: int, data: dict) -> None:
         player = self.get_player_by_id(player_id)
-        if player.moves.get(data['c']) is not None:
-            move = player.moves[data['c']]
+        sequence = data.get('c')
+        if sequence is None: # BonkCommands
+            return
+        if player.moves.get(sequence) is not None:
+            move = player.moves[sequence]
             move.time = time.time()
             move.by_socket = True
             if move.reverted:
@@ -622,7 +628,7 @@ class Room:
             move.time = time.time()
             move.frame = data['f']
             move.inputs.flags = data['i']
-            move.sequence = data['c']
+            move.sequence = sequence
             move.by_peer = False
             move.peer_ignored = False
             move.by_socket = True
