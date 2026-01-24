@@ -1,4 +1,9 @@
 {
-    "venvPath": ".",
-    "venv": ".venv",
+  "pythonVersion": "3.8",
+  "venvPath": ".",
+  "venv": ".venv",
+  "analysis": {
+    "autoSearchPaths": false,
+    "useLibraryCodeForTypes": true
+  }
 }
