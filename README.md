@@ -29,6 +29,10 @@ Report any issues or suggest new features on the [GitHub Issues page](https://gi
 ```bash
 pip install git+https://github.com/MerinPrime/BonkBot.git
 ```
+Or with uv:
+```bash
+uv add git+https://github.com/MerinPrime/BonkBot.git
+```
 > PyPI distribution is planned for the future.
 
 ## Examples
