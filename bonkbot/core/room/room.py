@@ -603,7 +603,6 @@ class Room:
         if new_host_id == -1:
             self._room_data.host = None
             await self.bot.dispatch(BotEventHandler.on_host_left, self, old_host, None, timestamp)
-            await self.disconnect()
             return
         new_host = self.get_player_by_id(new_host_id)
         self._room_data.host = new_host
