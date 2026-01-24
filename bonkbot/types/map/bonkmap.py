@@ -2,7 +2,6 @@ from typing import List
 
 from attrs import define, field
 
-from ...core.constants import MAP_VERSION
 from ...pson.bytebuffer import ByteBuffer
 from ...utils.validation import validate_int, validate_type, validate_type_list
 from .capture_zone import CaptureZone
@@ -21,6 +20,7 @@ from .physics.shape.circle_shape import CircleShape
 from .physics.shape.polygon_shape import PolygonShape
 from .spawn import Spawn
 
+MAP_VERSION = 15
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMap.ts
 @define(slots=True, auto_attribs=True)
@@ -63,13 +63,13 @@ class BonkMap:
             data['spawns'].append(spawn.to_json())
         for capture_zone in self.cap_zones:
             data['capZones'].append(capture_zone.to_json())
-        
+
         return data
 
     def encode_to_database(self) -> 'BonkMap':
         buffer = ByteBuffer()
         buffer.set_big_endian()
-        
+
         buffer.write_int16(MAP_VERSION)
         self.properties.to_buffer(buffer)
         self.metadata.to_buffer(buffer)
@@ -88,7 +88,7 @@ class BonkMap:
             elif isinstance(shape, PolygonShape):
                 buffer.write_int16(3)
             shape.to_buffer(buffer)
-        
+
         buffer.write_int16(len(self.physics.fixtures))
         for fixture in self.physics.fixtures:
             fixture.to_buffer(buffer)
@@ -239,3 +239,4 @@ class BonkMap:
 
 
 DEFAULT_MAP = BonkMap.decode_from_database('ILAcJAhBFBjBzCIDCAbAcgBwEYA1IDOAWgMrAAeAJgFYCiwytlAjEQGLoAMsAtm50gCmAdwbBIbACoBDAOrNh2AOIBVeAFlcATXIBJZAAtURJak4BpaMAASJAExsCW2eQPTRkACJFdITwDMANRB6RhZ2Ll5+JCgAdhjgX08PGKsYa0gE8WB0LLz8goKrCGZA7B4AVgNsWUCAa10OAHstfFR-AGoAeh7envAbLoA3Pr7O0d7waWxMOyzM4DYALxBhKjp4FSVXSiUiId4BQuO8roAWfOQugYTPLsl1JcfnlZO394-Pk7TgaFpMv4QegQZDCNh1LKeYAAeWKXwKMH+vyQgUksCUbAAzNg6pAiHlhJ4IfDCioAcCQGwVJjIAZKHYLkggA')
+

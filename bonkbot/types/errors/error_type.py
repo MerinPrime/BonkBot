@@ -231,3 +231,17 @@ class ErrorType(enum.Enum):
         logging.getLogger(__name__).warning(f'Undefined error: {code}.')
         return ErrorType.UNDEFINED
 
+CRITICAL_API_ERRORS = [
+    *ErrorType.ROOM_NOT_FOUND.value,
+    *ErrorType.ROOM_FULL.value,
+    *ErrorType.BANNED.value,
+    *ErrorType.NO_CLIENT_ENTRY.value,
+    *ErrorType.ALREADY_IN_THIS_ROOM.value,
+    *ErrorType.JOIN_RATE_LIMITED.value,
+    *ErrorType.PASSWORD_WRONG.value,
+    *ErrorType.INVALID_PARAMS.value,
+    *ErrorType.PLAYERS_XP_TOO_HIGH.value,
+    *ErrorType.PLAYERS_XP_TOO_LOW.value,
+    *ErrorType.GUESTS_NOT_ALLOWED.value,
+    *ErrorType.AVATAR_DATA_INVALID.value,
+]

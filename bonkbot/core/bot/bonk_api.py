@@ -5,6 +5,8 @@ from typing import List, Optional, Union
 
 from aiohttp import ClientSession
 
+from ..api.socket_events import PROTOCOL_VERSION
+
 from ...types.server import Server
 from ...types.mode import Mode
 from ...types.friend import Friend
@@ -20,7 +22,6 @@ from ..api.endpoints import (
     get_rooms_api,
     login_legacy_api,
 )
-from ..constants import PROTOCOL_VERSION
 from .bot_data import BotData
 
 

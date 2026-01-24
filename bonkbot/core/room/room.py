@@ -10,6 +10,10 @@ from peerjs_py import Peer, PeerOptions
 from peerjs_py.dataconnection.DataConnection import DataConnection
 from socketio import AsyncClient
 
+from ...types.errors.error_type import CRITICAL_API_ERRORS
+
+from ...types.room.initial_state import PSON_KEYS
+
 from ...pson import ByteBuffer, StaticPair
 from ...types.avatar import Avatar
 from ...types.errors import ApiError, ErrorType
@@ -28,14 +32,8 @@ from ..api.endpoints import (
     bonk_socket_api,
     room_link_api,
 )
-from ..api.socket_events import SocketEvents
+from ..api.socket_events import PROTOCOL_VERSION, SocketEvents
 from ..bot.bot_event_handler import BotEventHandler
-from ..constants import (
-    CRITICAL_API_ERRORS,
-    PROTOCOL_VERSION,
-    PSON_KEYS,
-    RATE_LIMIT_PONG,
-)
 from .player import Player
 from .timesyncer import TimeSyncer
 
@@ -761,7 +759,7 @@ class Room:
         await self.bot.dispatch(BotEventHandler.on_countdown_abort, self)
 
     async def __on_error(self, error: str) -> None:
-        if error != RATE_LIMIT_PONG:
+        if error != ErrorType.RATE_LIMIT_PONG.value:
             await self.bot.dispatch(BotEventHandler.on_error, self.bot, ApiError(ErrorType.from_string(error)))
 
         if error in CRITICAL_API_ERRORS:
