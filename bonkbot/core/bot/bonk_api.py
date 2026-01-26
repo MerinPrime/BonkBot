@@ -5,23 +5,15 @@ from typing import List, Optional, Union
 
 from aiohttp import ClientSession
 
-from ..api.socket_events import PROTOCOL_VERSION
-
-from ...types.server import Server
-from ...types.mode import Mode
-from ...types.friend import Friend
 from ...types.errors.error_type import ErrorType
+from ...types.friend import Friend
 from ...types.map import BonkMap
+from ...types.mode import Mode
 from ...types.room import RoomInfo
 from ...types.room.room_join_params import RoomJoinParams
-from ..api.endpoints import (
-    auto_join_api,
-    get_friends_api,
-    get_own_maps_api,
-    get_room_address_api,
-    get_rooms_api,
-    login_legacy_api,
-)
+from ...types.server import Server
+from ..api.endpoints import Endpoints
+from ..api.socket_events import PROTOCOL_VERSION
 from .bot_data import BotData
 
 
@@ -49,7 +41,7 @@ class BonkAPI:
     async def fetch_data_with_password(self, name: str, password: str, *, remember: bool = False,
                                        ) -> Union['ErrorType', 'BotData']:
         response = await self._aiohttp_session.post(
-            login_legacy_api,
+            Endpoints.LOGIN_LEGACY,
             data={
                 'username': name,
                 'password': password,
@@ -64,7 +56,7 @@ class BonkAPI:
 
     async def fetch_data_with_token(self, remember_token: str) -> Union['ErrorType', 'BotData']:
         response = await self._aiohttp_session.post(
-            login_legacy_api,
+            Endpoints.LOGIN_AUTO,
             data={
                 'rememberToken': remember_token,
             },
@@ -78,7 +70,7 @@ class BonkAPI:
     async def fetch_room_data(self, room_id: int, password: str = '', bypass: str = '',
                               ) -> Union['ErrorType', 'RoomJoinParams']:
         response = await self.aiohttp_session.post(
-            url=get_room_address_api,
+            url=Endpoints.GET_ROOM_ADDRESS,
             data={
                 'id': room_id,
             },
@@ -101,7 +93,7 @@ class BonkAPI:
         match = re.search(regex, link)
         room_id = match.group(1)
         bypass = match.group(2)
-        response = await self.aiohttp_session.post(url=auto_join_api, data={'joinID': room_id})
+        response = await self.aiohttp_session.post(url=Endpoints.AUTO_JOIN, data={'joinID': room_id})
         response.raise_for_status()
         response_data = await response.json()
         if response_data['r'] == 'failed':
@@ -116,7 +108,7 @@ class BonkAPI:
 
     async def fetch_server(self) -> 'Server':
         response = await self.aiohttp_session.post(
-            get_rooms_api,
+            Endpoints.GET_ROOMS,
             data={
                 'version': PROTOCOL_VERSION,
                 'gl': 'y',
@@ -129,7 +121,7 @@ class BonkAPI:
 
     async def fetch_rooms(self) -> List['RoomInfo']:
         response = await self.aiohttp_session.post(
-            get_rooms_api,
+            Endpoints.GET_ROOMS,
             data={
                 'version': PROTOCOL_VERSION,
                 'gl': 'n',
@@ -153,7 +145,7 @@ class BonkAPI:
 
     async def fetch_friends(self, token: str) -> List['Friend']:
         response = await self.aiohttp_session.post(
-            url=get_friends_api,
+            url=Endpoints.GET_FRIENDS,
             data={
                 'token': token,
                 'task': 'getfriends',
@@ -172,7 +164,7 @@ class BonkAPI:
         # Api returning maps from `start_from` to `start_from + 30`
         # Only 30 maps from `start_from` will be returned
         response = await self.aiohttp_session.post(
-            url=get_own_maps_api,
+            url=Endpoints.GET_OWN_MAPS,
             data={
                 'token': token,
                 'startingfrom': str(start_from),

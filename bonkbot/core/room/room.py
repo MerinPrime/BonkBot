@@ -10,28 +10,22 @@ from peerjs_py import Peer, PeerOptions
 from peerjs_py.dataconnection.DataConnection import DataConnection
 from socketio import AsyncClient
 
-from ...types.errors.error_type import CRITICAL_API_ERRORS
-
-from ...types.room.initial_state import PSON_KEYS
-
 from ...pson import ByteBuffer, StaticPair
 from ...types.avatar import Avatar
 from ...types.errors import ApiError, ErrorType
+from ...types.errors.error_type import CRITICAL_API_ERRORS
 from ...types.errors.room_already_connected import RoomAlreadyConnected
 from ...types.errors.room_not_connected import RoomNotConnected
 from ...types.input import Inputs
 from ...types.map.bonkmap import DEFAULT_MAP, BonkMap
 from ...types.mode import Mode
 from ...types.player_move import PlayerMove
+from ...types.room.initial_state import PSON_KEYS
 from ...types.room.room_action import RoomAction
 from ...types.room.room_create_params import RoomCreateParams
 from ...types.room.room_data import RoomData
 from ...types.team import Team, TeamState
-from ..api.endpoints import (
-    bonk_peer_api,
-    bonk_socket_api,
-    room_link_api,
-)
+from ..api.endpoints import Endpoints
 from ..api.socket_events import PROTOCOL_VERSION, SocketEvents
 from ..bot.bot_event_handler import BotEventHandler
 from .player import Player
@@ -166,7 +160,7 @@ class Room:
     def join_link(self) -> str:
         if self._room_data.join_id is None:
             return ''
-        return room_link_api.format(self.join_id, self.join_bypass or '')
+        return Endpoints.room_link(self.join_id, self.join_bypass or '')
 
     @property
     def bot(self) -> 'BonkBot':
@@ -199,14 +193,14 @@ class Room:
         self._socket = AsyncClient(ssl_verify=False)
         self.__bind_listeners()
         self._bind_sugar()
-        
+
         self._use_peers = use_peers
         self._peer_event = Event()
-        
+
         async def init_socket() -> None:
-            await self._socket.connect(bonk_socket_api.format(self._room_params.server.name))
+            await self._socket.connect(Endpoints.socket_api(self._room_params.server.name))
             await self._make_timesyncer(peer_timeout)
-        
+
         await asyncio.gather(
             self._make_peer(),
             init_socket(),
@@ -251,24 +245,24 @@ class Room:
         while True:
             current_time = time.time()
             active_players = self.players
-            
+
             for player in active_players:
                 moves = player.moves
                 if not moves:
                     continue
-                
+
                 start_index = max(moves)
                 end_index = max(0, start_index - 1000)
-                
+
                 for i in range(start_index, end_index, -1):
                     move = moves.get(i)
                     if move is None:
                         continue
-                    
+
                     delta = current_time - move.time
                     if delta > 2.0:
                         break
-                    
+
                     if delta > 0.8 and move.by_peer and not move.by_socket and not move.peer_ignored and not move.reverted:
                         move.reverted = True
                         player.peer_reverts += 1
@@ -276,9 +270,9 @@ class Room:
                             player.peer_reverts = 0
                             player.peer_ban_level += 1
                             player.peer_ban_until = current_time + 15 * (2 ** player.peer_ban_level)
-                        
+
                         asyncio.create_task(self.bot.dispatch(BotEventHandler.on_move_revert, self, player, move))
-            
+
             await asyncio.sleep(0.1)
 
     async def _init_connection(self) -> None:
@@ -365,13 +359,13 @@ class Room:
         async def on_sync(state: str) -> None:
             if state == 'end' and not self._synced:
                 self._synced = True
-                
+
                 try:
                     await asyncio.wait_for(self._peer_event.wait(), timeout=peer_timeout)
                 except asyncio.TimeoutError:
                     # TODO: Add logger
                     print(f'Timeout: Peers did not connect within {peer_timeout} seconds. Will be used only socket.')
-                
+
                 await self._init_connection()
 
         @self.timesyncer.event_emitter.on('change')
@@ -385,13 +379,13 @@ class Room:
     async def _make_peer(self) -> None:
         peer_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=10)) + '000000'
         self._peer_id = peer_id
-        
+
         if not self._use_peers:
             self._peer_event.set()
             return
-        
+
         self._peer = Peer(id=peer_id, options=PeerOptions(
-            host=bonk_peer_api.format(self._room_params.server.name),
+            host=Endpoints.peer_api(self._room_params.server.name),
             port=443,
             path='/myapp',
             secure=True,
