@@ -1,12 +1,10 @@
-from typing import TYPE_CHECKING, List
+from typing import List, Union
 
 from attrs import define, field
 
+from ...pson.bytebuffer import ByteBuffer
 from ...utils.validation import validate_int, validate_type_list
 from .layer import Layer
-
-if TYPE_CHECKING:
-    from ...pson.bytebuffer import ByteBuffer
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/avatar/Avatar.ts
@@ -40,6 +38,44 @@ class Avatar:
         if version >= 2:
             avatar.base_color = buffer.read_int32()
         return avatar
+
+    def to_buffer(self, buffer: Union['ByteBuffer', None] = None) -> 'ByteBuffer':
+        if buffer is None:
+            buffer = ByteBuffer()
+
+        buffer.write_uint8(0x0A)
+        buffer.write_uint8(0x07)
+        buffer.write_uint8(0x03)
+        buffer.write_uint8(0x61)
+        buffer.write_int16(0x02)
+        buffer.write_uint8(0x09)
+        buffer.write_uint8(len(self.layers) * 2 + 1)
+        buffer.write_uint8(0x01)
+
+        for i, layer in enumerate(self.layers):
+            buffer.write_uint8(0x0A)
+
+            if i == 0:
+                buffer.write_uint8(0x07)
+                buffer.write_uint8(0x05)
+                buffer.write_uint8(0x61)
+                buffer.write_uint8(0x6C)
+            else:
+                buffer.write_uint8(0x05)
+
+            buffer.write_int16(1)
+            buffer.write_int16(layer.id)
+            buffer.write_float32(layer.scale)
+            buffer.write_float32(layer.angle)
+            buffer.write_float32(layer.x)
+            buffer.write_float32(layer.y)
+            buffer.write_bool(layer.flip_x)
+            buffer.write_bool(layer.flip_y)
+            buffer.write_int32(layer.color)
+
+        buffer.write_int32(self.base_color)
+
+        return buffer
 
     @staticmethod
     def from_json(data: dict) -> 'Avatar':
