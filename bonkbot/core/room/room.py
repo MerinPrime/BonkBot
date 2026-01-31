@@ -753,7 +753,7 @@ class Room:
         await self.bot.dispatch(BotEventHandler.on_countdown_abort, self)
 
     async def __on_error(self, error: str) -> None:
-        if error != ErrorType.RATE_LIMIT_PONG.value:
+        if error not in ErrorType.RATE_LIMIT_PONG.value:
             await self.bot.dispatch(BotEventHandler.on_error, self.bot, ApiError(ErrorType.from_string(error)))
 
         if error in CRITICAL_API_ERRORS:
