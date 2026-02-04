@@ -68,7 +68,7 @@ class SocketEvents:
         GET_DEBUG = 3
         MOVE = 4
         GAME_START = 5
-        SET_TEAM = 6
+        SET_OWN_TEAM = 6
         SET_TEAM_LOCK = 7
         MUTE = 8
         BAN = 9

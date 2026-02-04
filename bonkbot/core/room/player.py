@@ -66,9 +66,12 @@ class Player:
         await self.room.socket.emit(SocketEvents.Outgoing.BAN, {'banshortid': self.id, 'kickonly': False})
 
     async def change_team(self, new_team: Team) -> None:
+        if self.is_bot:
+            await self.room.socket.emit(SocketEvents.Outgoing.SET_OWN_TEAM, {'targetTeam': new_team})
+            return
         if not self.room.bot_player.is_host:
             raise ApiError(ErrorType.NOT_HOST)
-        await self.room.socket.emit(SocketEvents.Outgoing.SET_BALANCE, {'targetID': self.id, 'targetTeam': new_team})
+        await self.room.socket.emit(SocketEvents.Outgoing.SET_OTHER_TEAM, {'targetID': self.id, 'targetTeam': new_team})
 
     async def set_balance(self, new_balance: int) -> None:
         if not self.room.bot_player.is_host:
