@@ -963,7 +963,7 @@ class Room:
         move.sequence = sequence
         self.bot_player.moves[self._sequence] = move
 
-    async def start_game(self, initial_state: Dict[Any, Any]) -> None:
+    async def start_game(self, initial_state: dict) -> None:
         pair = StaticPair(PSON_KEYS)
         buffer = pair.encode(initial_state)
         encoded_is = buffer.to_base64(
