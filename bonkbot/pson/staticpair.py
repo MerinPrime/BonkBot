@@ -62,11 +62,9 @@ class StaticPair:
                 buffer.write_varint64(zigzag_encode64(value))
         elif type(value) is float:
             if is_double(value):
-                buffer.offset -= 4
                 buffer.write_uint8(PSONType.FLOAT)
                 buffer.write_float32(value)
             else:
-                buffer.offset -= 4
                 buffer.write_uint8(PSONType.DOUBLE)
                 buffer.write_float64(value)
         elif type(value) is bool:
@@ -78,7 +76,7 @@ class StaticPair:
                 buffer.write_uint8(PSONType.ARRAY)
                 buffer.write_varint64(len(value))
                 for i in value:
-                    self.encode(i, buffer)
+                    self.encode_value(i, buffer)
         elif type(value) is dict:
             filtered_value = {k: v for k, v in value.items() if v is not None}
             if len(filtered_value) == 0:
@@ -93,7 +91,7 @@ class StaticPair:
                     else:
                         buffer.write_uint8(PSONType.STRING)
                         buffer.write_str(k)
-                    self.encode(v, buffer)
+                    self.encode_value(v, buffer)
         else:
             raise TypeError(type(value).__name__)
 
@@ -131,8 +129,8 @@ class StaticPair:
         if code == PSONType.OBJECT:
             obj = {}
             for _ in range(buffer.read_varint32()):
-                key = self.decode(buffer)
-                value = self.decode(buffer)
+                key = self.decode_value(buffer)
+                value = self.decode_value(buffer)
                 try:
                     obj[key] = value
                 except TypeError:
@@ -141,7 +139,7 @@ class StaticPair:
         if code == PSONType.ARRAY:
             arr = []
             for _ in range(buffer.read_varint32()):
-                arr.append(self.decode(buffer))
+                arr.append(self.decode_value(buffer))
             return arr
         if code == PSONType.INTEGER:
             return zigzag_decode32(buffer.read_varint32())

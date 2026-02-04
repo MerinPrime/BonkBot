@@ -168,16 +168,16 @@ class ByteBuffer:
 
     def write_varint32(self, value: int) -> None:
         if value > 0xFFFFFFFF:
-            raise ValueError('Value for varint32 encoding is too large')
-        data = bytearray()
-        for _ in range(5):
+            raise ValueError("Value for varint32 encoding is too large")
+        value &= 0xFFFFFFFF
+        while True:
             byte = value & 0x7F
             value >>= 7
             if value == 0:
-                data.append(byte)
+                self.write_uint8(byte)
                 break
-            data.append(byte | 0x80)
-        self.write_bytes(data)
+            else:
+                self.write_uint8(byte | 0x80)
 
     def write_varint64(self, value: int) -> None:
         if value > 0xFFFFFFFFFFFFFFFF:
