@@ -962,3 +962,20 @@ class Room:
         move.inputs.flags = inputs.flags
         move.sequence = sequence
         self.bot_player.moves[self._sequence] = move
+
+    async def start_game(self, initial_state: Dict[Any, Any]) -> None:
+        pair = StaticPair(PSON_KEYS)
+        buffer = pair.encode(initial_state)
+        encoded_is = buffer.to_base64(
+            lz_encode=True,
+            case_encode=True,
+        )
+        gs = self.game_settings.to_json()
+        gs["map"] = self.game_settings.map.encode_to_database()
+        await self.socket.emit(
+            SocketEvents.Outgoing.GAME_START,
+            {
+                "is": encoded_is,
+                "gs": gs,
+            },
+        )
