@@ -890,11 +890,15 @@ class Room:
     async def set_mode(self, mode: 'Mode') -> None:
         if not self.is_host:
             raise ApiError(ErrorType.NOT_HOST)
+        if mode == Mode.FOOTBALL:
+            await self.set_teams(True)
+        self.game_settings.mode = mode
         await self.socket.emit(SocketEvents.Outgoing.SET_MODE, {'ga': mode.engine, 'mo': mode.mode})
 
     async def set_rounds(self, rounds: int) -> None:
         if not self.is_host:
             raise ApiError(ErrorType.NOT_HOST)
+        self.game_settings.rounds = rounds
         await self.socket.emit(SocketEvents.Outgoing.SET_ROUNDS, {'w': rounds})
 
     async def set_team_lock(self, state: bool) -> None:
@@ -913,7 +917,13 @@ class Room:
     async def set_teams(self, state: bool) -> None:
         if not self.is_host:
             raise ApiError(ErrorType.NOT_HOST)
-        self._room_data.game_settings.team_state = TeamState.TEAMS if state else TeamState.FFA
+        target_state = TeamState.TEAMS if state else TeamState.FFA
+        self._room_data.game_settings.team_state = target_state
+        if target_state == TeamState.FFA:
+            # NOTE: This exists in Bonk, so i need to add it here as well, cuz otherwise teams will be desynced
+            for player in self._room_data.players:
+                if player.team != Team.SPECTATOR:
+                    player.team = Team.FFA
         await self.socket.emit(SocketEvents.Outgoing.SET_TEAM_STATE, {'t': state})
 
     async def record_replay(self) -> None:
@@ -961,6 +971,7 @@ class Room:
         self.bot_player.moves[self._sequence] = move
 
     async def start_game(self, initial_state: dict) -> None:
+        # NOTE: This exists in Bonk, also, without it, Bonk will crash
         initial_state['rc'] = 0
         pair = StaticPair(PSON_KEYS)
         buffer = pair.encode(initial_state)
