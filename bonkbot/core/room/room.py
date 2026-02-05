@@ -907,8 +907,11 @@ class Room:
         await self.socket.emit(SocketEvents.Outgoing.SET_TEAM_LOCK, {'teamLock': state})
 
     async def set_map(self, bonk_map: 'BonkMap') -> None:
-        # TODO: Implement
-        ...
+        if not self.is_host:
+            raise ApiError(ErrorType.NOT_HOST)
+        self._room_data.game_settings.map = bonk_map
+        encoded_map = bonk_map.encode_to_database()
+        await self._socket.emit(SocketEvents.Outgoing.MAP_ADD, {'m': encoded_map})
 
     async def request_map(self, bonk_map: 'BonkMap') -> None:
         # TODO: Implement
