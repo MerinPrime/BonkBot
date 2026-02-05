@@ -897,9 +897,6 @@ class Room:
             raise ApiError(ErrorType.NOT_HOST)
         await self.socket.emit(SocketEvents.Outgoing.SET_ROUNDS, {'w': rounds})
 
-    async def set_team(self, team: Team) -> None:
-        await self.socket.emit(SocketEvents.Outgoing.SET_TEAM, {'targetTeam': team})
-
     async def set_team_lock(self, state: bool) -> None:
         if not self.is_host:
             raise ApiError(ErrorType.NOT_HOST)
