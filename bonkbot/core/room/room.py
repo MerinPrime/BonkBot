@@ -913,9 +913,9 @@ class Room:
         encoded_map = bonk_map.encode_to_database()
         await self._socket.emit(SocketEvents.Outgoing.MAP_ADD, {'m': encoded_map})
 
-    async def request_map(self, bonk_map: 'BonkMap') -> None:
-        # TODO: Implement
-        ...
+    async def suggest_map(self, bonk_map: 'BonkMap') -> None:
+        encoded_map = bonk_map.encode_to_database()
+        await self._socket.emit(SocketEvents.Outgoing.MAP_SUGGEST, {'m': encoded_map, 'mapname': bonk_map.metadata.name, 'mapauthor': bonk_map.metadata.author})
 
     async def set_teams(self, state: bool) -> None:
         if not self.is_host:
