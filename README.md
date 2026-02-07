@@ -31,7 +31,7 @@ pip install git+https://github.com/MerinPrime/BonkBot.git
 ```
 Or with uv:
 ```bash
-uv add git+https://github.com/MerinPrime/BonkBot.git
+uv add git+https://github.com/MerinPrime/BonkBot.git@master
 ```
 > PyPI distribution is planned for the future.
 
