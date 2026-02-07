@@ -991,3 +991,6 @@ class Room:
                 "gs": gs,
             },
         )
+
+    async def stop_game(self) -> None:
+        await self.socket.emit(SocketEvents.Outgoing.RETURN_TO_LOBBY)
