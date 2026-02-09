@@ -61,6 +61,7 @@ class Room:
         self._peer_event: Optional[Event] = None
         self._use_peers: bool = True
         self.timesyncer: Union[TimeSyncer, None] = None
+        self.game_started: bool = False
 
         # Sugar
         self._connect_event: Optional[Event] = None
@@ -572,12 +573,13 @@ class Room:
         )
         self._room_data.players.append(player)
         self._room_data.game_settings.balance.append(0)
-        await self._socket.emit(
-            SocketEvents.Outgoing.INFORM_IN_LOBBY,
-            {
-                'sid': player_id,
-                'gs': self._room_data.game_settings.to_json(),
-            })
+        if not self.game_started:
+            await self._socket.emit(
+                SocketEvents.Outgoing.INFORM_IN_LOBBY,
+                {
+                    'sid': player_id,
+                    'gs': self._room_data.game_settings.to_json(),
+                })
         await self._bot.dispatch(BotEventHandler.on_player_join, self, player)
 
     async def __on_player_left(self, player_id: int, timestamp: int) -> None:
@@ -975,6 +977,7 @@ class Room:
 
     async def start_game(self, initial_state: dict) -> None:
         # NOTE: This exists in Bonk, also, without it, Bonk will crash
+        self.game_started = True
         initial_state['rc'] = 0
         pair = StaticPair(PSON_KEYS)
         buffer = pair.encode(initial_state)
@@ -993,4 +996,5 @@ class Room:
         )
 
     async def stop_game(self) -> None:
+        self.game_started = False
         await self.socket.emit(SocketEvents.Outgoing.RETURN_TO_LOBBY)
