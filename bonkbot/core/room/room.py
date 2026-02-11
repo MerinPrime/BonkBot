@@ -906,7 +906,6 @@ class Room:
     async def set_team_lock(self, state: bool) -> None:
         if not self.is_host:
             raise ApiError(ErrorType.NOT_HOST)
-        self.game_settings.team_lock = state
         await self.socket.emit(SocketEvents.Outgoing.SET_TEAM_LOCK, {'teamLock': state})
 
     async def set_map(self, bonk_map: 'BonkMap') -> None:
