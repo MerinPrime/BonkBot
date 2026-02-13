@@ -998,3 +998,12 @@ class Room:
     async def stop_game(self) -> None:
         self.game_started = False
         await self.socket.emit(SocketEvents.Outgoing.RETURN_TO_LOBBY)
+
+    async def send_countdown(self, num: int) -> None:
+        await self.socket.emit(SocketEvents.Outgoing.COUNTDOWN, {
+            'num': num,
+        })
+
+    async def send_countdown_abort(self) -> None:
+        await self.socket.emit(SocketEvents.Outgoing.ABORT_COUNTDOWN)
+
