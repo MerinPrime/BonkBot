@@ -3,7 +3,7 @@ from typing import Optional
 
 from ..types.errors.error_type import ErrorType
 
-USERNAME_REGEX = re.compile(r'^[A-Za-z0-9_ ]{2,16}$')
+USERNAME_REGEX = re.compile(r'^[A-Za-z0-9_ ]{2,15}$')
 
 
 def validate_username(username: str, *, is_guest: bool) -> Optional[ErrorType]:
