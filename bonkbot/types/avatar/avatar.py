@@ -9,7 +9,7 @@ from .layer import Layer
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/avatar/Avatar.ts
 @define(slots=True, auto_attribs=True)
 class Avatar:
-    layers: List['Layer'] = field(factory=list)
+    layers: List['Layer'] = field(factory=list) # max 16 layers
     base_color: int = field(default=0x448AFF)
 
     @staticmethod

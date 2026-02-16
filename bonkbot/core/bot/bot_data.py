@@ -1,7 +1,6 @@
-from dataclasses import field
 from typing import List, Optional
 
-from attrs import define
+from attrs import define, field
 
 from ...pson.bytebuffer import ByteBuffer
 from ...types.avatar.avatar import Avatar
@@ -18,12 +17,12 @@ class BotData:
     id: int = 0
     xp: int = 0
     active_avatar: int = 0
-    avatar: 'Avatar' = field(default_factory=Avatar)
+    avatar: 'Avatar' = field(factory=Avatar)
     avatars: List['Avatar'] = field(
-        default_factory=lambda: [Avatar() for _ in range(5)],
+        factory=lambda: [Avatar() for _ in range(5)],
     )
-    friends: List['Friend'] = field(default_factory=list)
-    legacy_friends: List['Friend'] = field(default_factory=list)
+    friends: List['Friend'] = field(factory=list)
+    legacy_friends: List['Friend'] = field(factory=list)
     settings: Optional['Settings'] = None
 
     @staticmethod
