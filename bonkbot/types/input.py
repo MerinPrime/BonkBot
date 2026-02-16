@@ -3,8 +3,6 @@ from typing import TypedDict
 
 from attrs import define, field
 
-from ..utils.validation import validate_bool
-
 
 class InputFlag(enum.IntFlag):
     NONE = 0
@@ -26,14 +24,14 @@ class InputsJSON(TypedDict):
     action2: bool
 
 
-@define(slots=True, auto_attribs=True)
+@define(slots=True, auto_attribs=True, frozen=True)
 class Inputs:
-    left: bool = field(default=False, validator=validate_bool())
-    right: bool = field(default=False, validator=validate_bool())
-    up: bool = field(default=False, validator=validate_bool())
-    down: bool = field(default=False, validator=validate_bool())
-    heavy: bool = field(default=False, validator=validate_bool())
-    special: bool = field(default=False, validator=validate_bool())
+    left: bool = field(default=False)
+    right: bool = field(default=False)
+    up: bool = field(default=False)
+    down: bool = field(default=False)
+    heavy: bool = field(default=False)
+    special: bool = field(default=False)
 
     @property
     def flags(self) -> int:
@@ -52,20 +50,16 @@ class Inputs:
             flags |= InputFlag.SPECIAL
         return flags
 
-    @flags.setter
-    def flags(self, flags: int) -> None:
-        self.left = bool(flags & InputFlag.LEFT)
-        self.right = bool(flags & InputFlag.RIGHT)
-        self.up = bool(flags & InputFlag.UP)
-        self.down = bool(flags & InputFlag.DOWN)
-        self.heavy = bool(flags & InputFlag.HEAVY)
-        self.special = bool(flags & InputFlag.SPECIAL)
-
-    @staticmethod
-    def from_flags(flags: int) -> 'Inputs':
-        inputs = Inputs()
-        inputs.flags = flags
-        return inputs
+    @classmethod
+    def from_flags(cls, flags: int) -> 'Inputs':
+        return cls(
+            left=bool(flags & InputFlag.LEFT),
+            right=bool(flags & InputFlag.RIGHT),
+            up=bool(flags & InputFlag.UP),
+            down=bool(flags & InputFlag.DOWN),
+            heavy=bool(flags & InputFlag.HEAVY),
+            special=bool(flags & InputFlag.SPECIAL),
+        )
 
     def to_json(self) -> 'InputsJSON':
         return {
@@ -77,10 +71,13 @@ class Inputs:
             'action2': self.special,
         }
 
-    def from_json(self, data: 'InputsJSON') -> None:
-        self.left = data['left']
-        self.right = data['right']
-        self.up = data['up']
-        self.down = data['down']
-        self.heavy = data['action']
-        self.special = data['action2']
+    @classmethod
+    def from_json(cls, data: 'InputsJSON') -> 'Inputs':
+        return cls(
+            left=data['left'],
+            right=data['right'],
+            up=data['up'],
+            down=data['down'],
+            heavy=data['action'],
+            special=data['action2'],
+        )

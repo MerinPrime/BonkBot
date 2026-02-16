@@ -1,11 +1,11 @@
 from typing import Optional, Union
 
-import attrs
+from attr import define
 
 from ..server import Server
 
 
-@attrs.define(slots=True, auto_attribs=True, frozen=True)
+@define(slots=True, auto_attribs=True, frozen=True)
 class RoomJoinParams:
     room_address: Union[str, int]
     name: Optional[str]

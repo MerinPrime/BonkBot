@@ -2,17 +2,6 @@ from typing import TYPE_CHECKING, Optional
 
 from attrs import define, field
 
-from ....utils.validation import (
-    convert_to_float_or_none,
-    validate_bool,
-    validate_int,
-    validate_opt_bool,
-    validate_opt_float,
-    validate_opt_int,
-    validate_opt_str,
-    validate_str,
-)
-
 if TYPE_CHECKING:
     from ....pson.bytebuffer import ByteBuffer
 
@@ -20,40 +9,25 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IFixture.ts
 @define(slots=True, auto_attribs=True)
 class Fixture:
-    shape_id: int = field(default=-1, validator=validate_int(-1, 32767))
+    shape_id: int = field(default=-1)
 
-    name: str = field(default='Def Fix', validator=validate_str(30))
-    color: int = field(default=0x4F7CAC, validator=validate_int(0, 16777215))
+    name: str = field(default='Def Fix')
+    color: int = field(default=0x4F7CAC)
 
-    density: Optional[float] = field(
-        default=0.3,
-        converter=convert_to_float_or_none,
-        validator=validate_opt_float(0, 99999),
-    )
-    restitution: Optional[float] = field(
-        default=0.8,
-        converter=convert_to_float_or_none,
-        validator=validate_opt_float(-99999, 99999),
-    )
-    friction: Optional[float] = field(
-        default=0.3,
-        converter=convert_to_float_or_none,
-        validator=validate_opt_float(0, 99999),
-    )
+    density: Optional[float] = field(default=0.3)  # 0-99999
+    restitution: Optional[float] = field(default=0.8)  # -99999,+99999
+    friction: Optional[float] = field(default=0.3)  # 0-99999
 
-    friction_players: Optional[bool] = field(
-        default=None,
-        validator=validate_opt_bool(),
-    )
-    inner_grapple: Optional[bool] = field(default=None, validator=validate_opt_bool())
+    friction_players: Optional[bool] = field(default=None)
+    inner_grapple: Optional[bool] = field(default=None)
 
-    no_grapple: bool = field(default=False, validator=validate_bool())
-    no_physics: bool = field(default=False, validator=validate_bool())
-    death: bool = field(default=False, validator=validate_bool())
+    no_grapple: bool = field(default=False)
+    no_physics: bool = field(default=False)
+    death: bool = field(default=False)
 
-    sn: Optional[bool] = field(default=None, validator=validate_opt_bool())
-    fs: Optional[str] = field(default=None, validator=validate_opt_str())
-    zp: Optional[int] = field(default=None, validator=validate_opt_int())
+    sn: Optional[bool] = field(default=None)
+    fs: Optional[str] = field(default=None)
+    zp: Optional[int] = field(default=None)
 
     def to_json(self) -> dict:
         return {

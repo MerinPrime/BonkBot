@@ -1,5 +1,7 @@
-from dataclasses import dataclass, field
+from dataclasses import field
 from typing import List, Optional
+
+from attrs import define
 
 from ...pson.bytebuffer import ByteBuffer
 from ...types.avatar.avatar import Avatar
@@ -7,7 +9,7 @@ from ...types.friend import Friend
 from ...types.settings import Settings
 
 
-@dataclass
+@define(slots=True, auto_attribs=True)
 class BotData:
     name: str
     token: Optional[str] = None

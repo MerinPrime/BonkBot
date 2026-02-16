@@ -1,36 +1,42 @@
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
+
+from attrs import define, field
 
 if TYPE_CHECKING:
     from ..pson.bytebuffer import ByteBuffer
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/CustomControls.ts
-@dataclass
+@define(slots=True, auto_attribs=True)
 class Settings:
-    version: int = 6
-    up1: int = 38
-    down1: int = 40
-    left1: int = 37
-    right1: int = 39
-    heavy1: int = 88
-    special1: int = 90
-    up2: int = 87
-    down2: int = 83
-    left2: int = 65
-    right2: int = 68
-    heavy2: int = 16
-    special2: int = 89
-    up3: int = 999
-    down3: int = 999
-    left3: int = 999
-    right3: int = 999
-    heavy3: int = 32
-    special3: int = 999
-    filter: bool = True
-    stats: bool = False
-    help: bool = True
-    quality: int = 3
+    version: int = field(default=6)
+
+    up1: int = field(default=38)
+    down1: int = field(default=40)
+    left1: int = field(default=37)
+    right1: int = field(default=39)
+    heavy1: int = field(default=88)
+    special1: int = field(default=90)
+
+    up2: int = field(default=87)
+    down2: int = field(default=83)
+    left2: int = field(default=65)
+    right2: int = field(default=68)
+    heavy2: int = field(default=16)
+    special2: int = field(default=89)
+
+    up3: int = field(default=999)
+    down3: int = field(default=999)
+    left3: int = field(default=999)
+    right3: int = field(default=999)
+    heavy3: int = field(default=32)
+    special3: int = field(default=999)
+
+    filter: bool = field(default=True)
+    stats: bool = field(default=False)
+    help: bool = field(default=True)
+
+    quality: int = field(default=3)
 
     @staticmethod
     def from_buffer(buffer: 'ByteBuffer') -> 'Settings':

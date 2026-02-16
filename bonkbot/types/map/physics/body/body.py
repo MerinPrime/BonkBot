@@ -2,14 +2,6 @@ from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from attrs import define, field
 
-from .....utils.validation import (
-    convert_to_float_vector,
-    validate_float,
-    validate_int_list,
-    validate_opt_str,
-    validate_type,
-    validate_vector_range,
-)
 from ..collide import CollideFlag, CollideGroup
 from .body_force import BodyForce
 from .body_shape import BodyShape
@@ -23,36 +15,17 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IBody.ts
 @define(slots=True, auto_attribs=True)
 class Body:
-    name: Optional[str] = field(default=None, validator=validate_opt_str(30))
+    name: Optional[str] = field(default=None)  # 30
 
-    position: Tuple[float, float] = field(
-        default=(0, 0),
-        converter=convert_to_float_vector,
-        validator=validate_vector_range(-99999, 99999),
-    )
-    linear_velocity: Tuple[float, float] = field(
-        default=(0, 0),
-        converter=convert_to_float_vector,
-        validator=validate_vector_range(-99999, 99999),
-    )
-    angle: float = field(
-        default=0.0,
-        converter=float,
-        validator=validate_float(-9999, 9999),
-    )
-    angular_velocity: float = field(
-        default=0.0,
-        converter=float,
-        validator=validate_float(-9999, 9999),
-    )
+    position: Tuple[float, float] = field(default=(0, 0))  # -99999,+99999
+    linear_velocity: Tuple[float, float] = field(default=(0, 0))  # -99999,+99999
+    angle: float = field(default=0.0)  # -9999,+9999
+    angular_velocity: float = field(default=0.0)  # -9999,+9999
 
-    fixtures: List[int] = field(factory=list, validator=validate_int_list(0, 32767))
-    shape: 'BodyShape' = field(factory=BodyShape, validator=validate_type(BodyShape))
-    force: 'BodyForce' = field(factory=BodyForce, validator=validate_type(BodyForce))
-    force_zone: 'ForceZone' = field(
-        factory=ForceZone,
-        validator=validate_type(ForceZone),
-    )
+    fixtures: List[int] = field(factory=list)  # 32767
+    shape: 'BodyShape' = field(factory=BodyShape)
+    force: 'BodyForce' = field(factory=BodyForce)
+    force_zone: 'ForceZone' = field(factory=ForceZone)
 
     def to_json(self) -> dict:
         data = {

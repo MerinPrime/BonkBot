@@ -2,15 +2,13 @@ import enum
 
 from attrs import define, field
 
-from ..utils.validation import validate_float, validate_str
-
 
 @define(slots=True, auto_attribs=True, frozen=True)
 class ServerInfo:
-    name: str = field(validator=validate_str())
-    latitude: float = field(converter=float, validator=validate_float())
-    longitude: float = field(converter=float, validator=validate_float())
-    country: str = field(validator=validate_str())
+    name: str = field()
+    latitude: float = field()
+    longitude: float = field()
+    country: str = field()
 
 
 class Server(enum.Enum):
@@ -31,7 +29,7 @@ class Server(enum.Enum):
     BRAZIL = ServerInfo('b2brazil1', -22.9083, -43.1963, 'BR')
 
     @property
-    def name(self) -> str:
+    def api_name(self) -> str:
         return self.value.name
 
     @property
@@ -49,6 +47,6 @@ class Server(enum.Enum):
     @staticmethod
     def from_name(name: str) -> 'Server':
         for server in Server:
-            if server.name == name:
+            if server.api_name == name:
                 return server
         raise ValueError(f"No server with api name '{name}' found.")

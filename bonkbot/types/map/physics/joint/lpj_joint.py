@@ -2,13 +2,6 @@ from typing import TYPE_CHECKING, Tuple
 
 from attrs import define, field
 
-from .....utils.validation import (
-    convert_to_float_vector,
-    validate_bool,
-    validate_float,
-    validate_int,
-    validate_vector_range,
-)
 from .joint import Joint
 
 if TYPE_CHECKING:
@@ -19,42 +12,18 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IJointProperties.ts
 @define(slots=True, auto_attribs=True)
 class LPJJoint(Joint):
-    position: Tuple[float, float] = field(
-        default=(0, 0),
-        converter=convert_to_float_vector,
-        validator=validate_vector_range(-99999999, 99999999),
-    )
-    angle: float = field(
-        default=0.0,
-        converter=float,
-        validator=validate_float(-99999999, 99999999),
-    )
-    force: float = field(
-        default=0.0,
-        converter=float,
-        validator=validate_float(-99999999, 99999999),
-    )
+    position: Tuple[float, float] = field(default=(0, 0))  # -99999999,+99999999
+    angle: float = field(default=0)  # -99999999,+99999999
+    force: float = field(default=0)  # -99999999,+99999999
     pl: float = field(default=0.0)
     pu: float = field(default=0.0)
-    path_length: float = field(
-        default=0.0,
-        converter=float,
-        validator=validate_float(-99999999, 99999999),
-    )
-    path_speed: float = field(
-        default=0.0,
-        converter=float,
-        validator=validate_float(-99999999, 99999999),
-    )
-    break_force: float = field(
-        default=0.0,
-        converter=float,
-        validator=validate_float(0, 99999999),
-    )
-    collide_connected: bool = field(default=False, validator=validate_bool())
-    draw_line: bool = field(default=True, validator=validate_bool())
-    body_a_id: int = field(default=-1, validator=validate_int(-1, 32767))
-    body_b_id: int = field(default=-1, validator=validate_int(-1, 32767))
+    path_length: float = field(default=0.0)  # -99999999,+99999999
+    path_speed: float = field(default=0.0)  # -99999999,+99999999
+    break_force: float = field(default=0.0)  # 0-99999999
+    collide_connected: bool = field(default=False)
+    draw_line: bool = field(default=True)
+    body_a_id: int = field(default=-1)  # -1 or 0-32767
+    body_b_id: int = field(default=-1)  # -1 or 0-32767
 
     def to_json(self) -> dict:
         return {

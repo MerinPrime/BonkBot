@@ -1,12 +1,12 @@
-from dataclasses import dataclass, field
+from attr import define, field
 
 from .input import Inputs
 
 
-@dataclass
+@define(slots=True, auto_attribs=True, frozen=True)
 class PlayerMove:
     frame: int = 0
-    inputs: 'Inputs' = field(default_factory=Inputs)
+    inputs: 'Inputs' = field(factory=Inputs)
     sequence: int = 0
     time: float = 0
     by_socket: bool = False

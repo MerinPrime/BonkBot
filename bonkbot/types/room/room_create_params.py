@@ -1,12 +1,12 @@
 from typing import TYPE_CHECKING, Optional
 
-import attrs
+from attrs import define
 
 if TYPE_CHECKING:
     from ..server import Server
 
 
-@attrs.define(slots=True, auto_attribs=True, frozen=True)
+@define(slots=True, auto_attribs=True, frozen=True)
 class RoomCreateParams:
     name: Optional[str]
     password: str

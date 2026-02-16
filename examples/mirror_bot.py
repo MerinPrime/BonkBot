@@ -61,19 +61,24 @@ class MirrorBot(BonkBot):
         right = inputs.right
         left = inputs.left
         if right and left:
-            if room.mode in [Mode.ARROWS, Mode.DEATH_ARROWS, Mode.VTOL]:
-                inputs.right = True
-                inputs.left = True
-            else:
-                inputs.right = True
-                inputs.left = False
+            if room.mode not in [Mode.ARROWS, Mode.DEATH_ARROWS, Mode.VTOL]:
+                right = True
+                left = True
         elif right:
-            inputs.right = False
-            inputs.left = True
+            right = False
+            left = True
         elif left:
-            inputs.right = True
-            inputs.left = False
-        await room.move(frame, inputs)
+            right = True
+            left = False
+        mirrored_inputs = Inputs(
+            left,
+            right,
+            inputs.up,
+            inputs.down,
+            inputs.heavy,
+            inputs.special,
+        )
+        await room.move(frame, mirrored_inputs)
 
     async def on_move_revert(
         self,

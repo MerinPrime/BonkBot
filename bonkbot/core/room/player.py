@@ -1,5 +1,7 @@
-from dataclasses import dataclass, field
+from dataclasses import field
 from typing import TYPE_CHECKING, Dict, Optional
+
+from attrs import define
 
 from ...types.errors.api_error import ApiError
 from ...types.errors.error_type import ErrorType
@@ -16,7 +18,7 @@ if TYPE_CHECKING:
     from .room import Room
 
 
-@dataclass
+@define(slots=True, auto_attribs=True)
 class Player:
     bot: 'BonkBot'
     room: 'Room'

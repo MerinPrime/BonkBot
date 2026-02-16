@@ -1,32 +1,24 @@
 from typing import List
 
-import attrs
+from attrs import define, field
 
-from ...utils.validation import (
-    validate_bool,
-    validate_int,
-    validate_int_list,
-    validate_type,
-)
 from ..map.bonkmap import BonkMap
 from ..mode import Mode
 from ..team import TeamState
 
 
-@attrs.define(slots=True, auto_attribs=True)
+@define(slots=True, auto_attribs=True)
 class GameSettings:
-    map: 'BonkMap' = attrs.field(factory=BonkMap, validator=validate_type(BonkMap))
-    is_quick_play: bool = attrs.field(default=False, validator=validate_bool())
-    rounds: int = attrs.field(default=3, validator=validate_int(1))
-    team_lock: bool = attrs.field(default=False, validator=validate_bool())
-    team_state: 'TeamState' = attrs.field(
+    map: 'BonkMap' = field(factory=BonkMap)
+    is_quick_play: bool = field(default=False)
+    rounds: int = field(default=3)
+    team_lock: bool = field(default=False)
+    team_state: 'TeamState' = field(
         default=TeamState.FFA,
-        validator=validate_type(TeamState),
     )
-    mode: 'Mode' = attrs.field(default=Mode.CLASSIC, validator=validate_type(Mode))
-    balance: List[int] = attrs.field(
+    mode: 'Mode' = field(default=Mode.CLASSIC)
+    balance: List[int] = field(
         factory=list,
-        validator=validate_int_list(-100, 100),
     )
 
     def to_json(self) -> dict:

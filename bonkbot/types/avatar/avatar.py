@@ -3,15 +3,14 @@ from typing import List, Union
 from attrs import define, field
 
 from ...pson.bytebuffer import ByteBuffer
-from ...utils.validation import validate_int, validate_type_list
 from .layer import Layer
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/avatar/Avatar.ts
 @define(slots=True, auto_attribs=True)
 class Avatar:
-    layers: List['Layer'] = field(factory=list, validator=validate_type_list(Layer, 16))
-    base_color: int = field(default=0x448AFF, validator=validate_int(0, 16777215))
+    layers: List['Layer'] = field(factory=list)
+    base_color: int = field(default=0x448AFF)
 
     @staticmethod
     def from_buffer(buffer: 'ByteBuffer') -> 'Avatar':

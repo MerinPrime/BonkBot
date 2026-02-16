@@ -2,15 +2,6 @@ from typing import TYPE_CHECKING, Optional, Tuple
 
 from attrs import define, field
 
-from ...utils.validation import (
-    convert_to_float_vector,
-    validate_bool,
-    validate_int,
-    validate_opt_bool,
-    validate_str,
-    validate_vector_range,
-)
-
 if TYPE_CHECKING:
     from ...pson.bytebuffer import ByteBuffer
 
@@ -18,23 +9,15 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/ISpawn.ts
 @define(slots=True, auto_attribs=True)
 class Spawn:
-    name: str = field(default='Spawn', validator=validate_str(59))
-    ffa: bool = field(default=True, validator=validate_bool())
-    blue: bool = field(default=True, validator=validate_bool())
-    red: bool = field(default=True, validator=validate_bool())
-    green: Optional[bool] = field(default=None, validator=validate_opt_bool())
-    yellow: Optional[bool] = field(default=None, validator=validate_opt_bool())
-    priority: int = field(default=5, validator=validate_int(0, 10000))
-    position: Tuple[float, float] = field(
-        default=(400.0, 300.0),
-        converter=convert_to_float_vector,
-        validator=validate_vector_range(-10000, 10000),
-    )
-    velocity: Tuple[float, float] = field(
-        default=(0.0, 0.0),
-        converter=convert_to_float_vector,
-        validator=validate_vector_range(-10000, 10000),
-    )
+    name: str = field(default='Spawn')  # 59 chars
+    ffa: bool = field(default=True)
+    blue: bool = field(default=True)
+    red: bool = field(default=True)
+    green: Optional[bool] = field(default=None)
+    yellow: Optional[bool] = field(default=None)
+    priority: int = field(default=5)  # 0-1000
+    position: Tuple[float, float] = field(default=(400.0, 300.0))  # -10000,+10000
+    velocity: Tuple[float, float] = field(default=(0.0, 0.0))  # -10000,+10000
 
     def to_json(self) -> dict:
         data = {

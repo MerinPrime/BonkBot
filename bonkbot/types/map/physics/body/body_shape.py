@@ -1,11 +1,5 @@
 from attrs import define, field
 
-from .....utils.validation import (
-    validate_bool,
-    validate_float,
-    validate_str,
-    validate_type,
-)
 from ..collide import CollideFlag, CollideGroup
 from .body_type import BodyType
 
@@ -13,51 +7,22 @@ from .body_type import BodyType
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IBodyShape.ts
 @define(slots=True, auto_attribs=True)
 class BodyShape:
-    body_type: 'BodyType' = field(
-        default=BodyType.STATIC,
-        validator=validate_type(BodyType),
-    )
-    name: str = field(default='Unnamed', validator=validate_str(30))
+    body_type: 'BodyType' = field(default=BodyType.STATIC)
+    name: str = field(default='Unnamed')  # 30
 
-    density: float = field(
-        default=0.3,
-        converter=float,
-        validator=validate_float(-99999, 99999),
-    )
-    restitution: float = field(
-        default=0.8,
-        converter=float,
-        validator=validate_float(-99999, 99999),
-    )
-    friction: float = field(
-        default=0.3,
-        converter=float,
-        validator=validate_float(-99999, 99999),
-    )
+    density: float = field(default=0.3)  # -99999,+99999
+    restitution: float = field(default=0.8)  # -99999,+99999
+    friction: float = field(default=0.3)  # -99999,+99999
 
-    linear_damping: float = field(
-        default=0.0,
-        converter=float,
-        validator=validate_float(-99999, 99999),
-    )
-    angular_damping: float = field(
-        default=0.0,
-        converter=float,
-        validator=validate_float(-99999, 99999),
-    )
-    fixed_rotation: bool = field(default=False, validator=validate_bool())
+    linear_damping: float = field(default=0.0)  # -99999,+99999
+    angular_damping: float = field(default=0.0)  # -99999,+99999
+    fixed_rotation: bool = field(default=False)
 
-    friction_players: bool = field(default=False, validator=validate_bool())
-    anti_tunnel: bool = field(default=False, validator=validate_bool())
+    friction_players: bool = field(default=False)
+    anti_tunnel: bool = field(default=False)
 
-    collide_mask: 'CollideFlag' = field(
-        default=CollideFlag.ALL,
-        validator=validate_type(CollideFlag),
-    )
-    collide_group: 'CollideGroup' = field(
-        default=CollideGroup.A,
-        validator=validate_type(CollideGroup),
-    )
+    collide_mask: 'CollideFlag' = field(default=CollideFlag.ALL)
+    collide_group: 'CollideGroup' = field(default=CollideGroup.A)
 
     def to_json(self) -> dict:
         return {

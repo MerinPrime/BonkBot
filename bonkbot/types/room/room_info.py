@@ -1,11 +1,12 @@
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
+
+from attrs import define
 
 if TYPE_CHECKING:
     from ..mode import Mode
 
 
-@dataclass(frozen=True)
+@define(slots=True, auto_attribs=True, frozen=True)
 class RoomInfo:
     name: str
     id: int

@@ -3,7 +3,6 @@ from typing import List
 from attrs import define, field
 
 from ...pson.bytebuffer import ByteBuffer
-from ...utils.validation import validate_int, validate_type, validate_type_list
 from .capture_zone import CaptureZone
 from .map_metadata import MapMetadata
 from .map_properties import MapProperties
@@ -26,24 +25,12 @@ MAP_VERSION = 15
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMap.ts
 @define(slots=True, auto_attribs=True)
 class BonkMap:
-    version: int = field(default=MAP_VERSION, validator=validate_int(1))
-    metadata: 'MapMetadata' = field(
-        factory=MapMetadata,
-        validator=validate_type(MapMetadata),
-    )
-    properties: 'MapProperties' = field(
-        factory=MapProperties,
-        validator=validate_type(MapProperties),
-    )
-    physics: 'MapPhysics' = field(
-        factory=MapPhysics,
-        validator=validate_type(MapPhysics),
-    )
-    spawns: List['Spawn'] = field(factory=list, validator=validate_type_list(Spawn))
-    cap_zones: List['CaptureZone'] = field(
-        factory=list,
-        validator=validate_type_list(CaptureZone),
-    )
+    version: int = field(default=MAP_VERSION)
+    metadata: 'MapMetadata' = field(factory=MapMetadata)
+    properties: 'MapProperties' = field(factory=MapProperties)
+    physics: 'MapPhysics' = field(factory=MapPhysics)
+    spawns: List['Spawn'] = field(factory=list)
+    cap_zones: List['CaptureZone'] = field(factory=list)
 
     # TODO: Make user-friendly
     # TODO: And maybe split to_json, from_json, decode_from_database to MapMetadata, MapProperties, MapPhysics etc.

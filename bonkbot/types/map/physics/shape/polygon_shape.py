@@ -2,11 +2,6 @@ from typing import TYPE_CHECKING, List, Tuple
 
 from attrs import define, field
 
-from .....utils.validation import (
-    convert_to_float_vector_list,
-    validate_float,
-    validate_vector_list_range,
-)
 from .shape import Shape
 
 if TYPE_CHECKING:
@@ -16,21 +11,9 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IShape.ts
 @define(slots=True, auto_attribs=True)
 class PolygonShape(Shape):
-    angle: float = field(
-        default=0.0,
-        converter=float,
-        validator=validate_float(-999, 999),
-    )
-    scale: float = field(
-        default=1.0,
-        converter=float,
-        validator=validate_float(-999, 999),
-    )
-    vertices: List[Tuple[float, float]] = field(
-        factory=list,
-        converter=convert_to_float_vector_list,
-        validator=validate_vector_list_range(-99999, 99999),
-    )
+    angle: float = field(default=0.0)  # -999,+999
+    scale: float = field(default=1.0)  # -999,+999
+    vertices: List[Tuple[float, float]] = field(factory=list)  # -99999,+99999
 
     def to_json(self) -> dict:
         return {

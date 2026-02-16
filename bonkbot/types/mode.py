@@ -2,14 +2,12 @@ import enum
 
 from attrs import define, field
 
-from ..utils.validation import validate_int, validate_str
-
 
 @define(slots=True, auto_attribs=True, frozen=True)
 class GaMo:
-    engine: str = field(validator=validate_str())
-    mode: str = field(validator=validate_str())
-    id: int = field(validator=validate_int(0))
+    engine: str = field()
+    mode: str = field()
+    id: int = field()
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/GameSettings.ts

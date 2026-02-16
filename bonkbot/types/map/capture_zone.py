@@ -2,12 +2,6 @@ from typing import TYPE_CHECKING
 
 from attrs import define, field
 
-from ...utils.validation import (
-    validate_float,
-    validate_int,
-    validate_str,
-    validate_type,
-)
 from .capture_type import CaptureType
 
 if TYPE_CHECKING:
@@ -17,17 +11,10 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/ICapZone.ts
 @define(slots=True, auto_attribs=True)
 class CaptureZone:
-    name: str = field(default='Cap Zone', validator=validate_str(29))
-    shape_id: int = field(default=-1, validator=validate_int(-1, 32767))
-    seconds: float = field(
-        default=10,
-        converter=float,
-        validator=validate_float(0.01, 1000),
-    )
-    type: 'CaptureType' = field(
-        default=CaptureType.NORMAL,
-        validator=validate_type(CaptureType),
-    )
+    name: str = field(default='Cap Zone')  # 29 chars
+    shape_id: int = field(default=-1)
+    seconds: float = field(default=10)  # 0.01-1000
+    type: 'CaptureType' = field(default=CaptureType.NORMAL)
 
     def to_json(self) -> dict:
         data = {

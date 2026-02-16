@@ -2,8 +2,6 @@ from typing import TYPE_CHECKING, Optional
 
 from attrs import define, field
 
-from ...utils.validation import validate_bool, validate_float, validate_opt_bool
-
 if TYPE_CHECKING:
     from ...pson.bytebuffer import ByteBuffer
 
@@ -11,18 +9,14 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMapProperties.ts
 @define(slots=True, auto_attribs=True)
 class MapProperties:
-    grid_size: float = field(
-        default=25,
-        converter=float,
-        validator=validate_float(2, 100),
-    )
-    players_dont_collide: bool = field(default=False, validator=validate_bool())
-    respawn_on_death: bool = field(default=False, validator=validate_bool())
-    players_can_fly: bool = field(default=False, validator=validate_bool())
-    complex_physics: bool = field(default=False, validator=validate_bool())
-    a1: Optional[bool] = field(default=None, validator=validate_opt_bool())
-    a2: Optional[bool] = field(default=None, validator=validate_opt_bool())
-    a3: Optional[bool] = field(default=None, validator=validate_opt_bool())
+    grid_size: float = field(default=25)  # 2-100
+    players_dont_collide: bool = field(default=False)
+    respawn_on_death: bool = field(default=False)
+    players_can_fly: bool = field(default=False)
+    complex_physics: bool = field(default=False)
+    a1: Optional[bool] = field(default=None)
+    a2: Optional[bool] = field(default=None)
+    a3: Optional[bool] = field(default=None)
 
     def to_json(self) -> dict:
         data = {

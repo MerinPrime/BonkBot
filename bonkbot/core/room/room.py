@@ -6,6 +6,7 @@ import time
 from asyncio import Event, Future, Task
 from typing import TYPE_CHECKING, List, Optional, Union
 
+import attrs
 from peerjs_py import Peer, PeerOptions
 from peerjs_py.dataconnection.DataConnection import DataConnection
 from socketio import AsyncClient
@@ -208,7 +209,7 @@ class Room:
 
         async def init_socket() -> None:
             await self._socket.connect(
-                Endpoints.socket_api(self._room_params.server.name),
+                Endpoints.socket_api(self._room_params.server.api_name),
             )
             await self._make_timesyncer(peer_timeout)
 
@@ -425,7 +426,7 @@ class Room:
         self._peer = Peer(
             id=peer_id,
             options=PeerOptions(
-                host=Endpoints.peer_api(self._room_params.server.name),
+                host=Endpoints.peer_api(self._room_params.server.api_name),
                 port=443,
                 path='/myapp',
                 secure=True,
@@ -452,40 +453,32 @@ class Room:
         await self._peer.start()
 
     async def _process_new_connection(self, connection: 'BinaryPack') -> None:
-        player = None
-
-        def get_player() -> Player:
-            nonlocal player
-            if player is None:
-                for iplayer in self.players:
-                    if iplayer.peer_id == connection.peer:
-                        player = iplayer
-                        break
-            return player
+        player = next((p for p in self.players if p.peer_id == connection.peer), None)
 
         @connection.on('data')
         def on_data(data: dict) -> None:
-            player = get_player()
+            nonlocal player
             sequence = data.get('c')
             if sequence is None:  # BonkCommands
                 return
             if player.moves.get(sequence) is not None:
                 move = player.moves[sequence]
-                move.time = time.time()
-                move.by_peer = True
+                new_move = attrs.evolve(move, time=time.time(), by_peer=True)
+                player.moves[sequence] = new_move
             elif player.peer_ban_until > time.time():
                 pass
             else:
-                move = PlayerMove()
-                move.time = time.time()
-                move.frame = data['f']
-                move.inputs.flags = data['i']
-                move.sequence = sequence
-                move.by_peer = True
-                move.peer_ignored = False
-                move.by_socket = False
-                move.reverted = False
-                move.unreverted = False
+                move = PlayerMove(
+                    time=time.time(),
+                    frame=data['f'],
+                    inputs=Inputs.from_flags(data['i']),
+                    sequence=sequence,
+                    by_peer=True,
+                    peer_ignored=False,
+                    by_socket=False,
+                    reverted=False,
+                    unreverted=False,
+                )
                 player.moves[move.sequence] = move
                 asyncio.create_task(
                     self.bot.dispatch(
@@ -715,38 +708,31 @@ class Room:
             return
         if player.moves.get(sequence) is not None:
             move = player.moves[sequence]
-            move.time = time.time()
-            move.by_socket = True
-            if move.reverted:
-                move.unreverted = True
+            new_move = attrs.evolve(move, time=time.time(), by_socket=True)
+            if new_move.reverted:
+                new_move = attrs.evolve(move, unreverted=True)
+            player.moves[sequence] = new_move
+            if move.reverted or move.peer_ignored:
                 asyncio.create_task(
                     self.bot.dispatch(
                         BotEventHandler.on_player_move,
                         self,
                         player,
-                        copy.deepcopy(move),
-                    ),
-                )
-            elif move.peer_ignored:
-                asyncio.create_task(
-                    self.bot.dispatch(
-                        BotEventHandler.on_player_move,
-                        self,
-                        player,
-                        copy.deepcopy(move),
+                        new_move,
                     ),
                 )
         else:
-            move = PlayerMove()
-            move.time = time.time()
-            move.frame = data['f']
-            move.inputs.flags = data['i']
-            move.sequence = sequence
-            move.by_peer = False
-            move.peer_ignored = False
-            move.by_socket = True
-            move.reverted = False
-            move.unreverted = False
+            move = PlayerMove(
+                time=time.time(),
+                frame=data['f'],
+                inputs=Inputs.from_flags(data['i']),
+                sequence=sequence,
+                by_peer=False,
+                peer_ignored=False,
+                by_socket=True,
+                reverted=False,
+                unreverted=False,
+            )
             player.moves[move.sequence] = move
             asyncio.create_task(
                 self.bot.dispatch(
@@ -1174,11 +1160,12 @@ class Room:
                 'c': sequence,
             },
         )
-        move = PlayerMove()
-        move.time = time.time()
-        move.frame = frame
-        move.inputs.flags = inputs.flags
-        move.sequence = sequence
+        move = PlayerMove(
+            frame=frame,
+            time=time.time(),
+            inputs=inputs,
+            sequence=sequence,
+        )
         self.bot_player.moves[self._sequence] = move
 
     async def start_game(self, initial_state: dict) -> None:

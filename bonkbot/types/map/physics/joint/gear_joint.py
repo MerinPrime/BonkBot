@@ -2,7 +2,6 @@ from typing import TYPE_CHECKING
 
 from attrs import define, field
 
-from .....utils.validation import validate_float, validate_int, validate_str
 from .joint import Joint
 
 if TYPE_CHECKING:
@@ -13,14 +12,10 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IJointProperties.ts
 @define(slots=True, auto_attribs=True)
 class GearJoint(Joint):
-    name: str = field(default='Gear Joint', validator=validate_str(29))
-    ratio: float = field(
-        default=0.0,
-        converter=float,
-        validator=validate_float(-99999999, 99999999),
-    )
-    joint_a_id: int = field(default=0, validator=validate_int(0, 100))
-    joint_b_id: int = field(default=0, validator=validate_int(0, 100))
+    name: str = field(default='Gear Joint')  # 29
+    ratio: float = field(default=0.0)  # -99999999,+99999999
+    joint_a_id: int = field(default=0)  # 0-100
+    joint_b_id: int = field(default=0)  # 0-100
 
     def to_json(self) -> dict:
         return {

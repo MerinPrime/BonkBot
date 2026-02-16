@@ -3,14 +3,6 @@ from typing import TYPE_CHECKING, Tuple
 
 from attrs import define, field
 
-from .....utils.validation import (
-    convert_to_float_vector,
-    validate_bool,
-    validate_float,
-    validate_type,
-    validate_vector_range,
-)
-
 if TYPE_CHECKING:
     from .....pson.bytebuffer import ByteBuffer
 
@@ -31,26 +23,15 @@ class ForceZoneType(enum.IntEnum):
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IBodyForceZoneProperties.ts
 @define(slots=True, auto_attribs=True)
 class ForceZone:
-    enabled: bool = field(default=False, validator=validate_bool())
-    type: 'ForceZoneType' = field(
-        default=ForceZoneType.ABSOLUTE,
-        validator=validate_type(ForceZoneType),
-    )
-    force: Tuple[float, float] = field(
-        default=(0, 0),
-        converter=convert_to_float_vector,
-        validator=validate_vector_range(-999999, 999999),
-    )
+    enabled: bool = field(default=False)
+    type: 'ForceZoneType' = field(default=ForceZoneType.ABSOLUTE)
+    force: Tuple[float, float] = field(default=(0, 0))  # -999999,+999999
     """FOR ABSOLUTE & RELATIVE"""
-    center_force: float = field(
-        default=0,
-        converter=float,
-        validator=validate_float(0, 999999),
-    )
+    center_force: float = field(default=0)  # 0-999999
     """FOR CENTER_PUSH & CENTER_PULL"""
-    push_players: bool = field(default=True, validator=validate_bool())
-    push_bodies: bool = field(default=True, validator=validate_bool())
-    push_arrows: bool = field(default=True, validator=validate_bool())
+    push_players: bool = field(default=True)
+    push_bodies: bool = field(default=True)
+    push_arrows: bool = field(default=True)
 
     def to_json(self) -> dict:
         return {

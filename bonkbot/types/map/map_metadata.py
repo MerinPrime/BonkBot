@@ -2,16 +2,6 @@ from typing import TYPE_CHECKING, List, Optional
 
 from attrs import define, field
 
-from ...utils.validation import (
-    validate_bool,
-    validate_contributors,
-    validate_int,
-    validate_int_opts,
-    validate_opt_int,
-    validate_opt_str,
-    validate_str,
-    validate_type,
-)
 from ..mode import Mode
 
 if TYPE_CHECKING:
@@ -21,21 +11,21 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMapMetadata.ts
 @define(slots=True, auto_attribs=True)
 class MapMetadata:
-    name: str = field(default='noname', validator=validate_str(25))
-    author: str = field(default='noauthor', validator=validate_str(15))
-    database_version: int = field(default=2, validator=validate_int_opts((1, 2)))
-    database_id: int = field(default=-1, validator=validate_int())
-    original_author: str = field(default='', validator=validate_str(15))
-    original_name: str = field(default='', validator=validate_str(25))
+    name: str = field(default='noname')  # 25 chars
+    author: str = field(default='noauthor')
+    database_version: int = field(default=2)
+    database_id: int = field(default=-1)
+    original_author: str = field(default='')
+    original_name: str = field(default='')  # 25 chars
     original_database_version: int = field(default=1)
-    original_database_id: int = field(default=0, validator=validate_int(0, 9999999999))
-    is_published: bool = field(default=False, validator=validate_bool())
-    contributors: List[str] = field(factory=list, validator=validate_contributors())
-    date: str = field(default='', validator=validate_opt_str())
-    auth_id: int = field(default=-1, validator=validate_int())
-    mode: 'Mode' = field(default=Mode.NONE, validator=validate_type(Mode))
-    votes_down: Optional[int] = field(default=None, validator=validate_opt_int(0))
-    votes_up: Optional[int] = field(default=None, validator=validate_opt_int(0))
+    original_database_id: int = field(default=0)
+    is_published: bool = field(default=False)
+    contributors: List[str] = field(factory=list)
+    date: str = field(default='')
+    auth_id: int = field(default=-1)
+    mode: 'Mode' = field(default=Mode.NONE)
+    votes_down: Optional[int] = field(default=None)
+    votes_up: Optional[int] = field(default=None)
 
     def to_json(self) -> dict:
         data = {
