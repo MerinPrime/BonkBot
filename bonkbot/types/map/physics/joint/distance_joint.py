@@ -2,9 +2,6 @@ from typing import TYPE_CHECKING, Tuple
 
 from attrs import define, field
 
-from .....utils.validation import (
-    validate_bool,
-)
 from .joint import Joint
 
 if TYPE_CHECKING:
@@ -20,8 +17,8 @@ class DistanceJoint(Joint):
     pivot: Tuple[float, float] = field(default=(0, 0))  # -99999,+99999
     attach: Tuple[float, float] = field(default=(0, 0))  # -99999,+99999
     break_force: float = field(default=0.0)  # 0-99999999
-    collide_connected: bool = field(default=False, validator=validate_bool())
-    draw_line: bool = field(default=True, validator=validate_bool())
+    collide_connected: bool = field(default=False)
+    draw_line: bool = field(default=True)
     body_a_id: int = field(default=-1)  # -1 or 0-32767
     body_b_id: int = field(default=-1)  # -1 or 0-32767
 
