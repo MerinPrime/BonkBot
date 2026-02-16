@@ -1,7 +1,6 @@
-from dataclasses import field
 from typing import TYPE_CHECKING, Dict, Optional
 
-from attrs import define
+from attrs import define, field
 
 from ...types.errors.api_error import ApiError
 from ...types.errors.error_type import ErrorType
@@ -31,8 +30,8 @@ class Player:
     data_connection: Optional['BinaryPack'] = None
     peer_id: str = ''
     ping: int = 105
-    moves: Dict[int, 'PlayerMove'] = field(default_factory=dict)
-    prev_inputs: Dict[int, 'Inputs'] = field(default_factory=dict)
+    moves: Dict[int, 'PlayerMove'] = field(factory=dict)
+    prev_inputs: Dict[int, 'Inputs'] = field(factory=dict)
     peer_ban_until: float = 0
     peer_ban_level: int = 0
     peer_reverts: int = 0
