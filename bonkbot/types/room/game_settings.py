@@ -51,7 +51,7 @@ class GameSettings:
         else:
             raise ValueError(f'Invalid map provided: {encoded_map}')
         self.rounds = data['wl']
-        self.is_quick_play = data['q'] == ('bonkquick', True)
+        self.is_quick_play = data['q'] in ('bonkquick', True)
         self.team_lock = data['tl']
         if data['tea']:
             self.team_state = TeamState.TEAMS
