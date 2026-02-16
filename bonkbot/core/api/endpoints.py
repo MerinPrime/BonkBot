@@ -28,4 +28,3 @@ class Endpoints:
         if bypass is not None:
             code += bypass
         return f'https://bonk.io/{code}'
-

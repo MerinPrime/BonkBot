@@ -6,6 +6,12 @@ exclude = [
     ".idea",
 ]
 
+[format]
+quote-style = "single"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
 [lint]
 select = [
     "E",
@@ -32,7 +38,6 @@ select = [
     "TC007",
     "ASYNC",
     "W293",
-    "B"
 ]
 ignore = [
     "RUF006",
@@ -46,6 +51,14 @@ ignore = [
     "ANN401",
     "RUF059",
     "RUF029",
+    
+    "ISC001",
+    "COM812",
+    "Q000",
+    "Q001",
+    "Q002",
+    "Q003",
+    "W191",
 ]
 
 [lint.flake8-quotes]

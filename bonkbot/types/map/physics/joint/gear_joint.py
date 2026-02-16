@@ -14,7 +14,11 @@ if TYPE_CHECKING:
 @define(slots=True, auto_attribs=True)
 class GearJoint(Joint):
     name: str = field(default='Gear Joint', validator=validate_str(29))
-    ratio: float = field(default=0.0, converter=float, validator=validate_float(-99999999, 99999999))
+    ratio: float = field(
+        default=0.0,
+        converter=float,
+        validator=validate_float(-99999999, 99999999),
+    )
     joint_a_id: int = field(default=0, validator=validate_int(0, 100))
     joint_b_id: int = field(default=0, validator=validate_int(0, 100))
 

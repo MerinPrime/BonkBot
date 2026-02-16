@@ -27,7 +27,11 @@ class StaticPair:
                 self.code2str[i] = v
             self.next_idx = len(keys)
 
-    def encode(self, value: Optional[JsonValue], buffer: 'ByteBuffer' = None) -> 'ByteBuffer':
+    def encode(
+        self,
+        value: Optional[JsonValue],
+        buffer: 'ByteBuffer' = None,
+    ) -> 'ByteBuffer':
         if buffer is None:
             buffer = ByteBuffer()
 
@@ -37,7 +41,11 @@ class StaticPair:
         buffer.set_endian(old_endian)
         return buffer
 
-    def encode_value(self, value: Optional[JsonValue], buffer: 'ByteBuffer' = None) -> 'ByteBuffer':
+    def encode_value(
+        self,
+        value: Optional[JsonValue],
+        buffer: 'ByteBuffer' = None,
+    ) -> 'ByteBuffer':
         if value is None:
             buffer.write_uint8(PSONType.NULL)
         elif type(value) is str:

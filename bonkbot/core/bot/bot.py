@@ -26,8 +26,11 @@ if TYPE_CHECKING:
 
 
 class BonkBot(BotEventHandler):
-    def __init__(self, event_loop: Optional['AbstractEventLoop'] = None,
-                 aiohttp_session: Optional['ClientSession'] = None):
+    def __init__(
+        self,
+        event_loop: Optional['AbstractEventLoop'] = None,
+        aiohttp_session: Optional['ClientSession'] = None,
+    ):
         super().__init__()
         if event_loop is None:
             event_loop = asyncio.get_event_loop()
@@ -59,6 +62,7 @@ class BonkBot(BotEventHandler):
         if not self._rooms:
             return
         await asyncio.gather(*[room.wait_for_connection() for room in self._rooms])
+
     # endregion
 
     async def __start(self, data: 'BotData') -> None:
@@ -74,10 +78,17 @@ class BonkBot(BotEventHandler):
             raise ApiError(error)
         await self.__start(BotData(name=name))
 
-    async def login_with_password(self, name: str, password: str, *, remember: bool = False, bypass_username_check: bool = False) -> Optional[str]:
+    async def login_with_password(
+        self,
+        name: str,
+        password: str,
+        *,
+        remember: bool = False,
+        bypass_username_check: bool = False,
+    ) -> Optional[str]:
         """
         Log in to an account using a username and password.
-        
+
         :param name: Account name.
         :param password: Account password.
         :param remember: If True, return a remember token.
@@ -93,7 +104,11 @@ class BonkBot(BotEventHandler):
             error = validate_username(name, is_guest=False)
             if error is not None:
                 raise ApiError(error)
-        result = await self._bonk_api.fetch_data_with_password(name, password, remember=remember)
+        result = await self._bonk_api.fetch_data_with_password(
+            name,
+            password,
+            remember=remember,
+        )
         if isinstance(result, ErrorType):
             raise ApiError(result)
         await self.__start(result)
@@ -107,8 +122,17 @@ class BonkBot(BotEventHandler):
             raise ApiError(result)
         await self.__start(result)
 
-    def create_room(self, name: str = '', password: str = '', *, unlisted: bool = False,
-                    max_players: int = 6, min_level: int = 0, max_level: int = 999, server: 'Server' = None) -> 'Room':
+    def create_room(
+        self,
+        name: str = '',
+        password: str = '',
+        *,
+        unlisted: bool = False,
+        max_players: int = 6,
+        min_level: int = 0,
+        max_level: int = 999,
+        server: 'Server' = None,
+    ) -> 'Room':
         if not self._is_logged:
             raise BotNotLoggedInError()
         if name is None:
@@ -121,18 +145,26 @@ class BonkBot(BotEventHandler):
             raise ValueError('Max level must be between 0 and 999')
         if server is None:
             server = self.server
-        room = Room(bot=self, room_params=RoomCreateParams(
-            name=name,
-            password=password,
-            unlisted=unlisted,
-            max_players=max_players,
-            min_level=min_level,
-            max_level=max_level,
-            server=server,
-        ))
+        room = Room(
+            bot=self,
+            room_params=RoomCreateParams(
+                name=name,
+                password=password,
+                unlisted=unlisted,
+                max_players=max_players,
+                min_level=min_level,
+                max_level=max_level,
+                server=server,
+            ),
+        )
         return room
 
-    async def join_room(self, room_id: int, password: Optional[str] = None, bypass: Optional[str] = None) -> Optional['Room']:
+    async def join_room(
+        self,
+        room_id: int,
+        password: Optional[str] = None,
+        bypass: Optional[str] = None,
+    ) -> Optional['Room']:
         if not self._is_logged:
             raise BotNotLoggedInError()
         result = await self.api_client.fetch_room_data(room_id, password, bypass)
@@ -140,7 +172,11 @@ class BonkBot(BotEventHandler):
             raise ApiError(result)
         return Room(bot=self, room_params=result)
 
-    async def join_room_via_link(self, link: str, password: str = '') -> Optional['Room']:
+    async def join_room_via_link(
+        self,
+        link: str,
+        password: str = '',
+    ) -> Optional['Room']:
         if not self._is_logged:
             raise BotNotLoggedInError()
         result = await self.api_client.fetch_room_data_via_link(link, password)

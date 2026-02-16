@@ -19,11 +19,26 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IJointProperties.ts
 @define(slots=True, auto_attribs=True)
 class LSJJoint(Joint):
-    position: Tuple[float, float] = field(default=(0, 0), converter=convert_to_float_vector,
-                                          validator=validate_vector_range(-99999999, 99999999))
-    spring_force: float = field(default=0.0, converter=float, validator=validate_float(-99999999, 99999999))
-    spring_length: float = field(default=0.0, converter=float, validator=validate_float(-99999999, 99999999))
-    break_force: float = field(default=0.0, converter=float, validator=validate_float(0, 99999999))
+    position: Tuple[float, float] = field(
+        default=(0, 0),
+        converter=convert_to_float_vector,
+        validator=validate_vector_range(-99999999, 99999999),
+    )
+    spring_force: float = field(
+        default=0.0,
+        converter=float,
+        validator=validate_float(-99999999, 99999999),
+    )
+    spring_length: float = field(
+        default=0.0,
+        converter=float,
+        validator=validate_float(-99999999, 99999999),
+    )
+    break_force: float = field(
+        default=0.0,
+        converter=float,
+        validator=validate_float(0, 99999999),
+    )
     collide_connected: bool = field(default=False, validator=validate_bool())
     draw_line: bool = field(default=True, validator=validate_bool())
     body_a_id: int = field(default=-1, validator=validate_int(-1, 32767))

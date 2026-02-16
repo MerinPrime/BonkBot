@@ -16,10 +16,17 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IBodyForce.ts
 @define(slots=True, auto_attribs=True)
 class BodyForce:
-    force: Tuple[float, float] = field(default=(0, 0), converter=convert_to_float_vector,
-                                       validator=validate_vector_range(-999999, 999999))
+    force: Tuple[float, float] = field(
+        default=(0, 0),
+        converter=convert_to_float_vector,
+        validator=validate_vector_range(-999999, 999999),
+    )
     is_relative: bool = field(default=True, validator=validate_bool())
-    torque: float = field(default=0, converter=float, validator=validate_float(-999999, 999999))
+    torque: float = field(
+        default=0,
+        converter=float,
+        validator=validate_float(-999999, 999999),
+    )
 
     def to_json(self) -> dict:
         return {

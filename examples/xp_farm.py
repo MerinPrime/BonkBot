@@ -8,10 +8,10 @@ from bonkbot.types.errors import ApiError, ErrorType
 if TYPE_CHECKING:
     from bonkbot.core.room import Room
 
-'''
+"""
 This example implements an XP farm.
 For each account it starts a bot to farm XP.
-'''
+"""
 
 accounts = [
     ('name', 'password'),
@@ -20,7 +20,9 @@ accounts = [
 RESTART_DELAY_SECONDS = 30
 RATE_LIMIT_RESTART_DELAY_SECONDS = 600
 XP_GAIN_INTERVAL_SECONDS = 10  # Interval to prevent rate limiting
-XP_GAIN_CYCLE_SECONDS = 1000  # Need to be 1200 in total ( cycle + interval * 20 = 1200 )
+XP_GAIN_CYCLE_SECONDS = (
+    1000  # Need to be 1200 in total ( cycle + interval * 20 = 1200 )
+)
 CONNECTION_TIMEOUT_SECONDS = 15
 XP_FARM_START_DELAY = 10  # Delay to prevent rate limiting
 
@@ -38,40 +40,53 @@ async def farming_loop(bot: 'BonkBot') -> None:
             await asyncio.sleep(XP_GAIN_CYCLE_SECONDS)
 
 
-async def run_bot_lifecycle(name: str, password: str, event_loop: AbstractEventLoop) -> None:
+async def run_bot_lifecycle(
+    name: str,
+    password: str,
+    event_loop: AbstractEventLoop,
+) -> None:
     while True:
         bot = BonkBot(event_loop=event_loop)
         exception_future = event_loop.create_future()
         rate_limited = False
         remember_token = None
-        
+
         try:
+
             @bot.event
             async def on_ready(bot: 'BonkBot') -> None:
                 print(f'{bot.name}: Started with Level: {bot.level:.02f}, XP: {bot.xp}')
-            
+
             @bot.event
             async def on_xp_gain(room: 'Room', xp: int) -> None:
-                print(f'{room.bot.name}: Gained xp, Level: {room.bot.level:.02f}, XP: {room.bot.xp}')
-            
+                print(
+                    f'{room.bot.name}: Gained xp, Level: {room.bot.level:.02f}, XP: {room.bot.xp}',
+                )
+
             @bot.event
             async def on_room_disconnect(room: 'Room') -> None:
                 nonlocal exception_future
                 if not exception_future.done():
-                    exception_future.set_exception(ConnectionAbortedError(f'{name}: Disconnected from room.'))
-            
+                    exception_future.set_exception(
+                        ConnectionAbortedError(f'{name}: Disconnected from room.'),
+                    )
+
             @bot.event
             async def on_error(bot: 'BonkBot', err: Exception) -> None:
                 nonlocal rate_limited, exception_future
                 if not exception_future.done():
                     exception_future.set_exception(err)
-            
+
             print(f'{name}: Trying to login')
             if remember_token is None:
-                remember_token = await bot.login_with_password(name, password, remember=True)
+                remember_token = await bot.login_with_password(
+                    name,
+                    password,
+                    remember=True,
+                )
             else:
                 await bot.login_with_token(remember_token)
-            
+
             print(f'{name}: Trying to create room')
             await bot.update_server()
             room = bot.create_room(f"{name}'s XP Farm", unlisted=True, max_players=1)
@@ -84,22 +99,22 @@ async def run_bot_lifecycle(name: str, password: str, event_loop: AbstractEventL
                 return_when=asyncio.FIRST_COMPLETED,
                 timeout=CONNECTION_TIMEOUT_SECONDS,
             )
-            
+
             if exception_future in done_conn:
                 connection_task.cancel()
                 exception_future.result()
-            
+
             if not done_conn:
                 for task in pending_conn:
                     task.cancel()
                 raise asyncio.TimeoutError(f'{name}: Room creating timed out.')
-            
+
             farming_task = asyncio.create_task(farming_loop(bot))
             done, pending = await asyncio.wait(
                 [farming_task, exception_future],
                 return_when=asyncio.FIRST_COMPLETED,
             )
-            
+
             if exception_future in done:
                 farming_task.cancel()
                 exception_future.result()
@@ -123,10 +138,12 @@ async def run_bot_lifecycle(name: str, password: str, event_loop: AbstractEventL
 
 async def main() -> None:
     event_loop = asyncio.get_running_loop()
-    
+
     print('--- Initializing bots lifecycle ---')
-    lifecycles = [run_bot_lifecycle(name, password, event_loop) for name, password in accounts]
-    
+    lifecycles = [
+        run_bot_lifecycle(name, password, event_loop) for name, password in accounts
+    ]
+
     print('--- Starting bots lifecycle ---')
     await asyncio.gather(*lifecycles)
 
@@ -142,5 +159,7 @@ if __name__ == '__main__':
     finally:
         if main_task and not main_task.done():
             main_task.cancel()
-            event_loop.run_until_complete(asyncio.gather(main_task, return_exceptions=True))
+            event_loop.run_until_complete(
+                asyncio.gather(main_task, return_exceptions=True),
+            )
         print('--- XP farm stopped ---')

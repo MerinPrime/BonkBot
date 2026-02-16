@@ -18,8 +18,11 @@ from .bot_data import BotData
 
 
 class BonkAPI:
-    def __init__(self, event_loop: Optional['AbstractEventLoop'] = None,
-                 aiohttp_session: Optional['ClientSession'] = None) -> None:
+    def __init__(
+        self,
+        event_loop: Optional['AbstractEventLoop'] = None,
+        aiohttp_session: Optional['ClientSession'] = None,
+    ) -> None:
         if event_loop is None:
             event_loop = asyncio.get_event_loop()
         if aiohttp_session is None:
@@ -38,8 +41,13 @@ class BonkAPI:
     async def close(self) -> None:
         await self._aiohttp_session.close()
 
-    async def fetch_data_with_password(self, name: str, password: str, *, remember: bool = False,
-                                       ) -> Union['ErrorType', 'BotData']:
+    async def fetch_data_with_password(
+        self,
+        name: str,
+        password: str,
+        *,
+        remember: bool = False,
+    ) -> Union['ErrorType', 'BotData']:
         response = await self._aiohttp_session.post(
             Endpoints.LOGIN_LEGACY,
             data={
@@ -54,7 +62,10 @@ class BonkAPI:
             return ErrorType.from_string(response_data['e'])
         return BotData.from_login_response(response_data)
 
-    async def fetch_data_with_token(self, remember_token: str) -> Union['ErrorType', 'BotData']:
+    async def fetch_data_with_token(
+        self,
+        remember_token: str,
+    ) -> Union['ErrorType', 'BotData']:
         response = await self._aiohttp_session.post(
             Endpoints.LOGIN_AUTO,
             data={
@@ -67,8 +78,12 @@ class BonkAPI:
             return ErrorType.from_string(response_data['e'])
         return BotData.from_login_response(response_data)
 
-    async def fetch_room_data(self, room_id: int, password: str = '', bypass: str = '',
-                              ) -> Union['ErrorType', 'RoomJoinParams']:
+    async def fetch_room_data(
+        self,
+        room_id: int,
+        password: str = '',
+        bypass: str = '',
+    ) -> Union['ErrorType', 'RoomJoinParams']:
         response = await self.aiohttp_session.post(
             url=Endpoints.GET_ROOM_ADDRESS,
             data={
@@ -87,13 +102,19 @@ class BonkAPI:
             server=Server.from_name(response_data['server']),
         )
 
-    async def fetch_room_data_via_link(self, link: str, password: str = '',
-                                       ) -> Union['ErrorType', 'RoomJoinParams']:
+    async def fetch_room_data_via_link(
+        self,
+        link: str,
+        password: str = '',
+    ) -> Union['ErrorType', 'RoomJoinParams']:
         regex = r'/(\d{6})([a-zA-Z0-9]{5})?$'
         match = re.search(regex, link)
         room_id = match.group(1)
         bypass = match.group(2)
-        response = await self.aiohttp_session.post(url=Endpoints.AUTO_JOIN, data={'joinID': room_id})
+        response = await self.aiohttp_session.post(
+            url=Endpoints.AUTO_JOIN,
+            data={'joinID': room_id},
+        )
         response.raise_for_status()
         response_data = await response.json()
         if response_data['r'] == 'failed':
@@ -140,7 +161,8 @@ class BonkAPI:
                 mode=Mode.from_mode_code(room['mode_mo']),
                 min_level=room['minlevel'],
                 max_level=room['maxlevel'],
-            ) for room in response_data['rooms']
+            )
+            for room in response_data['rooms']
         ]
 
     async def fetch_friends(self, token: str) -> List['Friend']:
@@ -154,11 +176,14 @@ class BonkAPI:
         response.raise_for_status()
         response_data = await response.json()
 
-        return [Friend(
-            name=friend['name'],
-            dbid=friend['id'],
-            room_id=friend['roomid'],
-        ) for friend in response_data['friends']]
+        return [
+            Friend(
+                name=friend['name'],
+                dbid=friend['id'],
+                room_id=friend['roomid'],
+            )
+            for friend in response_data['friends']
+        ]
 
     async def fetch_own_maps(self, token: str, start_from: int) -> List['BonkMap']:
         # Api returning maps from `start_from` to `start_from + 30`
@@ -173,4 +198,7 @@ class BonkAPI:
         response.raise_for_status()
         response_data = await response.json()
 
-        return [BonkMap.decode_from_database(bonk_map['leveldata']) for bonk_map in response_data['maps']]
+        return [
+            BonkMap.decode_from_database(bonk_map['leveldata'])
+            for bonk_map in response_data['maps']
+        ]

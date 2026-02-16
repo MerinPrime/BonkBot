@@ -19,8 +19,15 @@ if TYPE_CHECKING:
 class CaptureZone:
     name: str = field(default='Cap Zone', validator=validate_str(29))
     shape_id: int = field(default=-1, validator=validate_int(-1, 32767))
-    seconds: float = field(default=10, converter=float, validator=validate_float(0.01, 1000))
-    type: 'CaptureType' = field(default=CaptureType.NORMAL, validator=validate_type(CaptureType))
+    seconds: float = field(
+        default=10,
+        converter=float,
+        validator=validate_float(0.01, 1000),
+    )
+    type: 'CaptureType' = field(
+        default=CaptureType.NORMAL,
+        validator=validate_type(CaptureType),
+    )
 
     def to_json(self) -> dict:
         data = {

@@ -12,7 +12,11 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IShape.ts
 @define(slots=True, auto_attribs=True)
 class CircleShape(Shape):
-    radius: float = field(default=25.0, converter=float, validator=validate_float(0, 99999))
+    radius: float = field(
+        default=25.0,
+        converter=float,
+        validator=validate_float(0, 99999),
+    )
     shrink: bool = field(default=False, validator=validate_bool())
 
     def to_json(self) -> dict:

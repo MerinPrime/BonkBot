@@ -20,9 +20,12 @@ class BotEventHandler:
 
     def __init__(self) -> None:
         self.__event_emitter = EventEmitter()
-        
+
         self.__events = {}
-        for name, method in inspect.getmembers(BotEventHandler, predicate=inspect.isfunction):
+        for name, method in inspect.getmembers(
+            BotEventHandler,
+            predicate=inspect.isfunction,
+        ):
             if not name.startswith('on_'):
                 continue
             self.__events[name] = method
@@ -37,13 +40,21 @@ class BotEventHandler:
                 self.event(method)
                 self.__default_events[event] = method
 
-    def event(self, function: Callable[..., Coroutine[Any, Any, Any]]) -> Callable[..., Coroutine[Any, Any, Any]]:
+    def event(
+        self,
+        function: Callable[..., Coroutine[Any, Any, Any]],
+    ) -> Callable[..., Coroutine[Any, Any, Any]]:
         return self.on(function, function)
 
-    def on(self, event: Callable[..., Coroutine[Any, Any, Any]],
-           function: Callable[..., Coroutine[Any, Any, Any]]) -> Callable[..., Coroutine[Any, Any, Any]]:
+    def on(
+        self,
+        event: Callable[..., Coroutine[Any, Any, Any]],
+        function: Callable[..., Coroutine[Any, Any, Any]],
+    ) -> Callable[..., Coroutine[Any, Any, Any]]:
         if not asyncio.iscoroutinefunction(function):
-            raise TypeError(f"Handler '{function.__name__}' must be async (use 'async def')")
+            raise TypeError(
+                f"Handler '{function.__name__}' must be async (use 'async def')",
+            )
 
         event_name = event.__name__
 
@@ -55,12 +66,12 @@ class BotEventHandler:
 
         handler_params = list(handler_sig.parameters.values())
         func_params = list(func_sig.parameters.values())
-        
+
         if len(func_params) - 1 != len(handler_params):
             raise TypeError(
                 f'Handler expected to get {len(handler_params)} arguments, but got {len(func_params) - 1}',
             )
-        
+
         if event_name in self.__default_events:
             self.__event_emitter.off(event_name, self.__default_events[event_name])
         self.__event_emitter.on(event_name, function)
@@ -69,11 +80,19 @@ class BotEventHandler:
     def unbind(self, function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
         self.__event_emitter.off(function.__name__, function)
 
-    def off(self, event: Callable[..., Coroutine[Any, Any, Any]],
-            function: Callable[..., Coroutine[Any, Any, Any]]) -> None:
+    def off(
+        self,
+        event: Callable[..., Coroutine[Any, Any, Any]],
+        function: Callable[..., Coroutine[Any, Any, Any]],
+    ) -> None:
         self.__event_emitter.off(event.__name__, function)
 
-    async def dispatch(self, event: Callable[..., Coroutine[Any, Any, Any]], *args, **kwargs) -> None:
+    async def dispatch(
+        self,
+        event: Callable[..., Coroutine[Any, Any, Any]],
+        *args,
+        **kwargs,
+    ) -> None:
         await self.__event_emitter.emit_async(event.__name__, *args, **kwargs)
 
     async def on_ready(self, bot: 'BonkBot') -> None:
@@ -115,29 +134,45 @@ class BotEventHandler:
     async def on_level_up(self, room: 'Room', player: 'Player') -> None:
         pass
 
-    async def on_player_move(self, room: 'Room', player: 'Player', move: 'PlayerMove') -> None:
+    async def on_player_move(
+        self,
+        room: 'Room',
+        player: 'Player',
+        move: 'PlayerMove',
+    ) -> None:
         pass
 
-    async def on_move_revert(self, room: 'Room', player: 'Player', move: 'PlayerMove') -> None:
+    async def on_move_revert(
+        self,
+        room: 'Room',
+        player: 'Player',
+        move: 'PlayerMove',
+    ) -> None:
         pass
 
     async def on_player_left(self, room: 'Room', player: 'Player', frame: int) -> None:
         """Called when non-host player leaves a room.
-        
+
         :param room: The Room instance.
         :param player: The Player who left the room.
         :param frame: The number of frames that have elapsed since the game started.
                       If the game has not started, this is the number of frames since the UNIX epoch.
         :return: None
-        
+
         Note: If the player who left was the host, this event will NOT be
         triggered. Instead, only the `on_host_left` event will be called.
         """
         pass
 
-    async def on_host_left(self, room: 'Room', old_host: 'Player', new_host: Optional['Player'], frame: int) -> None:
+    async def on_host_left(
+        self,
+        room: 'Room',
+        old_host: 'Player',
+        new_host: Optional['Player'],
+        frame: int,
+    ) -> None:
         """Called when host leaves a room.
-        
+
         :param room: The Room instance.
         :param old_host: The Player who was the host and has now left.
         :param new_host: The Player who has been promoted to the new host.
@@ -160,19 +195,30 @@ class BotEventHandler:
     async def on_player_unmute(self, room: 'Room', player: 'Player') -> None:
         pass
 
-    async def on_player_name_change(self, room: 'Room', player: 'Player', old_name: str) -> None:
+    async def on_player_name_change(
+        self,
+        room: 'Room',
+        player: 'Player',
+        old_name: str,
+    ) -> None:
         pass
 
     async def on_game_end(self, room: 'Room') -> None:
         """
         Called when the game ends manually, not due to a player winning.
-        
+
         :param room: The Room instance.
         :return: None
         """
         pass
 
-    async def on_game_start(self, room: 'Room', unix_time: int, initial_state: dict, game_settings: dict) -> None:
+    async def on_game_start(
+        self,
+        room: 'Room',
+        unix_time: int,
+        initial_state: dict,
+        game_settings: dict,
+    ) -> None:
         pass
 
     async def on_player_team_change(self, room: 'Room', player: 'Player') -> None:
@@ -202,13 +248,29 @@ class BotEventHandler:
     async def on_afk_warn(self, room: 'Room') -> None:
         pass
 
-    async def on_map_suggest_host(self, room: 'Room', player: 'Player', map: 'BonkMap') -> None:
+    async def on_map_suggest_host(
+        self,
+        room: 'Room',
+        player: 'Player',
+        map: 'BonkMap',
+    ) -> None:
         pass
 
-    async def on_map_suggest_client(self, room: 'Room', player: 'Player', name: str, author: str) -> None:
+    async def on_map_suggest_client(
+        self,
+        room: 'Room',
+        player: 'Player',
+        name: str,
+        author: str,
+    ) -> None:
         pass
 
-    async def on_set_balance(self, room: 'Room', player: 'Player', balance: int) -> None:
+    async def on_set_balance(
+        self,
+        room: 'Room',
+        player: 'Player',
+        balance: int,
+    ) -> None:
         pass
 
     async def on_teams_toggle(self, room: 'Room') -> None:
@@ -226,7 +288,14 @@ class BotEventHandler:
     async def on_countdown_abort(self, room: 'Room') -> None:
         pass
 
-    async def on_inform_in_game(self, room: 'Room', frame: int, random: List[int], initial_state: dict, state_id: int) -> None:
+    async def on_inform_in_game(
+        self,
+        room: 'Room',
+        frame: int,
+        random: List[int],
+        initial_state: dict,
+        state_id: int,
+    ) -> None:
         pass
 
     async def on_player_tabbed(self, room: 'Room', player: 'Player') -> None:

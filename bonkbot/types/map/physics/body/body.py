@@ -25,17 +25,34 @@ if TYPE_CHECKING:
 class Body:
     name: Optional[str] = field(default=None, validator=validate_opt_str(30))
 
-    position: Tuple[float, float] = field(default=(0, 0), converter=convert_to_float_vector,
-                                          validator=validate_vector_range(-99999, 99999))
-    linear_velocity: Tuple[float, float] = field(default=(0, 0), converter=convert_to_float_vector,
-                                                 validator=validate_vector_range(-99999, 99999))
-    angle: float = field(default=0.0, converter=float, validator=validate_float(-9999, 9999))
-    angular_velocity: float = field(default=0.0, converter=float, validator=validate_float(-9999, 9999))
+    position: Tuple[float, float] = field(
+        default=(0, 0),
+        converter=convert_to_float_vector,
+        validator=validate_vector_range(-99999, 99999),
+    )
+    linear_velocity: Tuple[float, float] = field(
+        default=(0, 0),
+        converter=convert_to_float_vector,
+        validator=validate_vector_range(-99999, 99999),
+    )
+    angle: float = field(
+        default=0.0,
+        converter=float,
+        validator=validate_float(-9999, 9999),
+    )
+    angular_velocity: float = field(
+        default=0.0,
+        converter=float,
+        validator=validate_float(-9999, 9999),
+    )
 
     fixtures: List[int] = field(factory=list, validator=validate_int_list(0, 32767))
     shape: 'BodyShape' = field(factory=BodyShape, validator=validate_type(BodyShape))
     force: 'BodyForce' = field(factory=BodyForce, validator=validate_type(BodyForce))
-    force_zone: 'ForceZone' = field(factory=ForceZone, validator=validate_type(ForceZone))
+    force_zone: 'ForceZone' = field(
+        factory=ForceZone,
+        validator=validate_type(ForceZone),
+    )
 
     def to_json(self) -> dict:
         data = {

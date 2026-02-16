@@ -231,6 +231,7 @@ class ErrorType(enum.Enum):
         logging.getLogger(__name__).warning(f'Undefined error: {code}.')
         return ErrorType.UNDEFINED
 
+
 CRITICAL_API_ERRORS = [
     *ErrorType.ROOM_NOT_FOUND.value,
     *ErrorType.ROOM_FULL.value,

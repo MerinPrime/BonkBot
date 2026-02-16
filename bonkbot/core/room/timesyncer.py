@@ -12,7 +12,14 @@ if TYPE_CHECKING:
 
 
 class TimeSyncer:
-    def __init__(self, interval: float, timeout: float, delay: float, repeat: int, socket: 'AsyncClient'):
+    def __init__(
+        self,
+        interval: float,
+        timeout: float,
+        delay: float,
+        repeat: int,
+        socket: 'AsyncClient',
+    ):
         self.interval: float = interval
         self.timeout: float = timeout
         self.delay: float = delay
@@ -51,7 +58,12 @@ class TimeSyncer:
     def now(self) -> float:
         return time.time() * 1000 - self.offset
 
-    async def sync(self, *, repeat: Optional[int] = None, delay: Optional[float] = None) -> None:
+    async def sync(
+        self,
+        *,
+        repeat: Optional[int] = None,
+        delay: Optional[float] = None,
+    ) -> None:
         if repeat is None:
             repeat = self.repeat
         if delay is None:
@@ -61,7 +73,10 @@ class TimeSyncer:
             await self.event_emitter.emit_async('sync', 'start')
             for _ in range(repeat):
                 self._ids_time[self.sync_id] = self.now()
-                await self.socket.emit(SocketEvents.Outgoing.TIME_SYNC, {'jsonrpc': '2.0', 'id': self.sync_id, 'method': 'timesync'})
+                await self.socket.emit(
+                    SocketEvents.Outgoing.TIME_SYNC,
+                    {'jsonrpc': '2.0', 'id': self.sync_id, 'method': 'timesync'},
+                )
                 await asyncio.sleep(delay)
                 self.sync_id += 1
 

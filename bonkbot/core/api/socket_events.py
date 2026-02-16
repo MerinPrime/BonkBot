@@ -2,6 +2,7 @@ import enum
 
 PROTOCOL_VERSION = 49
 
+
 class SocketEvents:
     class Incoming(enum.IntEnum):
         PING_DATA = 1
@@ -104,11 +105,11 @@ class SocketEvents:
         INFORM_IN_GAME = 40
         PRE_VOTE = 41
         MORE_QUICK_MAPS = 42
-        UPDATE_RC = 43 # Update quick play map
+        UPDATE_RC = 43  # Update quick play map
         SET_TABBED = 44
         DESYNC_TEST = 45
         DESYNC_RES = 46
-        ROUND_COMPLETE = 47 # Idk whats round but its not just round in game
+        ROUND_COMPLETE = 47  # Idk whats round but its not just round in game
         END_ROOM = 50
         CURATE = 51
         CHANGE_ROOM_NAME = 52

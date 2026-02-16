@@ -17,7 +17,9 @@ class BotData:
     xp: int = 0
     active_avatar: int = 0
     avatar: 'Avatar' = field(default_factory=Avatar)
-    avatars: List['Avatar'] = field(default_factory=lambda: [Avatar() for _ in range(5)])
+    avatars: List['Avatar'] = field(
+        default_factory=lambda: [Avatar() for _ in range(5)],
+    )
     friends: List['Friend'] = field(default_factory=list)
     legacy_friends: List['Friend'] = field(default_factory=list)
     settings: Optional['Settings'] = None
@@ -50,15 +52,19 @@ class BotData:
 
         if 'friends' in json_data:
             for friend_data in json_data['friends']:
-                data.friends.append(Friend(
-                    name=friend_data['name'],
-                    dbid=friend_data['id'],
-                    room_id=friend_data['roomid'],
-                ))
+                data.friends.append(
+                    Friend(
+                        name=friend_data['name'],
+                        dbid=friend_data['id'],
+                        room_id=friend_data['roomid'],
+                    ),
+                )
 
         if 'legacyFriends' in json_data:
             for friend_name in json_data['legacyFriends'].split('#'):
-                data.legacy_friends.append(Friend(name=friend_name, dbid=None, room_id=None))
+                data.legacy_friends.append(
+                    Friend(name=friend_name, dbid=None, room_id=None),
+                )
 
         if json_data.get('controls'):
             settings_buffer = ByteBuffer()

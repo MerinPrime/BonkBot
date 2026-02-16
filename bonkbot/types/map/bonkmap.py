@@ -22,15 +22,28 @@ from .spawn import Spawn
 
 MAP_VERSION = 15
 
+
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMap.ts
 @define(slots=True, auto_attribs=True)
 class BonkMap:
     version: int = field(default=MAP_VERSION, validator=validate_int(1))
-    metadata: 'MapMetadata' = field(factory=MapMetadata, validator=validate_type(MapMetadata))
-    properties: 'MapProperties' = field(factory=MapProperties, validator=validate_type(MapProperties))
-    physics: 'MapPhysics' = field(factory=MapPhysics, validator=validate_type(MapPhysics))
+    metadata: 'MapMetadata' = field(
+        factory=MapMetadata,
+        validator=validate_type(MapMetadata),
+    )
+    properties: 'MapProperties' = field(
+        factory=MapProperties,
+        validator=validate_type(MapProperties),
+    )
+    physics: 'MapPhysics' = field(
+        factory=MapPhysics,
+        validator=validate_type(MapPhysics),
+    )
     spawns: List['Spawn'] = field(factory=list, validator=validate_type_list(Spawn))
-    cap_zones: List['CaptureZone'] = field(factory=list, validator=validate_type_list(CaptureZone))
+    cap_zones: List['CaptureZone'] = field(
+        factory=list,
+        validator=validate_type_list(CaptureZone),
+    )
 
     # TODO: Make user-friendly
     # TODO: And maybe split to_json, from_json, decode_from_database to MapMetadata, MapProperties, MapPhysics etc.
@@ -153,7 +166,9 @@ class BonkMap:
 
         fixtures_count = buffer.read_int16()
         for _ in range(fixtures_count):
-            bonk_map.physics.fixtures.append(Fixture().from_buffer(buffer, bonk_map.version))
+            bonk_map.physics.fixtures.append(
+                Fixture().from_buffer(buffer, bonk_map.version),
+            )
         body_count = buffer.read_int16()
         for _ in range(body_count):
             bonk_map.physics.bodies.append(Body().from_buffer(buffer, bonk_map.version))
@@ -162,7 +177,9 @@ class BonkMap:
             bonk_map.spawns.append(Spawn().from_buffer(buffer))
         cap_zone_count = buffer.read_int16()
         for _ in range(cap_zone_count):
-            bonk_map.cap_zones.append(CaptureZone().from_buffer(buffer, bonk_map.version))
+            bonk_map.cap_zones.append(
+                CaptureZone().from_buffer(buffer, bonk_map.version),
+            )
         joint_count = buffer.read_int16()
         for _ in range(joint_count):
             joint_type_id = buffer.read_int16()
@@ -238,5 +255,6 @@ class BonkMap:
         return bonk_map
 
 
-DEFAULT_MAP = BonkMap.decode_from_database('ILAcJAhBFBjBzCIDCAbAcgBwEYA1IDOAWgMrAAeAJgFYCiwytlAjEQGLoAMsAtm50gCmAdwbBIbACoBDAOrNh2AOIBVeAFlcATXIBJZAAtURJak4BpaMAASJAExsCW2eQPTRkACJFdITwDMANRB6RhZ2Ll5+JCgAdhjgX08PGKsYa0gE8WB0LLz8goKrCGZA7B4AVgNsWUCAa10OAHstfFR-AGoAeh7envAbLoA3Pr7O0d7waWxMOyzM4DYALxBhKjp4FSVXSiUiId4BQuO8roAWfOQugYTPLsl1JcfnlZO394-Pk7TgaFpMv4QegQZDCNh1LKeYAAeWKXwKMH+vyQgUksCUbAAzNg6pAiHlhJ4IfDCioAcCQGwVJjIAZKHYLkggA')
-
+DEFAULT_MAP = BonkMap.decode_from_database(
+    'ILAcJAhBFBjBzCIDCAbAcgBwEYA1IDOAWgMrAAeAJgFYCiwytlAjEQGLoAMsAtm50gCmAdwbBIbACoBDAOrNh2AOIBVeAFlcATXIBJZAAtURJak4BpaMAASJAExsCW2eQPTRkACJFdITwDMANRB6RhZ2Ll5+JCgAdhjgX08PGKsYa0gE8WB0LLz8goKrCGZA7B4AVgNsWUCAa10OAHstfFR-AGoAeh7envAbLoA3Pr7O0d7waWxMOyzM4DYALxBhKjp4FSVXSiUiId4BQuO8roAWfOQugYTPLsl1JcfnlZO394-Pk7TgaFpMv4QegQZDCNh1LKeYAAeWKXwKMH+vyQgUksCUbAAzNg6pAiHlhJ4IfDCioAcCQGwVJjIAZKHYLkggA',
+)

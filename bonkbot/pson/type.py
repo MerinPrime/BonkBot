@@ -22,4 +22,6 @@ class PSONType(enum.IntEnum):
     BINARY = 0xFF
 
 
-JsonValue = Optional[Union[str, int, float, bool, List['JsonValue'], Dict[str, 'JsonValue'], bytearray]]
+JsonValue = Optional[
+    Union[str, int, float, bool, List['JsonValue'], Dict[str, 'JsonValue'], bytearray]
+]

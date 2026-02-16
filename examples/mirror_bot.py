@@ -8,11 +8,11 @@ if TYPE_CHECKING:
     from bonkbot.core.room import Player, Room
     from bonkbot.types import PlayerMove
 
-'''
+"""
 This example implements a MirrorBot.
 The bot copies inputs of players like mirror.
 VTOL, Arrows and Death Arrows can cause an "unmirror".
-'''
+"""
 
 
 class MirrorBot(BonkBot):
@@ -32,7 +32,13 @@ class MirrorBot(BonkBot):
             return
         await player.give_host()
 
-    async def on_host_left(self, room: 'Room', old_host: 'Player', new_host: 'Player', timestamp: int) -> None:
+    async def on_host_left(
+        self,
+        room: 'Room',
+        old_host: 'Player',
+        new_host: 'Player',
+        timestamp: int,
+    ) -> None:
         if not new_host.is_bot:
             return
         if room.players_count == 1:
@@ -44,7 +50,12 @@ class MirrorBot(BonkBot):
             await player.give_host()
             break
 
-    async def on_player_move(self, room: 'Room', player: 'Player', move: 'PlayerMove') -> None:
+    async def on_player_move(
+        self,
+        room: 'Room',
+        player: 'Player',
+        move: 'PlayerMove',
+    ) -> None:
         frame = move.frame
         inputs = move.inputs
         right = inputs.right
@@ -64,8 +75,17 @@ class MirrorBot(BonkBot):
             inputs.left = False
         await room.move(frame, inputs)
 
-    async def on_move_revert(self, room: 'Room', player: 'Player', move: 'PlayerMove') -> None:
-        candidates = [bot_move for bot_move in room.bot_player.moves.values() if bot_move.frame < move.frame]
+    async def on_move_revert(
+        self,
+        room: 'Room',
+        player: 'Player',
+        move: 'PlayerMove',
+    ) -> None:
+        candidates = [
+            bot_move
+            for bot_move in room.bot_player.moves.values()
+            if bot_move.frame < move.frame
+        ]
         if not candidates:
             last_inputs = Inputs()
             sequence = None

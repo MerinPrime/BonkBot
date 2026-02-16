@@ -14,7 +14,7 @@ class PlayerMove:
     reverted: bool = False
     unreverted: bool = False
     peer_ignored: bool = False
-    
+
     @property
     def valid(self) -> bool:
         return not self.reverted or (self.reverted and self.unreverted)

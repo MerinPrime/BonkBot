@@ -19,10 +19,16 @@ class GameSettings:
     is_quick_play: bool = attrs.field(default=False, validator=validate_bool())
     rounds: int = attrs.field(default=3, validator=validate_int(1))
     team_lock: bool = attrs.field(default=False, validator=validate_bool())
-    team_state: 'TeamState' = attrs.field(default=TeamState.FFA, validator=validate_type(TeamState))
+    team_state: 'TeamState' = attrs.field(
+        default=TeamState.FFA,
+        validator=validate_type(TeamState),
+    )
     mode: 'Mode' = attrs.field(default=Mode.CLASSIC, validator=validate_type(Mode))
-    balance: List[int] = attrs.field(factory=list, validator=validate_int_list(-100, 100))
-    
+    balance: List[int] = attrs.field(
+        factory=list,
+        validator=validate_int_list(-100, 100),
+    )
+
     def to_json(self) -> dict:
         return {
             'map': self.map.to_json(),
@@ -35,7 +41,7 @@ class GameSettings:
             'mo': self.mode.mode,
             'bal': self.balance,
         }
-    
+
     def from_json(self, data: dict) -> None:
         encoded_map = data['map']
         if isinstance(encoded_map, str):

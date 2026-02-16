@@ -23,7 +23,9 @@ class ByteBuffer:
 
     def set_endian(self, endian: str) -> None:
         if endian not in ('<', '>'):
-            raise ValueError(f'Invalid value for endian: "{endian}". Expected either "<" (little-endian) or ">" (big-endian)')
+            raise ValueError(
+                f'Invalid value for endian: "{endian}". Expected either "<" (little-endian) or ">" (big-endian)',
+            )
         self.endian = endian
 
     def set_little_endian(self) -> None:
@@ -34,13 +36,21 @@ class ByteBuffer:
 
     def read_bytes(self, count: int = 1) -> bytearray:
         if self.offset + count > self.size:
-            raise EOFError(f'Not enough bytes to read. Requested {count}, available {self.size - self.offset}')
-        data = self.bytes[self.offset:self.offset + count]
+            raise EOFError(
+                f'Not enough bytes to read. Requested {count}, available {self.size - self.offset}',
+            )
+        data = self.bytes[self.offset : self.offset + count]
         self.offset += count
         return data
 
-    def from_base64(self, data: str, *, uri_encoded: bool = False,
-                    lz_encoded: bool = False, case_encoded: bool = False) -> 'ByteBuffer':
+    def from_base64(
+        self,
+        data: str,
+        *,
+        uri_encoded: bool = False,
+        lz_encoded: bool = False,
+        case_encoded: bool = False,
+    ) -> 'ByteBuffer':
         if uri_encoded:
             data = unquote(data)
         if case_encoded:
@@ -53,8 +63,13 @@ class ByteBuffer:
         self.bytes += base64.b64decode(data)
         return self
 
-    def to_base64(self, *, uri_encode: bool = False,
-                  lz_encode: bool = False, case_encode: bool = False) -> str:
+    def to_base64(
+        self,
+        *,
+        uri_encode: bool = False,
+        lz_encode: bool = False,
+        case_encode: bool = False,
+    ) -> str:
         encoded = base64.b64encode(self.bytes)
         encoded = encoded.decode('ascii')
         if lz_encode:
@@ -136,7 +151,7 @@ class ByteBuffer:
         data_len = len(data)
         if self.offset + data_len > self.size:
             self.bytes.extend(b'\x00' * (self.offset + data_len - self.size))
-        self.bytes[self.offset:self.offset + data_len] = data
+        self.bytes[self.offset : self.offset + data_len] = data
         self.offset += data_len
 
     def write_uint8(self, value: int) -> None:
@@ -168,7 +183,7 @@ class ByteBuffer:
 
     def write_varint32(self, value: int) -> None:
         if value > 0xFFFFFFFF:
-            raise ValueError("Value for varint32 encoding is too large")
+            raise ValueError('Value for varint32 encoding is too large')
         value &= 0xFFFFFFFF
         while True:
             byte = value & 0x7F

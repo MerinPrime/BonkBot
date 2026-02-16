@@ -11,7 +11,7 @@ from .layer import Layer
 @define(slots=True, auto_attribs=True)
 class Avatar:
     layers: List['Layer'] = field(factory=list, validator=validate_type_list(Layer, 16))
-    base_color: int = field(default=0x448aff, validator=validate_int(0, 16777215))
+    base_color: int = field(default=0x448AFF, validator=validate_int(0, 16777215))
 
     @staticmethod
     def from_buffer(buffer: 'ByteBuffer') -> 'Avatar':
@@ -81,13 +81,14 @@ class Avatar:
     def from_json(data: dict) -> 'Avatar':
         avatar = Avatar()
         avatar.base_color = data['bc']
-        avatar.layers = [Layer.from_json(layer) if layer is not None else None
-                         for layer in data['layers']]
+        avatar.layers = [
+            Layer.from_json(layer) if layer is not None else None
+            for layer in data['layers']
+        ]
         return avatar
 
     def to_json(self) -> dict:
         return {
             'bc': self.base_color,
-            'layers': [layer.to_json()
-                       for layer in self.layers],
+            'layers': [layer.to_json() for layer in self.layers],
         }

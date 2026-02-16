@@ -12,9 +12,21 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IShape.ts
 @define(slots=True, auto_attribs=True)
 class BoxShape(Shape):
-    width: float = field(default=10.0, converter=float, validator=validate_float(0, 99999))
-    height: float = field(default=40.0, converter=float, validator=validate_float(0, 99999))
-    angle: float = field(default=0.0, converter=float, validator=validate_float(-999, 999))
+    width: float = field(
+        default=10.0,
+        converter=float,
+        validator=validate_float(0, 99999),
+    )
+    height: float = field(
+        default=40.0,
+        converter=float,
+        validator=validate_float(0, 99999),
+    )
+    angle: float = field(
+        default=0.0,
+        converter=float,
+        validator=validate_float(-999, 999),
+    )
     shrink: bool = field(default=False, validator=validate_bool())
 
     def to_json(self) -> dict:

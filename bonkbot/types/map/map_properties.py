@@ -11,7 +11,11 @@ if TYPE_CHECKING:
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/map/types/IMapProperties.ts
 @define(slots=True, auto_attribs=True)
 class MapProperties:
-    grid_size: float = field(default=25, converter=float, validator=validate_float(2, 100))
+    grid_size: float = field(
+        default=25,
+        converter=float,
+        validator=validate_float(2, 100),
+    )
     players_dont_collide: bool = field(default=False, validator=validate_bool())
     respawn_on_death: bool = field(default=False, validator=validate_bool())
     players_can_fly: bool = field(default=False, validator=validate_bool())
@@ -35,7 +39,7 @@ class MapProperties:
         if self.a3 is not None:
             data['a3'] = self.a3
         return data
-    
+
     def from_json(self, data: dict) -> 'MapProperties':
         self.grid_size = data['gd']
         self.players_dont_collide = data['nc']
@@ -65,5 +69,5 @@ class MapProperties:
             self.grid_size = buffer.read_float32()
         if version >= 9:
             self.players_can_fly = buffer.read_bool()
-        
+
         return self

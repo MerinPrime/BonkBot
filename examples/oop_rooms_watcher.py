@@ -3,11 +3,11 @@ import asyncio
 from bonkbot.core.bot import BonkBot
 from bonkbot.types import Mode
 
-'''
+"""
 This example implements a room watcher.
 The bot monitors all active rooms and logs only available VTOL rooms.
 Using class inheriting to events.
-'''
+"""
 
 
 class RoomsWatcherBot(BonkBot):
@@ -18,10 +18,11 @@ class RoomsWatcherBot(BonkBot):
         while True:
             current_rooms = await self.fetch_rooms()
             current_rooms = {
-                room for room in current_rooms
+                room
+                for room in current_rooms
                 if room.mode == Mode.VTOL
-                   and room.players < room.max_players
-                   and not room.has_password
+                and room.players < room.max_players
+                and not room.has_password
             }
             new_rooms = current_rooms - previous_rooms
             for room in new_rooms:

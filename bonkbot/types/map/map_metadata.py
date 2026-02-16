@@ -58,7 +58,7 @@ class MapMetadata:
         if self.votes_up is not None:
             data['vu'] = self.votes_up
         return data
-    
+
     def from_json(self, data: dict) -> 'MapMetadata':
         self.name = data['n']
         self.author = data['a']

@@ -25,11 +25,17 @@ class Spawn:
     green: Optional[bool] = field(default=None, validator=validate_opt_bool())
     yellow: Optional[bool] = field(default=None, validator=validate_opt_bool())
     priority: int = field(default=5, validator=validate_int(0, 10000))
-    position: Tuple[float, float] = field(default=(400.0, 300.0), converter=convert_to_float_vector,
-                                                validator=validate_vector_range(-10000, 10000))
-    velocity: Tuple[float, float] = field(default=(0.0, 0.0), converter=convert_to_float_vector,
-                                                validator=validate_vector_range(-10000, 10000))
-    
+    position: Tuple[float, float] = field(
+        default=(400.0, 300.0),
+        converter=convert_to_float_vector,
+        validator=validate_vector_range(-10000, 10000),
+    )
+    velocity: Tuple[float, float] = field(
+        default=(0.0, 0.0),
+        converter=convert_to_float_vector,
+        validator=validate_vector_range(-10000, 10000),
+    )
+
     def to_json(self) -> dict:
         data = {
             'n': self.name,
@@ -47,7 +53,7 @@ class Spawn:
         if self.yellow is not None:
             data['ye'] = self.yellow
         return data
-    
+
     def from_json(self, data: dict) -> 'Spawn':
         self.name = data['n']
         self.ffa = data['f']
@@ -61,7 +67,7 @@ class Spawn:
         if data.get('ye') is not None:
             self.yellow = data['ye']
         return self
-    
+
     def to_buffer(self, buffer: 'ByteBuffer') -> None:
         buffer.write_float64(self.position[0])
         buffer.write_float64(self.position[1])
