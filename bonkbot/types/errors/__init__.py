@@ -4,3 +4,12 @@ from .bot_not_logged_error import BotNotLoggedInError
 from .error_type import ErrorType
 from .room_already_connected import RoomAlreadyConnected
 from .room_not_connected import RoomNotConnected
+
+__all__ = [
+    'ApiError',
+    'BotAlreadyLoggedInError',
+    'BotNotLoggedInError',
+    'ErrorType',
+    'RoomAlreadyConnected',
+    'RoomNotConnected',
+]
