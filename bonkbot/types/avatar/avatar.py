@@ -12,15 +12,20 @@ class Avatar:
     layers: List['Layer'] = field(factory=list) # max 16 layers
     base_color: int = field(default=0x448AFF)
 
-    @staticmethod
-    def from_buffer(buffer: 'ByteBuffer') -> 'Avatar':
-        avatar = Avatar()
+    @classmethod
+    def from_base64(cls, data: str) -> 'Avatar':
+        buffer = ByteBuffer(big_endian=True).from_base64(data, uri_encoded=True)
+        return cls.from_buffer(buffer)
+
+    @classmethod
+    def from_buffer(cls, buffer: 'ByteBuffer') -> 'Avatar':
+        avatar = cls()
         if buffer.size == 0:
             return avatar
         layers = [None] * 16
-        buffer.read_bytes(4)
+        _ = buffer.read_bytes(4)
         version = buffer.read_int16()
-        buffer.read_uint8()
+        _ = buffer.read_uint8()
         layer_count = (buffer.read_uint8() - 1) // 2
         marker = buffer.read_uint8()
         while marker != 1:
@@ -37,6 +42,10 @@ class Avatar:
         if version >= 2:
             avatar.base_color = buffer.read_int32()
         return avatar
+
+    def to_base64(self) -> str:
+        buffer = self.to_buffer()
+        return buffer.to_base64(uri_encode=True)
 
     def to_buffer(self, buffer: Union['ByteBuffer', None] = None) -> 'ByteBuffer':
         if buffer is None:

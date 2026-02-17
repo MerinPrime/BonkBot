@@ -282,25 +282,25 @@ class BonkBot(BotEventHandler):
     def active_avatar_id(self) -> int:
         if not self._is_logged:
             raise BotNotLoggedInError()
-        return self._data.active_avatar
+        return self._data.active_avatar_id
 
     @active_avatar_id.setter
     def active_avatar_id(self, new_active_avatar_id: int) -> None:
         if not self._is_logged:
             raise BotNotLoggedInError()
-        self._data.active_avatar = new_active_avatar_id
+        self._data.active_avatar_id = new_active_avatar_id
 
     @property
     def active_avatar(self) -> Avatar:
         if not self._is_logged:
             raise BotNotLoggedInError()
-        return self._data.avatar
+        return self._data.active_avatar
 
     @active_avatar.setter
     def active_avatar(self, new_avatar: 'Avatar') -> None:
         if not self._is_logged:
             raise BotNotLoggedInError()
-        self._data.avatar = new_avatar
+        self._data.active_avatar = new_avatar
 
     def get_avatar(self, index: int) -> 'Avatar':
         if not self._is_logged:
@@ -322,7 +322,7 @@ class BonkBot(BotEventHandler):
     def legacy_friends(self) -> List['Friend']:
         if not self._is_logged:
             raise BotNotLoggedInError()
-        return self._data.legacy_friends
+        return self._data.bonk_v1_friends
 
     @property
     def settings(self) -> 'Settings':

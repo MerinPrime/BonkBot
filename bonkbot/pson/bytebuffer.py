@@ -9,13 +9,13 @@ from lzstring import LZString
 class ByteBuffer:
     __slots__ = ('bytes', 'endian', 'offset')
 
-    def __init__(self, _bytes: Optional[bytearray] = None) -> None:
+    def __init__(self, _bytes: Optional[bytearray] = None, *, big_endian: bool = True) -> None:
         if _bytes is None:
             self.bytes: bytearray = bytearray()
         else:
             self.bytes: bytearray = _bytes
         self.offset: int = 0
-        self.endian: str = '>'
+        self.endian: str = '>' if big_endian else '<'
 
     @property
     def size(self) -> int:

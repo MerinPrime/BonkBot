@@ -38,8 +38,13 @@ class Settings:
 
     quality: int = field(default=3)
 
-    @staticmethod
-    def from_buffer(buffer: 'ByteBuffer') -> 'Settings':
+    @classmethod
+    def from_base64(cls, data: str) -> 'Settings':
+        buffer = ByteBuffer(big_endian=True).from_base64(data)
+        return cls.from_buffer(buffer)
+
+    @classmethod
+    def from_buffer(cls, buffer: 'ByteBuffer') -> 'Settings':
         settings = Settings()
         if buffer.size == 0:
             return settings
