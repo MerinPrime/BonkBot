@@ -46,8 +46,8 @@ class MapProperties:
         return self
 
     def to_buffer(self, buffer: 'ByteBuffer') -> None:
-        buffer.write_bool(self.players_dont_collide)
         buffer.write_bool(self.respawn_on_death)
+        buffer.write_bool(self.players_dont_collide)
         buffer.write_int16(2 if self.complex_physics else 1)
         buffer.write_float32(self.grid_size)
         buffer.write_bool(self.players_can_fly)
