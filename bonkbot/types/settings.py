@@ -1,9 +1,7 @@
-from typing import TYPE_CHECKING
 
 from attrs import define, field
 
-if TYPE_CHECKING:
-    from ..pson.bytebuffer import ByteBuffer
+from ..pson.bytebuffer import ByteBuffer
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/CustomControls.ts
