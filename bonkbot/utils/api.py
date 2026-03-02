@@ -38,3 +38,21 @@ def validate_username(username: str, *, is_guest: bool) -> Optional[ErrorType]:
             return ErrorType.USERNAME_INVALID_CHARS
 
     return None
+
+
+def parse_nullable_number(value: object) -> Optional[int]:
+    if value is None:
+        return None
+
+    try:
+        if isinstance(value, (str, int, float)):
+            parsed = float(value)
+        else:
+            return None
+    except ValueError:
+        return None
+
+    if parsed != parsed or parsed in (float('inf'), float('-inf')):
+        return None
+
+    return int(parsed)

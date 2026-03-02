@@ -12,6 +12,7 @@ from ...types.mode import Mode
 from ...types.room import RoomInfo
 from ...types.room.room_join_params import RoomJoinParams
 from ...types.server import Server
+from ...utils.api import parse_nullable_number
 from ..api.endpoints import Endpoints
 from ..api.socket_events import PROTOCOL_VERSION
 from .bot_data import BotData
@@ -81,8 +82,8 @@ class BonkAPI:
     async def fetch_room_data(
         self,
         room_id: int,
-        password: str = '',
-        bypass: str = '',
+        password: Optional[str] = None,
+        bypass: Optional[str] = None,
     ) -> Union['ErrorType', 'RoomJoinParams']:
         response = await self.aiohttp_session.post(
             url=Endpoints.GET_ROOM_ADDRESS,
@@ -109,6 +110,8 @@ class BonkAPI:
     ) -> Union['ErrorType', 'RoomJoinParams']:
         regex = r'/(\d{6})([a-zA-Z0-9]{5})?$'
         match = re.search(regex, link)
+        if match is None:
+            return ErrorType.ROOM_NOT_FOUND
         room_id = match.group(1)
         bypass = match.group(2)
         response = await self.aiohttp_session.post(
@@ -120,7 +123,7 @@ class BonkAPI:
         if response_data['r'] == 'failed':
             return ErrorType.ROOM_NOT_FOUND
         return RoomJoinParams(
-            room_address=response_data['address'],
+            room_address=int(response_data['address']),
             password=password,
             bypass=bypass,
             name=response_data['roomname'],
@@ -179,10 +182,10 @@ class BonkAPI:
         return [
             Friend(
                 name=friend['name'],
-                dbid=friend['id'],
-                room_id=friend['roomid'],
+                dbid=parse_nullable_number(friend.get('id')),
+                room_id=parse_nullable_number(friend.get('roomid')),
             )
-            for friend in response_data['friends']
+            for friend in response_data.get('friends', [])
         ]
 
     async def fetch_own_maps(self, token: str, start_from: int) -> List['BonkMap']:
