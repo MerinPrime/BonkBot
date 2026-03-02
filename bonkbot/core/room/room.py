@@ -393,7 +393,6 @@ class Room:
                         timeout=peer_timeout,
                     )
                 except asyncio.TimeoutError:
-                    # TODO: Add logger
                     print(
                         f'Timeout: Peers did not connect within {peer_timeout} seconds. Will be used only socket.',
                     )

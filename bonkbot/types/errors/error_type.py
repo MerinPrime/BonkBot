@@ -70,7 +70,7 @@ class ErrorType(enum.Enum):
     """
     JOIN_RATE_LIMITED = ('join_rate_limited',)
     """
-    TODO: Idk
+    Description is not fully documented yet.
     """
     PASSWORD_WRONG = ('password_wrong',)
     """

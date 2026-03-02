@@ -32,9 +32,6 @@ class BonkMap:
     spawns: List['Spawn'] = field(factory=list)
     cap_zones: List['CaptureZone'] = field(factory=list)
 
-    # TODO: Make user-friendly
-    # TODO: And maybe split to_json, from_json, decode_from_database to MapMetadata, MapProperties, MapPhysics etc.
-
     def to_json(self) -> dict:
         data = {
             'v': self.version,

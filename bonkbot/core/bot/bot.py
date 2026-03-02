@@ -220,8 +220,6 @@ class BonkBot(BotEventHandler):
             raise BotNotLoggedInError()
         return await self._bonk_api.fetch_own_maps(self._data.token, start_from)
 
-    # TODO: Get favs, b2, b1, map delete
-
     @property
     def event_loop(self) -> 'AbstractEventLoop':
         return self._event_loop
@@ -246,7 +244,7 @@ class BonkBot(BotEventHandler):
     def data(self) -> 'BotData':
         if not self._is_logged:
             raise BotNotLoggedInError()
-        return self._data  # TODO: Maybe better return a copy?
+        return self._data
 
     @property
     def name(self) -> str:

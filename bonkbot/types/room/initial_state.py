@@ -70,5 +70,3 @@ PSON_KEYS = [
     65535,
     16777215,
 ]
-
-# TODO: InitialState with lazy evaluation
