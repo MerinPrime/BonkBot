@@ -2,7 +2,8 @@ from typing import Any, Dict, List, Optional
 
 from attrs import define, field
 
-from ...pson.bytebuffer import ByteBuffer
+from ...utils import parse_nullable_number
+
 from ...types.avatar.avatar import Avatar
 from ...types.friend import Friend
 from ...types.settings import Settings
@@ -43,8 +44,8 @@ class BotData:
         bonk_v2_friends = [
             Friend(
                 name=friend_data['name'],
-                dbid=friend_data['id'],
-                room_id=friend_data['roomid'],
+                dbid=parse_nullable_number(friend_data.get('id')),
+                room_id=parse_nullable_number(friend_data.get('roomid')),
             )
             for friend_data in json_data.get('friends', [])
         ]
@@ -76,5 +77,5 @@ class BotData:
             bonk_v2_friends=bonk_v2_friends,
             bonk_v1_friends=bonk_v1_friends,
             friends=friends,
-            settings=settings
+            settings=settings,
         )
