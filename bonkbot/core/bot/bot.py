@@ -157,6 +157,7 @@ class BonkBot(BotEventHandler):
                 server=server,
             ),
         )
+        self._rooms.append(room)
         return room
 
     async def join_room(
@@ -170,7 +171,9 @@ class BonkBot(BotEventHandler):
         result = await self.api_client.fetch_room_data(room_id, password, bypass)
         if isinstance(result, ErrorType):
             raise ApiError(result)
-        return Room(bot=self, room_params=result)
+        room = Room(bot=self, room_params=result)
+        self._rooms.append(room)
+        return room
 
     async def join_room_via_link(
         self,
@@ -182,10 +185,9 @@ class BonkBot(BotEventHandler):
         result = await self.api_client.fetch_room_data_via_link(link, password)
         if isinstance(result, ErrorType):
             raise ApiError(result)
-        return Room(bot=self, room_params=result)
-
-    def add_room(self, room: 'Room') -> None:
+        room = Room(bot=self, room_params=result)
         self._rooms.append(room)
+        return room
 
     def remove_room(self, room: 'Room') -> None:
         self._rooms.remove(room)

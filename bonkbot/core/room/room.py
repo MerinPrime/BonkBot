@@ -199,7 +199,6 @@ class Room:
         if self._running:
             raise RoomAlreadyConnected(self)
         self._running = True
-        self._bot.add_room(self)
         self._socket = AsyncClient(ssl_verify=False)
         self.__bind_listeners()
         self._bind_sugar()
@@ -249,7 +248,9 @@ class Room:
         self._peer_event = None
         self._connections = []
         self._sequence = 0
-        self._bot.remove_room(self)
+        self._bot.remove_room(
+            self
+        )  # TODO: fix with adding listener on_room_disconnect in BonkBot
         await self._bot.dispatch(BotEventHandler.on_room_disconnect, self)
 
     async def _handle_p2p_revert(self) -> None:
