@@ -13,8 +13,8 @@ from ...types.room.room_create_params import RoomCreateParams
 from ...types.server import Server
 from ...utils.api import validate_username
 from ...utils.xp import xp_to_level
+from ..api.bonk_api import BonkAPI
 from ..room.room import Room
-from .bonk_api import BonkAPI
 from .bot_data import BotData
 from .bot_event_handler import BotEventHandler
 

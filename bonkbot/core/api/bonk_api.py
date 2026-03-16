@@ -13,9 +13,9 @@ from ...types.room import RoomInfo
 from ...types.room.room_join_params import RoomJoinParams
 from ...types.server import Server
 from ...utils.api import parse_nullable_number
-from ..api.endpoints import Endpoints
-from ..api.socket_events import PROTOCOL_VERSION
-from .bot_data import BotData
+from ..bot.bot_data import BotData
+from .endpoints import Endpoints
+from .socket_events import PROTOCOL_VERSION
 
 
 class BonkAPI:
