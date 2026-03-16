@@ -282,7 +282,8 @@ class Room:
                         and not move.peer_ignored
                         and not move.reverted
                     ):
-                        move.reverted = True
+                        reverted_move = attrs.evolve(move, reverted=True)
+                        player.moves[i] = reverted_move
                         player.peer_reverts += 1
                         if player.peer_reverts >= 4:
                             player.peer_reverts = 0
@@ -296,7 +297,7 @@ class Room:
                                 BotEventHandler.on_move_revert,
                                 self,
                                 player,
-                                move,
+                                reverted_move,
                             ),
                         )
 
