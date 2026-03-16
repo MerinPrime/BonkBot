@@ -872,7 +872,7 @@ class Room:
             game_settings.balance += [0] * (len(game_settings.balance) + 1 - player_id)
         game_settings.balance[player_id] = balance
         player = self.get_player_by_id(player_id)
-        await self.bot.dispatch(BotEventHandler.on_set_balance, self, player)
+        await self.bot.dispatch(BotEventHandler.on_set_balance, self, player, balance)
 
     async def __on_teams_toggle(self, state: bool) -> None:
         if state:
