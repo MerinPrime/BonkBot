@@ -586,6 +586,8 @@ dependencies = [
     { name = "pymitter" },
     { name = "python-engineio" },
     { name = "python-socketio" },
+    { name = "typing-extensions", version = "4.13.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
+    { name = "typing-extensions", version = "4.15.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version == '3.9.*'" },
 ]
 
 [package.metadata]
@@ -597,6 +599,7 @@ requires-dist = [
     { name = "pymitter", specifier = "~=1.0.0" },
     { name = "python-engineio", specifier = "~=3.14" },
     { name = "python-socketio", specifier = "~=4.6" },
+    { name = "typing-extensions", marker = "python_full_version < '3.10'", specifier = ">=4.0" },
 ]
 
 [[package]]
