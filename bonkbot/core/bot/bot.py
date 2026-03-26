@@ -319,10 +319,16 @@ class BonkBot(BotEventHandler):
         return self._data.friends
 
     @property
-    def legacy_friends(self) -> List['Friend']:
+    def v1_friends(self) -> List['Friend']:
         if not self._is_logged:
             raise BotNotLoggedInError()
         return self._data.bonk_v1_friends
+
+    @property
+    def v2_friends(self) -> List['Friend']:
+        if not self._is_logged:
+            raise BotNotLoggedInError()
+        return self._data.bonk_v2_friends
 
     @property
     def settings(self) -> 'Settings':
