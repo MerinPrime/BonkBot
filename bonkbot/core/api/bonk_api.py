@@ -11,7 +11,7 @@ from ...types.map import BonkMap
 from ...types.mode import Mode
 from ...types.room import RoomInfo
 from ...types.room.room_join_params import RoomJoinParams
-from ...types.server import Server
+from ...types.server import ServerList
 from ...utils.api import parse_nullable_number
 from ..bot.bot_data import BotData
 from .endpoints import Endpoints
@@ -100,7 +100,7 @@ class BonkAPI:
             password=password,
             bypass=bypass,
             name=response_data['roomname'],
-            server=Server.from_name(response_data['server']),
+            server=ServerList.from_name(response_data['server']),
         )
 
     async def fetch_room_data_via_link(
@@ -127,10 +127,10 @@ class BonkAPI:
             password=password,
             bypass=bypass,
             name=response_data['roomname'],
-            server=Server.from_name(response_data['server']),
+            server=ServerList.from_name(response_data['server']),
         )
 
-    async def fetch_server(self) -> 'Server':
+    async def fetch_server(self) -> 'ServerList':
         response = await self.aiohttp_session.post(
             Endpoints.GET_ROOMS,
             data={
@@ -141,7 +141,7 @@ class BonkAPI:
         )
         response.raise_for_status()
         response_data = await response.json()
-        return Server.from_name(response_data['createserver'])
+        return ServerList.from_name(response_data['createserver'])
 
     async def fetch_rooms(self) -> List['RoomInfo']:
         response = await self.aiohttp_session.post(

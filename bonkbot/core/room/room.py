@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
     from ...types.room.game_settings import GameSettings
     from ...types.room.room_join_params import RoomJoinParams
-    from ...types.server import Server
+    from ...types.server import ServerList
     from ..bot.bot import BonkBot
 
 
@@ -155,7 +155,7 @@ class Room:
         return self._socket
 
     @property
-    def server(self) -> 'Server':
+    def server(self) -> 'ServerList':
         return self._room_params.server
 
     @property

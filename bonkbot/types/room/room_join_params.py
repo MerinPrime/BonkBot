@@ -2,7 +2,7 @@ from typing import Optional, Union
 
 from attr import define
 
-from ..server import Server
+from ..server import ServerList
 
 
 @define(slots=True, auto_attribs=True, frozen=True)
@@ -11,4 +11,4 @@ class RoomJoinParams:
     name: Optional[str]
     password: Optional[str]
     bypass: Optional[str]
-    server: Server
+    server: ServerList

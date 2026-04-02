@@ -3,7 +3,7 @@ from .friend import Friend
 from .input import InputFlag, Inputs
 from .mode import Mode
 from .player_move import PlayerMove
-from .server import Server
+from .server import Server, ServerList
 from .settings import Settings
 from .team import Team
 
@@ -14,6 +14,7 @@ __all__ = [
     'Mode',
     'PlayerMove',
     'Server',
+    'ServerList',
     'Settings',
     'Team',
     'avatar',

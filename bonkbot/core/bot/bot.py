@@ -10,7 +10,7 @@ from ...types.errors.api_error import ApiError
 from ...types.errors.bot_not_logged_error import BotNotLoggedInError
 from ...types.errors.error_type import ErrorType
 from ...types.room.room_create_params import RoomCreateParams
-from ...types.server import Server
+from ...types.server import ServerList
 from ...utils.api import validate_username
 from ...utils.xp import xp_to_level
 from ..api.bonk_api import BonkAPI
@@ -36,7 +36,7 @@ class BonkBot(BotEventHandler):
             event_loop = asyncio.get_event_loop()
         if aiohttp_session is None:
             aiohttp_session = ClientSession(loop=event_loop)
-        self.server: Server = Server.WARSAW
+        self.server: ServerList = ServerList.WARSAW
         self._event_loop: AbstractEventLoop = event_loop
         self._bonk_api: BonkAPI = BonkAPI(event_loop, aiohttp_session)
         self._data: Optional[BotData] = None
@@ -131,7 +131,7 @@ class BonkBot(BotEventHandler):
         max_players: int = 6,
         min_level: int = 0,
         max_level: int = 999,
-        server: 'Server' = None,
+        server: 'ServerList' = None,
     ) -> 'Room':
         if not self._is_logged:
             raise BotNotLoggedInError()
@@ -202,11 +202,11 @@ class BonkBot(BotEventHandler):
             raise BotNotLoggedInError()
         self._data.token = new_token
 
-    async def update_server(self) -> 'Server':
+    async def update_server(self) -> 'ServerList':
         self.server = await self.fetch_server()
         return self.server
 
-    async def fetch_server(self) -> 'Server':
+    async def fetch_server(self) -> 'ServerList':
         return await self._bonk_api.fetch_server()
 
     async def fetch_rooms(self) -> List['RoomInfo']:
