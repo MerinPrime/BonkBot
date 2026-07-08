@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union, cast
 
 from .bytebuffer import ByteBuffer
 from .type import JsonValue, PSONType
@@ -12,8 +12,8 @@ from .utils import (
 
 
 class StaticPair:
-    str2code: dict
-    code2str: dict
+    str2code: Dict[str, int]
+    code2str: Dict[int, str]
     next_idx: int
 
     def __init__(self, keys: Optional[List[str]] = None) -> None:
@@ -30,7 +30,7 @@ class StaticPair:
     def encode(
         self,
         value: Optional[JsonValue],
-        buffer: 'ByteBuffer' = None,
+        buffer: Optional['ByteBuffer'] = None,
     ) -> 'ByteBuffer':
         if buffer is None:
             buffer = ByteBuffer()
@@ -44,8 +44,8 @@ class StaticPair:
     def encode_value(
         self,
         value: Optional[JsonValue],
-        buffer: 'ByteBuffer' = None,
-    ) -> 'ByteBuffer':
+        buffer: 'ByteBuffer',
+    ) -> None:
         if value is None:
             buffer.write_uint8(PSONType.NULL)
         elif type(value) is str:
@@ -103,10 +103,8 @@ class StaticPair:
         else:
             raise TypeError(type(value).__name__)
 
-        return buffer
-
     def decode(self, _bytes: Union[bytearray, 'ByteBuffer']) -> JsonValue:
-        if type(_bytes) is bytearray:
+        if isinstance(_bytes, bytearray):
             buffer = ByteBuffer(_bytes)
         else:
             buffer = _bytes
@@ -135,9 +133,9 @@ class StaticPair:
         if code == PSONType.EMPTY_STRING:
             return ''
         if code == PSONType.OBJECT:
-            obj = {}
+            obj: JsonValue = {}
             for _ in range(buffer.read_varint32()):
-                key = self.decode_value(buffer)
+                key = cast('str', self.decode_value(buffer))
                 value = self.decode_value(buffer)
                 try:
                     obj[key] = value
@@ -145,7 +143,7 @@ class StaticPair:
                     pass
             return obj
         if code == PSONType.ARRAY:
-            arr = []
+            arr: JsonValue = []
             for _ in range(buffer.read_varint32()):
                 arr.append(self.decode_value(buffer))
             return arr

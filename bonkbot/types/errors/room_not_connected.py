@@ -5,6 +5,8 @@ if TYPE_CHECKING:
 
 
 class RoomNotConnected(Exception):
+    room: 'Room'
+
     def __init__(self, room: 'Room'):
         self.room = room
         super().__init__(f"Room '{room.name}' is not running.")

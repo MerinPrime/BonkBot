@@ -1,7 +1,5 @@
 import enum
 
-PROTOCOL_VERSION = 49
-
 
 class SocketEvents:
     class Incoming(enum.IntEnum):

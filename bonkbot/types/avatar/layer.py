@@ -2,6 +2,8 @@ from typing import TYPE_CHECKING, Optional
 
 from attrs import define, field
 
+from ._json import LayerJson
+
 if TYPE_CHECKING:
     from ...pson.bytebuffer import ByteBuffer
 
@@ -24,10 +26,10 @@ class Layer:
         if buffer.read_uint8() != 10:
             return None
         if buffer.read_uint8() == 7:
-            buffer.read_uint8()
-            buffer.read_uint8()
-            buffer.read_uint8()
-        buffer.read_int16()
+            _ = buffer.read_uint8()
+            _ = buffer.read_uint8()
+            _ = buffer.read_uint8()
+        _ = buffer.read_int16()
         layer = Layer(
             id=buffer.read_uint16(),
             scale=buffer.read_float32(),
@@ -41,7 +43,7 @@ class Layer:
         return layer
 
     @staticmethod
-    def from_json(data: dict) -> 'Layer':
+    def from_json(data: LayerJson) -> 'Layer':
         layer = Layer(
             id=data['id'],
             scale=data['scale'],
@@ -54,7 +56,7 @@ class Layer:
         )
         return layer
 
-    def to_json(self) -> dict:
+    def to_json(self) -> LayerJson:
         return {
             'id': self.id,
             'scale': self.scale,

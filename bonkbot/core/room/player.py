@@ -4,7 +4,6 @@ from attrs import define, field
 
 from ...types.errors.api_error import ApiError
 from ...types.errors.error_type import ErrorType
-from ...types.team import Team
 from ..api.socket_events import SocketEvents
 
 if TYPE_CHECKING:
@@ -13,6 +12,7 @@ if TYPE_CHECKING:
     from ...types.avatar import Avatar
     from ...types.input import Inputs
     from ...types.player_move import PlayerMove
+    from ...types.team import Team
     from ..bot.bot import BonkBot
     from .room import Room
 
@@ -72,7 +72,7 @@ class Player:
             {'banshortid': self.id, 'kickonly': False},
         )
 
-    async def change_team(self, new_team: Team) -> None:
+    async def change_team(self, new_team: 'Team') -> None:
         if self.is_bot:
             await self.room.socket.emit(
                 SocketEvents.Outgoing.SET_OWN_TEAM,

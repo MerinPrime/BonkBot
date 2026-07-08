@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, List, Optional
 from aiohttp import ClientSession
 
 from ...types.avatar.avatar import Avatar
+from ...types.bot_data import BotData
 from ...types.errors import BotAlreadyLoggedInError
 from ...types.errors.api_error import ApiError
 from ...types.errors.bot_not_logged_error import BotNotLoggedInError
@@ -15,7 +16,6 @@ from ...utils.api import validate_username
 from ...utils.xp import xp_to_level
 from ..api.bonk_api import BonkAPI
 from ..room.room import Room
-from .bot_data import BotData
 from .bot_event_handler import BotEventHandler
 
 if TYPE_CHECKING:

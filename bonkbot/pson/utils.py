@@ -1,10 +1,11 @@
 import struct
+from typing import cast
 
 
 def is_double(value: float) -> bool:
     try:
         packed_f32 = struct.pack('>f', value)
-        unpacked_f32 = struct.unpack('>f', packed_f32)[0]
+        unpacked_f32 = cast('float', struct.unpack('>f', packed_f32)[0])
         return value != unpacked_f32
     except OverflowError:
         return True

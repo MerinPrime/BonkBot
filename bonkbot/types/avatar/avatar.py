@@ -1,8 +1,9 @@
-from typing import List, Union
+from typing import List, Optional, Union
 
 from attrs import define, field
 
 from ...pson.bytebuffer import ByteBuffer
+from ._json import AvatarJson
 from .layer import Layer
 
 
@@ -10,7 +11,7 @@ from .layer import Layer
 @define(slots=True, auto_attribs=True)
 class Avatar:
     layers: List['Layer'] = field(factory=list)  # max 16 layers
-    base_color: int = field(default=0x448AFF)
+    base_color: int = field(default=0x448AFF)  # 0x000000, 0xFFFFFF
 
     @classmethod
     def from_base64(cls, data: str) -> 'Avatar':
@@ -22,7 +23,7 @@ class Avatar:
         avatar = cls()
         if buffer.size == 0:
             return avatar
-        layers = [None] * 16
+        layers: list[Optional[Layer]] = [None] * 16
         _ = buffer.read_bytes(4)
         version = buffer.read_int16()
         _ = buffer.read_uint8()
@@ -38,7 +39,7 @@ class Avatar:
             marker = buffer.read_uint8()
         for i in range(layer_count):
             layers[i] = Layer.from_buffer(buffer)
-        avatar.layers = list(filter(lambda x: x is not None, layers))
+        avatar.layers = [layer for layer in layers if layer is not None]
         if version >= 2:
             avatar.base_color = buffer.read_int32()
         return avatar
@@ -86,17 +87,16 @@ class Avatar:
         return buffer
 
     @staticmethod
-    def from_json(data: dict) -> 'Avatar':
+    def from_json(data: AvatarJson) -> 'Avatar':
         avatar = Avatar()
         avatar.base_color = data['bc']
         avatar.layers = [
-            Layer.from_json(layer) if layer is not None else None
-            for layer in data['layers']
+            Layer.from_json(layer) for layer in data['layers'] if layer is not None
         ]
         return avatar
 
-    def to_json(self) -> dict:
+    def to_json(self) -> AvatarJson:
         return {
-            'bc': self.base_color,
             'layers': [layer.to_json() for layer in self.layers],
+            'bc': self.base_color,
         }

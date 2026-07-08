@@ -9,4 +9,4 @@ class ApiError(Exception):
 
     def __init__(self, error_type: 'ErrorType'):
         self.error_type = error_type
-        super().__init__(self.error_type)
+        super().__init__(error_type)

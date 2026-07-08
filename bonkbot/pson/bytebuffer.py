@@ -1,25 +1,33 @@
 import base64
 import struct
-from typing import Optional, Union
+from typing import Literal, Optional, Union, cast
 from urllib.parse import quote, unquote
 
 from lzstring import LZString
 
 
 class ByteBuffer:
-    __slots__ = ('bytes', 'endian', 'offset')
+    _bytes: bytearray
+    offset: int
+    endian: Union[Literal['>'], Literal['<']]
 
-    def __init__(self, _bytes: Optional[bytearray] = None, *, big_endian: bool = True) -> None:
+    def __init__(
+        self, _bytes: Optional[bytearray] = None, *, big_endian: bool = True
+    ) -> None:
         if _bytes is None:
-            self.bytes: bytearray = bytearray()
+            self._bytes = bytearray()
         else:
-            self.bytes: bytearray = _bytes
-        self.offset: int = 0
-        self.endian: str = '>' if big_endian else '<'
+            self._bytes = _bytes
+        self.offset = 0
+        self.endian = '>' if big_endian else '<'
 
     @property
     def size(self) -> int:
-        return len(self.bytes)
+        return len(self._bytes)
+
+    @property
+    def data(self) -> bytearray:
+        return self._bytes
 
     def set_endian(self, endian: str) -> None:
         if endian not in ('<', '>'):
@@ -39,7 +47,7 @@ class ByteBuffer:
             raise EOFError(
                 f'Not enough bytes to read. Requested {count}, available {self.size - self.offset}',
             )
-        data = self.bytes[self.offset : self.offset + count]
+        data = self._bytes[self.offset : self.offset + count]
         self.offset += count
         return data
 
@@ -53,14 +61,18 @@ class ByteBuffer:
     ) -> 'ByteBuffer':
         if uri_encoded:
             data = unquote(data)
+
         if case_encoded:
             head, tail = data[:101], data[101:]
             data = head.swapcase() + tail
+
         if lz_encoded:
-            data = LZString.decompressFromEncodedURIComponent(data)
-            if data is None:
+            decompressed = LZString.decompressFromEncodedURIComponent(data)
+            if decompressed is None:
                 raise ValueError('LZString decompression failed')
-        self.bytes += base64.b64decode(data)
+            data = decompressed
+
+        self._bytes += base64.b64decode(data)
         return self
 
     def to_base64(
@@ -70,42 +82,44 @@ class ByteBuffer:
         lz_encode: bool = False,
         case_encode: bool = False,
     ) -> str:
-        encoded = base64.b64encode(self.bytes)
+        encoded = base64.b64encode(self._bytes)
         encoded = encoded.decode('ascii')
+
         if lz_encode:
             encoded = LZString.compressToEncodedURIComponent(encoded)
-            if encoded is None:
-                raise ValueError('LZString compression failed')
+
         if case_encode:
             head, tail = encoded[:101], encoded[101:]
             encoded = head.swapcase() + tail
+
         if uri_encode:
             encoded = quote(encoded)
+
         return encoded
 
     def read_uint8(self) -> int:
-        return struct.unpack(self.endian + 'B', self.read_bytes(1))[0]
+        return cast('int', struct.unpack(self.endian + 'B', self.read_bytes(1))[0])
 
     def read_int8(self) -> int:
-        return struct.unpack(self.endian + 'b', self.read_bytes(1))[0]
+        return cast('int', struct.unpack(self.endian + 'b', self.read_bytes(1))[0])
 
     def read_uint16(self) -> int:
-        return struct.unpack(self.endian + 'H', self.read_bytes(2))[0]
+        return cast('int', struct.unpack(self.endian + 'H', self.read_bytes(2))[0])
 
     def read_int16(self) -> int:
-        return struct.unpack(self.endian + 'h', self.read_bytes(2))[0]
+        return cast('int', struct.unpack(self.endian + 'h', self.read_bytes(2))[0])
 
     def read_uint32(self) -> int:
-        return struct.unpack(self.endian + 'I', self.read_bytes(4))[0]
+        return cast('int', struct.unpack(self.endian + 'I', self.read_bytes(4))[0])
 
     def read_int32(self) -> int:
-        return struct.unpack(self.endian + 'i', self.read_bytes(4))[0]
+        return cast('int', struct.unpack(self.endian + 'i', self.read_bytes(4))[0])
 
     def read_uint64(self) -> int:
-        return struct.unpack(self.endian + 'Q', self.read_bytes(8))[0]
+        return cast('int', struct.unpack(self.endian + 'Q', self.read_bytes(8))[0])
 
     def read_int64(self) -> int:
-        return struct.unpack(self.endian + 'q', self.read_bytes(8))[0]
+        return cast('int', struct.unpack(self.endian + 'q', self.read_bytes(8))[0])
 
     def read_varint32(self) -> int:
         value = 0
@@ -130,10 +144,10 @@ class ByteBuffer:
         raise ValueError('Encoded varint64 is too large')
 
     def read_float32(self) -> float:
-        return struct.unpack(self.endian + 'f', self.read_bytes(4))[0]
+        return cast('float', struct.unpack(self.endian + 'f', self.read_bytes(4))[0])
 
     def read_float64(self) -> float:
-        return struct.unpack(self.endian + 'd', self.read_bytes(8))[0]
+        return cast('float', struct.unpack(self.endian + 'd', self.read_bytes(8))[0])
 
     def read_str(self) -> str:
         length = self.read_uint8()
@@ -150,8 +164,8 @@ class ByteBuffer:
     def write_bytes(self, data: Union[bytearray, bytes]) -> None:
         data_len = len(data)
         if self.offset + data_len > self.size:
-            self.bytes.extend(b'\x00' * (self.offset + data_len - self.size))
-        self.bytes[self.offset : self.offset + data_len] = data
+            self._bytes.extend(b'\x00' * (self.offset + data_len - self.size))
+        self._bytes[self.offset : self.offset + data_len] = data
         self.offset += data_len
 
     def write_uint8(self, value: int) -> None:

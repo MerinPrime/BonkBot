@@ -1,18 +1,19 @@
-from typing import Optional
+from typing import Optional, final
 
 
+@final
 class Endpoints:
-    BASE_URL: str = 'https://bonk2.io'
-    SCRIPTS: str = f'{BASE_URL}/scripts'
+    BASE_URL = 'https://bonk2.io'
+    SCRIPTS = f'{BASE_URL}/scripts'
 
-    LOGIN_LEGACY: str = f'{SCRIPTS}/login_legacy.php'
-    LOGIN_AUTO: str = f'{SCRIPTS}/login_auto.php'
-    GET_ROOMS: str = f'{SCRIPTS}/getrooms.php'
-    GET_FRIENDS: str = f'{SCRIPTS}/friends.php'
-    GET_MATCHMAKING_SERVER: str = f'{SCRIPTS}/matchmaking_query.php'
-    GET_ROOM_ADDRESS: str = f'{SCRIPTS}/getroomaddress.php'
-    GET_OWN_MAPS: str = f'{SCRIPTS}/map_getown.php'
-    AUTO_JOIN: str = f'{SCRIPTS}/autojoin.php'
+    LOGIN_LEGACY = f'{SCRIPTS}/login_legacy.php'
+    LOGIN_AUTO = f'{SCRIPTS}/login_auto.php'
+    GET_ROOMS = f'{SCRIPTS}/getrooms.php'
+    GET_FRIENDS = f'{SCRIPTS}/friends.php'
+    GET_MATCHMAKING_SERVER = f'{SCRIPTS}/matchmaking_query.php'
+    GET_ROOM_ADDRESS = f'{SCRIPTS}/getroomaddress.php'
+    GET_OWN_MAPS = f'{SCRIPTS}/map_getown.php'
+    AUTO_JOIN = f'{SCRIPTS}/autojoin.php'
 
     @staticmethod
     def socket_api(server_id: str) -> str:

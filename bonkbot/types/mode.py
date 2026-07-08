@@ -1,18 +1,28 @@
 import enum
+from typing import Literal, Union
 
 from attrs import define, field
+
+ModeCode = Union[
+    Literal['b'],
+    Literal['bs'],
+    Literal['ar'],
+    Literal['ard'],
+    Literal['sp'],
+    Literal['v'],
+    Literal['f'],
+]
 
 
 @define(slots=True, auto_attribs=True, frozen=True)
 class GaMo:
     engine: str = field()
-    mode: str = field()
+    mode: ModeCode = field()
     id: int = field()
 
 
 # Source: https://github.com/MerinPrime/ReBonk/blob/master/src/core/GameSettings.ts
 class Mode(enum.Enum):
-    NONE = GaMo(engine='', mode='', id=0)
     CLASSIC = GaMo(engine='b', mode='b', id=1)
     SIMPLE = GaMo(engine='b', mode='bs', id=2)
     ARROWS = GaMo(engine='b', mode='ar', id=3)
@@ -38,7 +48,7 @@ class Mode(enum.Enum):
         for mode in Mode:
             if mode.mode == string:
                 return mode
-        raise ValueError(f'Invalid mode code: {string}')
+        return Mode.CLASSIC
 
     @staticmethod
     def from_mode_id(mode_id: int) -> 'Mode':

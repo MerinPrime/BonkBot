@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 @define(slots=True, auto_attribs=True)
-class RoomData:
+class RoomState:
     name: str
     password: Optional[str] = None
     join_id: Optional[str] = None

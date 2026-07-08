@@ -24,10 +24,11 @@ from ...types.player_move import PlayerMove
 from ...types.room.initial_state import PSON_KEYS
 from ...types.room.room_action import RoomAction
 from ...types.room.room_create_params import RoomCreateParams
-from ...types.room.room_data import RoomData
+from ...types.room.room_state import RoomState
 from ...types.team import Team, TeamState
+from ..api.constants import PROTOCOL_VERSION
 from ..api.endpoints import Endpoints
-from ..api.socket_events import PROTOCOL_VERSION, SocketEvents
+from ..api.socket_events import SocketEvents
 from ..bot.bot_event_handler import BotEventHandler
 from .player import Player
 from .timesyncer import TimeSyncer
@@ -50,14 +51,20 @@ class Room:
     ) -> None:
         self._bot: BonkBot = bot
         self._room_params: Union[RoomJoinParams, RoomCreateParams] = room_params
-        self._action: RoomAction = (
+        self._action: RoomAction = (  # TODO: instant action in bot logic
             RoomAction.CREATE
             if isinstance(room_params, RoomCreateParams)
             else RoomAction.JOIN
         )
 
-        self._room_data: Optional[RoomData] = None
-        self._socket: Optional[AsyncClient] = None
+        # TODO: idk maybe separate into
+        # RoomConnection
+        # RoomSocketHandler
+        # RoomSocketDispatcher
+        # PeerManager
+        # RevertHandler
+        self._room_data: Optional[RoomState] = None
+        self._socket: Optional[AsyncClient] = None  # TODO: RoomConnection
         self._time_offset: Optional[int] = None
         self._synced: bool = False
         self._peer_id: Optional[str] = None
@@ -208,7 +215,7 @@ class Room:
 
         async def init_socket() -> None:
             await self._socket.connect(
-                Endpoints.socket_api(self._room_params.server.api_name),
+                Endpoints.socket_api(self._room_params.server.name),
             )
             await self._make_timesyncer(peer_timeout)
 
@@ -344,7 +351,7 @@ class Room:
             level=self._bot.level,
             peer_id=self._peer_id,
         )
-        self._room_data = RoomData(
+        self._room_data = RoomState(
             name=self._room_params.name,
             host=self._bot_player,
             players=[self._bot_player],
@@ -368,7 +375,7 @@ class Room:
             data['guestName'] = self.bot.name
         else:
             data['token'] = self.bot.token
-        self._room_data = RoomData(
+        self._room_data = RoomState(
             name=self._room_params.name,
             host=None,
             players=[],
@@ -427,7 +434,7 @@ class Room:
         self._peer = Peer(
             id=peer_id,
             options=PeerOptions(
-                host=Endpoints.peer_api(self._room_params.server.api_name),
+                host=Endpoints.peer_api(self._room_params.server.name),
                 port=443,
                 path='/myapp',
                 secure=True,

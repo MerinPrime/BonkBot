@@ -2,11 +2,10 @@ from typing import Any, Dict, List, Optional
 
 from attrs import define, field
 
-from ...utils import parse_nullable_number
-
-from ...types.avatar.avatar import Avatar
-from ...types.friend import Friend
-from ...types.settings import Settings
+from ..utils import parse_nullable_number
+from .avatar import Avatar
+from .friend import Friend
+from .settings import Settings
 
 
 @define(slots=True, auto_attribs=True)

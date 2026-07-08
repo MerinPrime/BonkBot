@@ -5,6 +5,7 @@ from typing import List, Optional, Union
 
 from aiohttp import ClientSession
 
+from ...types.bot_data import BotData
 from ...types.errors.error_type import ErrorType
 from ...types.friend import Friend
 from ...types.map import BonkMap
@@ -13,9 +14,8 @@ from ...types.room import RoomInfo
 from ...types.room.room_join_params import RoomJoinParams
 from ...types.server import ServerList
 from ...utils.api import parse_nullable_number
-from ..bot.bot_data import BotData
+from .constants import PROTOCOL_VERSION
 from .endpoints import Endpoints
-from .socket_events import PROTOCOL_VERSION
 
 
 class BonkAPI:
@@ -123,7 +123,7 @@ class BonkAPI:
         if response_data['r'] == 'failed':
             return ErrorType.ROOM_NOT_FOUND
         return RoomJoinParams(
-            room_address=int(response_data['address']),
+            room_address=response_data['address'],
             password=password,
             bypass=bypass,
             name=response_data['roomname'],

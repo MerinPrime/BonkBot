@@ -28,6 +28,7 @@ class ServerList:
     ATLANTA = Server('b2atlanta1', 33.7537, -84.3863, 'US')
     SYDNEY = Server('b2sydney1', -33.8651, 151.2099, 'AU')
     BRAZIL = Server('b2brazil1', -22.9083, -43.1963, 'BR')
+    # not complete
 
     @classmethod
     def all(cls) -> List['Server']:

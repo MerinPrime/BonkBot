@@ -23,7 +23,7 @@ class MapMetadata:
     contributors: List[str] = field(factory=list)
     date: str = field(default='')
     auth_id: int = field(default=-1)
-    mode: 'Mode' = field(default=Mode.NONE)
+    mode: 'Mode' = field(default=Mode.CLASSIC)
     votes_down: Optional[int] = field(default=None)
     votes_up: Optional[int] = field(default=None)
 
