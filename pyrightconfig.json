@@ -2,8 +2,10 @@
   "pythonVersion": "3.8",
   "venvPath": ".",
   "venv": ".venv",
-  "analysis": {
-    "autoSearchPaths": false,
-    "useLibraryCodeForTypes": true
-  }
+  "autoSearchPaths": false,
+  "useLibraryCodeForTypes": true,
+  "reportMissingTypeStubs": "none",
+  "exclude": [
+    ".venv"
+  ]
 }
